@@ -32,10 +32,11 @@ public:
   // Special constructors
 
   RooUnfoldBayesT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter= 4, Bool_t smoothit= false,
-                  const char* name= 0, const char* title= 0);
+		   Bool_t handleFakes= false, const char* name= 0, const char* title= 0);
 
   void SetIterations (Int_t niter= 4);
   void SetSmoothing  (Bool_t smoothit= false);
+  void HandleFakes (Bool_t handleFakes);
   Int_t GetIterations() const;
   Int_t GetSmoothing()  const;
   const TMatrixD& UnfoldingMatrix() const;
@@ -68,6 +69,7 @@ protected:
   // instance variables
   mutable int _niter;
   mutable int _smoothit;
+  mutable int _handleFakes;
 
   mutable int _nc;              // number of causes  (same as _nt)
   mutable int _ne;              // number of effects (same as _nm)

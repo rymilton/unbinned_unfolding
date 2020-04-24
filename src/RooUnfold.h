@@ -25,6 +25,7 @@ public:
   
   typedef RooUnfolding::Algorithm Algorithm;
   typedef RooUnfolding::ErrorTreatment ErrorTreatment;
+  typedef RooUnfolding::BiasMethod BiasMethod;
   static const Algorithm kNone;
   static const Algorithm kBayes;
   static const Algorithm kSVD;
@@ -34,11 +35,17 @@ public:
   static const Algorithm kDagostini;
   static const Algorithm kIDS;
   static const Algorithm kGP;
+  static const Algorithm kPoisson;
   static const ErrorTreatment kNoError;
   static const ErrorTreatment kErrors;
   static const ErrorTreatment kCovariance;
   static const ErrorTreatment kCovToy;
   static const ErrorTreatment kDefault;
+  static const ErrorTreatment kRooFit;
+  static const BiasMethod kBiasAsimov;
+  static const BiasMethod kBiasEstimator;
+  static const BiasMethod kBiasClosure;
+  static const BiasMethod kBiasData;
   
   // Standard methods
 
@@ -58,6 +65,10 @@ public:
   virtual RooUnfoldT<Hist,Hist2D>& Setup (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas);
   virtual void SetMeasured (const Hist* meas);
   virtual void SetMeasured (const TVectorD& meas, const TMatrixD& cov);
+  virtual void SetTruth (const Hist* truth);
+  virtual void SetTruth (const TVectorD& truth, const TVectorD& err);
+  virtual void SetBkg (const Hist* bkg);
+  virtual void SetBkg (const TVectorD& bkg, const TVectorD& err);
   virtual void SetMeasured (const TVectorD& meas, const TVectorD& err);
   virtual void SetMeasuredCov (const TMatrixD& cov);
   virtual void SetResponse (const RooUnfoldResponseT<Hist,Hist2D>* res, Bool_t takeOwnership = false);
@@ -69,19 +80,29 @@ public:
   virtual RooUnfoldResponseT<Hist,Hist2D>* response();
   virtual const Hist* Hmeasured() const;
   virtual Hist* Hmeasured();
+  virtual const Hist* Htruth() const;
+  virtual Hist* Htruth();
+  virtual const Hist* Hbkg() const;
+  virtual Hist* Hbkg();
   virtual Hist* Hunfold (RooUnfolding::ErrorTreatment withError=RooUnfolding::kErrors);
 
   const    TVectorD& Vmeasured() const;   // Measured distribution as a TVectorD
   const    TVectorD& Emeasured() const;   // Measured distribution errors as a TVectorD
-  const    TVectorD& Vbias() const;   // Bias distribution as a TVectorD
-  const    TVectorD& Ebias() const;   // Bias distribution errors as a TVectorD
+  const    TVectorD& Vtruth() const;   // Truth distribution as a TVectorD
+  const    TVectorD& Vbkg() const;   // Background distribution as a TVectorD
+  const    TVectorD Vbias() const;   // Bias distribution as a TVectorD
+  const    TVectorD Ebias() const;   // Bias distribution errors as a TVectorD
   const    TMatrixD& GetMeasuredCov() const;   // Measured distribution covariance matrix
 
   virtual const TVectorD&  Vunfold() const;
   virtual TMatrixD   Eunfold  (RooUnfolding::ErrorTreatment witherror=RooUnfolding::kCovariance) const;
   virtual TVectorD   EunfoldV (RooUnfolding::ErrorTreatment witherror=RooUnfolding::kErrors) const;
   virtual TMatrixD   Wunfold  (RooUnfolding::ErrorTreatment witherror=RooUnfolding::kCovariance) const;
-  
+
+  virtual TVectorD   CoverageProbV(Int_t sigma=1) const;
+  virtual TVectorD   ScanCoverage(TVectorD& regparms, Int_t bin = -1, Int_t sigma=1) const;
+  virtual TVectorD   ScanBias2Var(TVectorD& regparms, Int_t bin = -1) const;
+
   virtual Int_t      verbose() const;
   virtual void       SetVerbose (Int_t level);
   virtual void       SetOverflow(Int_t overflow);
@@ -96,8 +117,8 @@ public:
   virtual void       SetRegParm (Double_t parm);
   virtual Double_t   GetRegParm() const; // Get Regularisation Parameter
   Double_t Chi2 (const Hist* hTrue,RooUnfolding::ErrorTreatment DoChi2=RooUnfolding::kCovariance) const;
-  virtual void CalculateBias(RooUnfolding::BiasMethod method, Int_t ntoys = 50, const Hist* hTrue = 0) const; // Estimate bias
-  virtual void CalculateBias(Int_t ntoys = 50, const Hist* hTrue = 0) const; // Estimate bias by throwing toys.
+  virtual void CalculateBias(RooUnfolding::BiasMethod method, Int_t ntoys = 50, const Hist* hTrue = 0, Bool_t relative=true) const; // Estimate bias
+  virtual void CalculateBias(Int_t ntoys = 50, const Hist* hTrue = 0, Bool_t relative=true) const; // Estimate bias by throwing toys.
 
   RooUnfolding::Algorithm GetAlgorithm() const;
   Double_t GetMinParm() const;
@@ -106,7 +127,8 @@ public:
   Double_t GetDefaultParm() const;
   double RunToy(TVectorD& x, TVectorD& xe) const;
   void RunToys(int ntoys, std::vector<TVectorD>& x, std::vector<TVectorD>& xe, std::vector<double>& chi2) const;
-  void RunBiasAsimovToys(int ntoys, std::vector<TVectorD>& vbias) const;
+  void RunBiasAsimovToys(int ntoys, std::vector<TVectorD>& vbias, Bool_t relative = true) const;
+  void RunBiasDataToys(int ntoys, std::vector<TVectorD>& vbias, Bool_t relative = true) const;
   
   void Print(Option_t* opt="") const;
   void Dump() const;    
@@ -162,6 +184,8 @@ protected:
     TMatrixD _err_mat;       // Error matrix from toys
     TVectorD* _vMes;         // Cached measured vector
     TVectorD* _eMes;         // Cached measured error
+    TVectorD* _vTruth;       // Cached truth vector
+    TVectorD* _vBkg;         // Cached bkg vector
     TMatrixD* _covL;         // Cached lower triangular matrix for which _covMes = _covL * _covL^T.
     TMatrixD* _covMes;       // Measurement covariance matrix    
   };
@@ -178,6 +202,8 @@ protected:
   RooUnfolding::SystematicsTreatment _dosys; // include systematic errors from response matrix? use _dosys=2 to exclude measurement errors
   RooUnfoldResponseT<Hist,Hist2D>* _res;     // Response matrix (not owned)
   Hist*    _meas;                            // Measured distribution (not owned)
+  Hist*    _bkg;                             // Estimated reconstructed background distribution (not owned)
+  Hist*    _truth;                           // Estimated truth distribution. Used in some regularization schemes. (not owned)
   RooUnfolding::Algorithm _alg;              // The used algorithm.
 
 public:

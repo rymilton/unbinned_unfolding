@@ -41,9 +41,9 @@ RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldBayesT<Hist,Hist2D
 }
 
 template<class Hist,class Hist2D>
-RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,Int_t niter, Bool_t smoothit,
+RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,Int_t niter, Bool_t smoothit, Bool_t handleFakes,
                                 const char* name, const char* title)
-  : _niter(niter), _smoothit(smoothit), RooUnfoldT<Hist,Hist2D> (res, meas, name, title)
+  : _niter(niter), _smoothit(smoothit), _handleFakes(handleFakes), RooUnfoldT<Hist,Hist2D> (res, meas, name, title)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -128,16 +128,22 @@ RooUnfoldBayesT<Hist,Hist2D>::setup() const
   this->_nEstj= this->Vmeasured();
 
   this->_nCi.ResizeTo(this->_nt);
-  this->_nCi= this->_res->Vtruth();
+  
+  // If an additional truth distribution is defined then use that as prior
+  // guess. Otherwise, use the truth of the response matrix.
+  if (this->Htruth()){
+    this->_nCi= this->Vtruth();
+  } else {
+    this->_nCi= this->_res->Vtruth();
+  }
 
   this->_Nji.ResizeTo(this->_ne,this->_nt);
+  this->_Nji = this->_res->Mresponse(true);
 
-  h2m(this->_res->Hresponse(), this->_Nji, this->_overflow);   // don't normalise, which is what this->_res->Mresponse() would give us
-
-  if (this->_res->HasFakes()) {
+  if (this->_res->HasFakes() && this->_handleFakes) {
     TVectorD fakes= this->_res->Vfakes();
     double nfakes= fakes.Sum();
-    if (this->verbose()>=0) std::cout << "Add truth bin for " << nfakes << " fakes" << std::endl;
+    std::cout << "An additional truth bin is added to handle " << nfakes << " fakes." << std::endl;
     this->_nc++;
     this->_nCi.ResizeTo(this->_nc);
     this->_nCi[this->_nc-1]= nfakes;
@@ -179,10 +185,11 @@ RooUnfoldBayesT<Hist,Hist2D>::unfold() const
 
   TMatrixD PEjCi(this->_ne,this->_nc), PEjCiEff(this->_ne,this->_nc);
   for (int i = 0 ; i < this->_nc ; i++) {
-    if (this->_nCi[i] <= 0.0) { this->_efficiencyCi[i] = 0.0; continue; }
+    //if (this->_nCi[i] <= 0.0) { this->_efficiencyCi[i] = 0.0; continue; }
     double eff = 0.0;
     for (int j = 0 ; j < this->_ne ; j++) {
-      double response = this->_Nji(j,i) / this->_nCi[i];
+      double response = this->_Nji(j,i);
+      
       PEjCi(j,i) = PEjCiEff(j,i) = response;  // efficiency of detecting the cause Ci in Effect Ej
       eff += response;
     }
@@ -506,6 +513,12 @@ void RooUnfoldBayesT<Hist,Hist2D>::SetSmoothing (Bool_t smoothit)
 {
   //! Enable smoothing
   this->_smoothit= smoothit;
+}
+
+template<class Hist, class Hist2D>
+void RooUnfoldBayesT<Hist,Hist2D>::HandleFakes(Bool_t handleFakes)
+{
+  this->_handleFakes = handleFakes;
 }
 
 template<class Hist,class Hist2D>

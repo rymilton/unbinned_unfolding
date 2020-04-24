@@ -28,10 +28,10 @@ public:
   RooUnfoldTUnfoldT (const RooUnfoldTUnfoldT& rhs); // copy constructor
   virtual ~RooUnfoldTUnfoldT(); // destructor
   RooUnfoldTUnfoldT& operator= (const RooUnfoldTUnfoldT& rhs); // assignment operator
-  RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,TUnfold::ERegMode reg=TUnfold::kRegModeDerivative,
-                    const char* name= 0, const char* title= 0);
-  RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,Double_t tau,TUnfold::ERegMode reg=TUnfold::kRegModeDerivative,
-                    const char* name= 0, const char* title= 0);
+  RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,TUnfold::ERegMode reg=TUnfold::kRegModeDerivative, Bool_t handleFakes= false, 
+		     const char* name= 0, const char* title= 0);
+  RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,Double_t tau,TUnfold::ERegMode reg=TUnfold::kRegModeDerivative, Bool_t handleFakes= false,
+		     const char* name= 0, const char* title= 0);
 
   virtual void Reset() override;
   TUnfold* Impl();
@@ -60,9 +60,12 @@ private:
   mutable TUnfold* _unf; //! Implementation in TUnfold object (no streamer)
   mutable Bool_t tau_set;
   mutable Double_t _tau;
+  mutable Bool_t _handleFakes;
   mutable   TSpline* _logTauX;
   mutable   TSpline* _logTauY;
   mutable   TGraph*  _lCurve;
+  mutable   TGraph*  _logTauSURE;
+  mutable   TGraph*  _df_chi2A;
 
 public:
 

@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 10/08/11
 
-// Version 17.8, bug fix in GetNonemptyNode() and non-const access of tree
+//  Version 17.9, parallel to changes in TUnfold
 //
 //  History:
+//    Version 17.8, bug fix in GetNonemptyNode() and non-const access of tree
 //    Version 17.7, bug fix in ExtractHistogram
 //    Version 17.6, bug fix to avoid possible crash in method
 //       CreateHistogramOfMigrations(). Bug fix with NaN in GetGlobalBinNumber()

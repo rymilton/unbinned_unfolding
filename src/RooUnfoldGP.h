@@ -39,7 +39,7 @@ public:
 
 protected:
   virtual void Unfold() const override;
-  //virtual void GetCov() const override;
+  virtual void GetCov() const override;
   void MLEstimator() const;
   void MLCovariance() const;
   void MAPEstimator() const;

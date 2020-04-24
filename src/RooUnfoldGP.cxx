@@ -231,15 +231,20 @@ RooUnfoldGPT<Hist,Hist2D>::Unfold() const
   // Calculate the maximum a postiori estimator for the 
   // truth histogram and the corresponding covariance matrix.
   MAPEstimator();
-  MAPCovariance();
 
   // Pass the solutions.
   this->_cache._rec.ResizeTo(this->_nt);
   this->_cache._rec = _specialcache._MAPEst;
-  this->_cache._cov.ResizeTo(this->_nt,this->_nt);
-  this->_cache._cov = _specialcache._MAPCov;
 
   this->_cache._unfolded= true;
+}
+
+template<class Hist, class Hist2D> void
+RooUnfoldGPT<Hist,Hist2D>::GetCov() const
+{
+  MAPCovariance();
+  this->_cache._cov.ResizeTo(this->_nt,this->_nt);
+  this->_cache._cov = _specialcache._MAPCov;
   this->_cache._haveCov= true;
 }
 
@@ -256,7 +261,7 @@ RooUnfoldGPT<Hist,Hist2D>::MLEstimator() const
     _specialcache._svd= new TDecompSVD (res);
 
   double c = _specialcache._svd->Condition();
-  if (c<0) std::cout << "WARNING: Response matrix is ill-conditioned. TDecompSVD condition number = " << c << std::endl;
+  if (c<0 && (this->_verbose>0)) std::cout << "WARNING: Response matrix is ill-conditioned. TDecompSVD condition number = " << c << std::endl;
 
   _specialcache._MLEst.ResizeTo(this->_nm);
   _specialcache._MLEst= this->Vmeasured();
@@ -483,7 +488,8 @@ RooUnfoldGPT<Hist,Hist2D>::MinimizeMLH() const
 
   min->SetMaxFunctionCalls(1000000);
   min->SetMaxIterations(100000);
-  min->SetTolerance(0.001);
+  min->SetTolerance(0.01);
+  
   //min->SetPrintLevel(1);
   
   ROOT::Math::Functor f(this, &RooUnfoldGPT<Hist,Hist2D>::MarginalLH,_specialcache._kernel_init.size()); 
@@ -498,20 +504,20 @@ RooUnfoldGPT<Hist,Hist2D>::MinimizeMLH() const
 
   min->Minimize();
 
-  if (min->Status()){
-    std::cout << "Minimization of the marginal likelihood did not converge. Try again with new initial values and step sizes." << std::endl;
-  } else {
-    const double* xs = min->X();
-   
-    if (this->_verbose >= 2) std::cout << "Marginal likelihood minimization converged." << std::endl;
-
-    for (int i = 0; i < _specialcache._kernel_init.size(); i++){
-      if (this->_verbose >= 2) std::cout << "Parameter " << i << ": " << xs[i] << std::endl;
-      _specialcache._opt_params.push_back(xs[i]);
-    }
+  //if (min->Status()){
+  //std::cout << "Minimization of the marginal likelihood did not converge. Try again with new initial values and step sizes." << std::endl;
+  //} else {
+  const double* xs = min->X();
+  
+  if (this->_verbose >= 2) std::cout << "Marginal likelihood minimization converged." << std::endl;
     
-    _specialcache._MLHConverged = true;
+  for (int i = 0; i < _specialcache._kernel_init.size(); i++){
+    if (this->_verbose >= 2) std::cout << "Parameter " << i << ": " << xs[i] << std::endl;
+    _specialcache._opt_params.push_back(xs[i]);
   }
+  
+  _specialcache._MLHConverged = true;
+  //}
 
   delete min;
 }

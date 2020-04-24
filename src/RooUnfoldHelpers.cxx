@@ -387,6 +387,30 @@ namespace RooUnfolding {
     }
   }
 
+  bool sanitize(TMatrixD& mat,double t){
+    bool retval = false;
+    if(mat.GetNcols() == mat.GetNrows()){
+      const size_t n = mat.GetNcols();
+      for(size_t i=0; i<n; ++i){
+        if(fabs(mat(i,i)) < t){
+          bool ok = false;
+          for(size_t j=0; j<n; ++j){
+            if(i==j) continue;
+            if(fabs(mat(i,j)) > t) ok = true;
+            if(fabs(mat(j,i)) > t) ok = true;
+          }
+          if(!ok){
+            retval = true;
+            mat(i,i) = 1.;
+          }
+        }
+      }
+    } else {
+      // no implementation for non-square matrices yet, TODO!
+    }
+    return retval;
+  }
+  
   void mNorm (TMatrixD& m, const TVectorD& norm){
     // normalize Matrix to values of vector
     for (Int_t j= 0; j < m.GetNcols(); ++j) {

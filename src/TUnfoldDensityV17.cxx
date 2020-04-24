@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt, Amnon Harel
 // DESY and CERN, 11/08/11
 
-//  Version 17.8, new method GetDXDY()
+//  Version 17.9, parallel to changes in TUnfold
 //
 //  History:
+//    Version 17.8, new method GetDXDY()
 //    Version 17.7, with bug-fix for curvature regularisation
 //    Version 17.6, with updated doxygen comments and bug-fixes in TUnfoldBinning
 //    Version 17.5, bug fix in TUnfold also corrects GetEmatrixSysUncorr()

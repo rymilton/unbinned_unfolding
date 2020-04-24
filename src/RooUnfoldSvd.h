@@ -18,7 +18,9 @@ public:
 public:
 
    SVDUnfold( const Hist* bdat, const Hist* bini, const Hist* xini, const Hist2D* Adet );
+   SVDUnfold( const TVectorD& bdat, const TMatrixD& Bcov, const TVectorD& bini, const TVectorD& xini, const TMatrixD& Mdet, const TMatrixD& MdetE );
    SVDUnfold( const Hist* bdat, const TMatrixD& Bcov, const Hist* bini, const Hist* xini, const Hist2D* Adet );
+   SVDUnfold( const Hist* bdat, const TMatrixD& Bcov, const Hist* bini, const Hist* xini, const TMatrixD& Mdet, const TMatrixD& MdetE );    
    SVDUnfold( const SVDUnfold& other );
 
    // Destructor
@@ -30,7 +32,7 @@ public:
 
    // Do the unfolding
    // "kreg"   - number of singular values used (regularisation)
-   Hist*    Unfold       ( Int_t kreg );
+   //Hist*    Unfold       ( Int_t kreg );
    TVectorD    UnfoldV       ( Int_t kreg );    
 
    // Determine for given input error matrix covariance matrix of unfolded 
@@ -66,8 +68,8 @@ public:
    const TMatrixD& GetBCov() const;
 
 private: 
-   
-   // Helper functions for vector and matrix operations
+
+    // Helper functions for vector and matrix operations
    void            FillCurvatureMatrix( TMatrixD& tCurv, TMatrixD& tC ) const;
    static Double_t GetCurvature       ( const TVectorD& vec, const TMatrixD& curv );
 
@@ -79,7 +81,8 @@ private:
    static void     RegularisedSymMatInvert( TMatrixDSym& mat, Double_t eps = 1e-3 );
    
    // Class members
-   Int_t       fNdim;        //! Truth and reconstructed dimensions
+   Int_t       fMdim;        //! Reconstructed dimensions
+   Int_t       fTdim;        //! Truth dimensions
    Int_t       fDdim;        //! Derivative for curvature matrix
    Bool_t      fNormalize;   //! Normalize unfolded spectrum to 1
    Int_t       fKReg;        //! Regularisation parameter
@@ -89,10 +92,11 @@ private:
    TMatrixD       fXinv;        //! Computed inverse of covariance matrix
 
    // Input histos
-   const Hist* fBdat;        // measured distribution (data)
+
+   const TVectorD fBdat;        // measured distribution (data)
    TMatrixD fBcov;        // covariance matrix of measured distribution (data)
-   const Hist* fBini;        // reconstructed distribution (MC)
-   const Hist* fXini;        // truth distribution (MC)
+   const TVectorD fBini;        // reconstructed distribution (MC)
+   const TVectorD fXini;        // truth distribution (MC)
    TMatrixD fAdet;        // Detector response matrix
    TMatrixD fAdetE;      
 
@@ -148,7 +152,6 @@ protected:
   // instance variables
   mutable SVDUnfold* _svd;  //! Implementation in TSVDUnfold object (no streamer)
   mutable Int_t _kreg;
-  mutable Int_t _nb;
 
   mutable const Hist *_meas1d, *_train1d, *_truth1d;
   mutable const Hist2D *_reshist, *_meascov;

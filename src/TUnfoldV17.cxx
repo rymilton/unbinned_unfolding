@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 13/10/08
 
-//  Version 17.8, add new method GetDXDY() for histograms
+//  Version 17.9, add new methods GetDF(), GetSURE(), ScanSURE(), GetSqrtEvEmatrix()
 //
 //  History:
+//    Version 17.8, add new method GetDXDY() for histograms
 //    Version 17.7, change finite() -> TMath::Finite()
 //    Version 17.6, updated doxygen-style comments, add one argument for scanLCurve
 //    Version 17.5, fix memory leak with fVyyInv, bugs in GetInputInverseEmatrix(), GetInput(), bug in MultiplyMSparseMSparseTranspVector
@@ -116,6 +117,8 @@ constraint, both x and &lambda; are determined.
 
 #include <map>
 #include <vector>
+
+#include "Math/ProbFunc.h"
 
 //#define DEBUG
 //#define DEBUG_DETAIL
@@ -1885,200 +1888,201 @@ TUnfoldV17::TUnfoldV17(const TH2 *hist_A, EHistMap histmap, ERegMode regmode,
 }
 
 TUnfoldV17::TUnfoldV17(const TMatrixD *matrix_A, EHistMap histmap, ERegMode regmode,
-                 EConstraint constraint)
+		       EConstraint constraint)
 {
-   // data members initialized to something different from zero:
-   //    fA: filled from hist_A
-   //    fDA: filled from hist_A
-   //    fX0: filled from hist_A
-   //    fL: filled depending on the regularisation scheme
-   InitTUnfold();
-   SetConstraint(constraint);
-   Int_t nx0, nx, ny;
-   if (histmap == kHistMapOutputHoriz) {
+  // data members initialized to something different from zero:
+  //    fA: filled from hist_A
+  //    fDA: filled from hist_A
+  //    fX0: filled from hist_A
+  //    fL: filled depending on the regularisation scheme
+  InitTUnfold();
+  SetConstraint(constraint);
+  Int_t nx0, nx, ny;
+  if (histmap == kHistMapOutputHoriz) {
 
-      // Keep the overflow bins on the X axis.
-      nx0 = matrix_A->GetNrows();
+    // Keep the overflow bins on the X axis.
+    nx0 = matrix_A->GetNrows();
  
-      // Remove the overflow bins on the Y axis.
-      ny = matrix_A->GetNcols() - 2;
-   } else {
+    // Remove the overflow bins on the Y axis.
+    ny = matrix_A->GetNcols() - 2;
+  } else {
 
-      // Keep the overflow bins on the X axis.
-      nx0 = matrix_A->GetNcols();
+    // Keep the overflow bins on the X axis.
+    nx0 = matrix_A->GetNcols();
  
-      // Remove the overflow bins on the Y axis.
-      ny = matrix_A->GetNrows() - 2;
-   }
+    // Remove the overflow bins on the Y axis.
+    ny = matrix_A->GetNrows() - 2;
+  }
  
-   nx = 0;
-   // fNx is expected to be nx0, but the input matrix may be ill-formed
-   // -> all columns with zero events have to be removed
-   //    (because y does not contain any information on that bin in x)
-   fSumOverY.Set(nx0);
-   fXToHist.Set(nx0);
-   fHistToX.Set(nx0);
-   Int_t nonzeroA=0;
-   // loop
-   //  - calculate bias distribution
-   //      sum_over_y
-   //  - count those generator bins which can be unfolded
-   //      fNx
-   //  - histogram bins are added to the lookup-tables
-   //      fHistToX[] and fXToHist[]
-   //    these convert histogram bins to matrix indices and vice versa
-   //  - the number of non-zero elements is counted
-   //      nonzeroA
-   Int_t nskipped=0;
-   for (Int_t ix = 0; ix < nx0; ix++) {
-      // calculate sum over all detector bins
-      // excluding the overflow bins
-      Double_t sum = 0.0;
-      Int_t nonZeroY = 0;
-      for (Int_t iy = 0; iy < ny; iy++) {
-         Double_t z;
-         if (histmap == kHistMapOutputHoriz) {
-	   z = (*matrix_A)[ix][iy + 1];
-         } else {
-	   z = (*matrix_A)[iy + 1][ix];
-         }
-         if (z != 0.0) {
-            nonzeroA++;
-            nonZeroY++;
-            sum += z;
-         }
+  nx = 0;
+  // fNx is expected to be nx0, but the input matrix may be ill-formed
+  // -> all columns with zero events have to be removed
+  //    (because y does not contain any information on that bin in x)
+  fSumOverY.Set(nx0);
+  fXToHist.Set(nx0);
+  fHistToX.Set(nx0);
+  Int_t nonzeroA=0;
+  // loop
+  //  - calculate bias distribution
+  //      sum_over_y
+  //  - count those generator bins which can be unfolded
+  //      fNx
+  //  - histogram bins are added to the lookup-tables
+  //      fHistToX[] and fXToHist[]
+  //    these convert histogram bins to matrix indices and vice versa
+  //  - the number of non-zero elements is counted
+  //      nonzeroA
+  Int_t nskipped=0;
+  for (Int_t ix = 0; ix < nx0; ix++) {
+    // calculate sum over all detector bins
+    // excluding the overflow bins
+    Double_t sum = 0.0;
+    Int_t nonZeroY = 0;
+    for (Int_t iy = 0; iy < ny; iy++) {
+      Double_t z;
+      if (histmap == kHistMapOutputHoriz) {
+	z = (*matrix_A)[ix][iy + 1];
+      } else {
+	z = (*matrix_A)[iy + 1][ix];
       }
-      // check whether there is any sensitivity to this generator bin
+      if (z != 0.0) {
+	nonzeroA++;
+	nonZeroY++;
+	sum += z;
+      }
+    }
+    // check whether there is any sensitivity to this generator bin
 
-      if (nonZeroY) {
-         // update mapping tables to convert bin number to matrix index
-         fXToHist[nx] = ix;
-         fHistToX[ix] = nx;
-         // add overflow bins -> important to keep track of the
-         // non-reconstructed events
-         fSumOverY[nx] = sum;
-         if (histmap == kHistMapOutputHoriz) {
+    if (nonZeroY) {
+      // update mapping tables to convert bin number to matrix index
+      fXToHist[nx] = ix;
+      fHistToX[ix] = nx;
+      // add overflow bins -> important to keep track of the
+      // non-reconstructed events
+      fSumOverY[nx] = sum;
+      if (histmap == kHistMapOutputHoriz) {
             fSumOverY[nx] +=
 	      (*matrix_A)[ix][0] +
 	      (*matrix_A)[ix][ny + 1];
-	 } else {
+      } else {
             fSumOverY[nx] +=
 	      (*matrix_A)[0][ix] +
 	      (*matrix_A)[ny + 1][ix];
-         }
-         nx++;
-      } else {
-         nskipped++;
-         // histogram bin pointing to -1 (non-existing matrix entry)
-         fHistToX[ix] = -1;
       }
-   }
-   Int_t underflowBin=0,overflowBin=0;
-   for (Int_t ix = 0; ix < nx; ix++) {
+      nx++;
+    } else {
+      nskipped++;
+      // histogram bin pointing to -1 (non-existing matrix entry)
+      fHistToX[ix] = -1;
+    }
+  }
+  Int_t underflowBin=0,overflowBin=0;
+  for (Int_t ix = 0; ix < nx; ix++) {
+    Int_t ibinx = fXToHist[ix];
+    if(ibinx<1) underflowBin=1;
+    if (histmap == kHistMapOutputHoriz) {
+      if(ibinx>matrix_A->GetNrows() - 2) overflowBin=1;
+    } else {
+      if(ibinx>matrix_A->GetNcols() - 2) overflowBin=1;
+    }
+  }
+  if(nskipped) {
+    Int_t nprint=0;
+    Int_t ixfirst=-1,ixlast=-1;
+    TString binlist;
+    int nDisconnected=0;
+    for (Int_t ix = 0; ix < nx0; ix++) {
+      if(fHistToX[ix]<0) {
+	nprint++;
+	if(ixlast<0) {
+	  binlist +=" ";
+	  binlist +=ix;
+	  ixfirst=ix;
+	}
+	ixlast=ix;
+	nDisconnected++;
+      }
+      if(((fHistToX[ix]>=0)&&(ixlast>=0))||
+	 (nprint==nskipped)) {
+	if(ixlast>ixfirst) {
+	  binlist += "-";
+	  binlist += ixlast;
+	}
+	ixfirst=-1;
+	ixlast=-1;
+      }
+      if(nprint==nskipped) {
+	break;
+      }
+    }
+    if(nskipped==(2-underflowBin-overflowBin)) {
+      Info("TUnfold","underflow and overflow bin "
+	   "do not depend on the input data");
+    } else {
+      Warning("TUnfold","%d output bins "
+	      "do not depend on the input data %s",nDisconnected,
+	      static_cast<const char *>(binlist));         
+    }
+  }
+  // store bias as matrix
+  fX0 = new TMatrixD(nx, 1, fSumOverY.GetArray());
+  // store non-zero elements in sparse matrix fA
+  // construct sparse matrix fA
+  Int_t *rowA = new Int_t[nonzeroA];
+  Int_t *colA = new Int_t[nonzeroA];
+  Double_t *dataA = new Double_t[nonzeroA];
+  Int_t index=0;
+  for (Int_t iy = 0; iy < ny; iy++) {
+    for (Int_t ix = 0; ix < nx; ix++) {
       Int_t ibinx = fXToHist[ix];
-      if(ibinx<1) underflowBin=1;
+      Double_t z;
       if (histmap == kHistMapOutputHoriz) {
-	if(ibinx>matrix_A->GetNrows() - 2) overflowBin=1;
+	z = (*matrix_A)[ibinx][iy + 1];
       } else {
-	if(ibinx>matrix_A->GetNcols() - 2) overflowBin=1;
+	z = (*matrix_A)[iy + 1][ibinx];
       }
-   }
-   if(nskipped) {
-      Int_t nprint=0;
-      Int_t ixfirst=-1,ixlast=-1;
-      TString binlist;
-      int nDisconnected=0;
-      for (Int_t ix = 0; ix < nx0; ix++) {
-         if(fHistToX[ix]<0) {
-            nprint++;
-            if(ixlast<0) {
-               binlist +=" ";
-               binlist +=ix;
-               ixfirst=ix;
-            }
-            ixlast=ix;
-            nDisconnected++;
-         }
-         if(((fHistToX[ix]>=0)&&(ixlast>=0))||
-            (nprint==nskipped)) {
-            if(ixlast>ixfirst) {
-               binlist += "-";
-               binlist += ixlast;
-            }
-            ixfirst=-1;
-            ixlast=-1;
-         }
-         if(nprint==nskipped) {
-            break;
-         }
+      if (z != 0.0) {
+	rowA[index]=iy;
+	colA[index] = ix;
+	dataA[index] = z / fSumOverY[ix];
+	index++;
       }
-      if(nskipped==(2-underflowBin-overflowBin)) {
-         Info("TUnfold","underflow and overflow bin "
-	      "do not depend on the input data");
+    }
+  }
+  if(underflowBin && overflowBin) {
+    Info("TUnfold","%d input bins and %d output bins (includes 2 underflow/overflow bins)",ny,nx);
+  } else if(underflowBin) {
+    Info("TUnfold","%d input bins and %d output bins (includes 1 underflow bin)",ny,nx);
+  } else if(overflowBin) {
+    Info("TUnfold","%d input bins and %d output bins (includes 1 overflow bin)",ny,nx);
+  } else {
+    Info("TUnfold","%d input bins and %d output bins",ny,nx);
+  }
+  fA = CreateSparseMatrix(ny,nx,index,rowA,colA,dataA);
+  if(ny<nx) {
+    Error("TUnfold","too few (ny=%d) input bins for nx=%d output bins",ny,nx);
+  } else if(ny==nx) {
+    Warning("TUnfold","too few (ny=%d) input bins for nx=%d output bins",ny,nx);
+  }
+  delete[] rowA;
+  delete[] colA;
+  delete[] dataA;
+  // regularisation conditions squared
+  fL = new TMatrixDSparse(1, GetNx());
+  if (regmode != kRegModeNone) {
+    Int_t nError=RegularizeBins(0, 1, nx0, regmode);
+    if(nError>0) {
+      if(nError>1) {
+	Info("TUnfold",
+	     "%d regularisation conditions have been skipped",nError);
       } else {
-         Warning("TUnfold","%d output bins "
-                 "do not depend on the input data %s",nDisconnected,
-                 static_cast<const char *>(binlist));         
+	Info("TUnfold",
+	     "One regularisation condition has been skipped");
       }
-   }
-   // store bias as matrix
-   fX0 = new TMatrixD(nx, 1, fSumOverY.GetArray());
-   // store non-zero elements in sparse matrix fA
-   // construct sparse matrix fA
-   Int_t *rowA = new Int_t[nonzeroA];
-   Int_t *colA = new Int_t[nonzeroA];
-   Double_t *dataA = new Double_t[nonzeroA];
-   Int_t index=0;
-   for (Int_t iy = 0; iy < ny; iy++) {
-      for (Int_t ix = 0; ix < nx; ix++) {
-         Int_t ibinx = fXToHist[ix];
-         Double_t z;
-         if (histmap == kHistMapOutputHoriz) {
-	   z = (*matrix_A)[ibinx][iy + 1];
-         } else {
-	   z = (*matrix_A)[iy + 1][ibinx];
-         }
-         if (z != 0.0) {
-            rowA[index]=iy;
-            colA[index] = ix;
-            dataA[index] = z / fSumOverY[ix];
-            index++;
-         }
-      }
-   }
-   if(underflowBin && overflowBin) {
-      Info("TUnfold","%d input bins and %d output bins (includes 2 underflow/overflow bins)",ny,nx);
-   } else if(underflowBin) {
-      Info("TUnfold","%d input bins and %d output bins (includes 1 underflow bin)",ny,nx);
-   } else if(overflowBin) {
-      Info("TUnfold","%d input bins and %d output bins (includes 1 overflow bin)",ny,nx);
-   } else {
-      Info("TUnfold","%d input bins and %d output bins",ny,nx);
-   }
-   fA = CreateSparseMatrix(ny,nx,index,rowA,colA,dataA);
-   if(ny<nx) {
-      Error("TUnfold","too few (ny=%d) input bins for nx=%d output bins",ny,nx);
-   } else if(ny==nx) {
-      Warning("TUnfold","too few (ny=%d) input bins for nx=%d output bins",ny,nx);
-   }
-   delete[] rowA;
-   delete[] colA;
-   delete[] dataA;
-   // regularisation conditions squared
-   fL = new TMatrixDSparse(1, GetNx());
-   if (regmode != kRegModeNone) {
-      Int_t nError=RegularizeBins(0, 1, nx0, regmode);
-      if(nError>0) {
-         if(nError>1) {
-            Info("TUnfold",
-                 "%d regularisation conditions have been skipped",nError);
-         } else {
-            Info("TUnfold",
-                 "One regularisation condition has been skipped");
-         }
-      }
-   }
+    }
+  }
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 /// set bias vector
@@ -2677,8 +2681,8 @@ Int_t TUnfoldV17::SetInput(const TH1 *input, Double_t scaleBias,
 }
 
 Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Double_t scaleBias,
-                        Double_t oneOverZeroError,const TH2 *hist_vyy,
-                        const TH2 *hist_vyy_inv)
+			   Double_t oneOverZeroError,const TH2 *hist_vyy,
+			   const TH2 *hist_vyy_inv)
 {
   // Data members modified:
   //   fY, fVyy, , fBiasScale
@@ -2691,7 +2695,7 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
 
   fBiasScale = scaleBias;
 
-   // delete old results (if any)
+  // delete old results (if any)
   ClearResults();
 
   // construct error matrix and inverted error matrix of measured quantities
@@ -2711,99 +2715,99 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
   Int_t nVyyN=0;
   Int_t nVyy1=0;
   for (Int_t iy = 0; iy < GetNy(); iy++) {
-     // diagonals
-     Double_t dy2;
-     if(!hist_vyy) {
-       Double_t dy = (*errvec_y)[iy + 1];
-        dy2=dy*dy;
-        if (dy2 <= 0.0) {
-           if(oneOverZeroError>0.0) {
-              dy2 = 1./ ( oneOverZeroError*oneOverZeroError);
-              nVarianceForced++;
-           } else {
-              nVarianceZero++;
-           }
-        }
-     } else {
-        dy2 = hist_vyy->GetBinContent(iy+1,iy+1);
-        if (dy2 <= 0.0) {
-           nVarianceZero++;
-        }
-     }
-     rowVyyN[nVyyN] = iy;
-     colVyyN[nVyyN] = iy;
-     rowVyy1[nVyy1] = iy;
-     colVyy1[nVyy1] = 0;
-     dataVyyDiag[iy] = dy2;
-     if(dy2>0.0) {
-        dataVyyN[nVyyN++] = dy2;
-        dataVyy1[nVyy1++] = dy2;
-     }
+    // diagonals
+    Double_t dy2;
+    if(!hist_vyy) {
+      Double_t dy = (*errvec_y)[iy + 1];
+      dy2=dy*dy;
+      if (dy2 <= 0.0) {
+	if(oneOverZeroError>0.0) {
+	  dy2 = 1./ ( oneOverZeroError*oneOverZeroError);
+	  nVarianceForced++;
+	} else {
+	  nVarianceZero++;
+	}
+      }
+    } else {
+      dy2 = hist_vyy->GetBinContent(iy+1,iy+1);
+      if (dy2 <= 0.0) {
+	nVarianceZero++;
+      }
+    }
+    rowVyyN[nVyyN] = iy;
+    colVyyN[nVyyN] = iy;
+    rowVyy1[nVyy1] = iy;
+    colVyy1[nVyy1] = 0;
+    dataVyyDiag[iy] = dy2;
+    if(dy2>0.0) {
+      dataVyyN[nVyyN++] = dy2;
+      dataVyy1[nVyy1++] = dy2;
+    }
   }
   if(hist_vyy) {
-     // non-diagonal elements
-     Int_t nOffDiagNonzero=0;
-     for (Int_t iy = 0; iy < GetNy(); iy++) {
-        // ignore rows where the diagonal is zero
-        if(dataVyyDiag[iy]<=0.0) {
-           for (Int_t jy = 0; jy < GetNy(); jy++) {
-              if(hist_vyy->GetBinContent(iy+1,jy+1)!=0.0) {
-                 nOffDiagNonzero++;
-              }
-           }
-           continue;
-        }
-        for (Int_t jy = 0; jy < GetNy(); jy++) {
-           // skip diagonal elements
-           if(iy==jy) continue;
-           // ignore columns where the diagonal is zero
-           if(dataVyyDiag[jy]<=0.0) continue;
+    // non-diagonal elements
+    Int_t nOffDiagNonzero=0;
+    for (Int_t iy = 0; iy < GetNy(); iy++) {
+      // ignore rows where the diagonal is zero
+      if(dataVyyDiag[iy]<=0.0) {
+	for (Int_t jy = 0; jy < GetNy(); jy++) {
+	  if(hist_vyy->GetBinContent(iy+1,jy+1)!=0.0) {
+	    nOffDiagNonzero++;
+	  }
+	}
+	continue;
+      }
+      for (Int_t jy = 0; jy < GetNy(); jy++) {
+	// skip diagonal elements
+	if(iy==jy) continue;
+	// ignore columns where the diagonal is zero
+	if(dataVyyDiag[jy]<=0.0) continue;
 
-           rowVyyN[nVyyN] = iy;
-           colVyyN[nVyyN] = jy;
-           dataVyyN[nVyyN]= hist_vyy->GetBinContent(iy+1,jy+1);
-           if(dataVyyN[nVyyN] == 0.0) continue;
-           nVyyN ++;
-        }
-     }
-     if(hist_vyy_inv) {
-        Warning("SetInput",
-                "inverse of input covariance is taken from user input");
-        Int_t *rowVyyInv=new Int_t[GetNy()*GetNy()+1];
-        Int_t *colVyyInv=new Int_t[GetNy()*GetNy()+1];
-        Double_t *dataVyyInv=new Double_t[GetNy()*GetNy()+1];
-        Int_t nVyyInv=0;
-        for (Int_t iy = 0; iy < GetNy(); iy++) {
-           for (Int_t jy = 0; jy < GetNy(); jy++) {
-              rowVyyInv[nVyyInv] = iy;
-              colVyyInv[nVyyInv] = jy;
-              dataVyyInv[nVyyInv]= hist_vyy_inv->GetBinContent(iy+1,jy+1);
-              if(dataVyyInv[nVyyInv] == 0.0) continue;
-              nVyyInv ++;
-           }
-        }
+	rowVyyN[nVyyN] = iy;
+	colVyyN[nVyyN] = jy;
+	dataVyyN[nVyyN]= hist_vyy->GetBinContent(iy+1,jy+1);
+	if(dataVyyN[nVyyN] == 0.0) continue;
+	nVyyN ++;
+      }
+    }
+    if(hist_vyy_inv) {
+      Warning("SetInput",
+	      "inverse of input covariance is taken from user input");
+      Int_t *rowVyyInv=new Int_t[GetNy()*GetNy()+1];
+      Int_t *colVyyInv=new Int_t[GetNy()*GetNy()+1];
+      Double_t *dataVyyInv=new Double_t[GetNy()*GetNy()+1];
+      Int_t nVyyInv=0;
+      for (Int_t iy = 0; iy < GetNy(); iy++) {
+	for (Int_t jy = 0; jy < GetNy(); jy++) {
+	  rowVyyInv[nVyyInv] = iy;
+	  colVyyInv[nVyyInv] = jy;
+	  dataVyyInv[nVyyInv]= hist_vyy_inv->GetBinContent(iy+1,jy+1);
+	  if(dataVyyInv[nVyyInv] == 0.0) continue;
+	  nVyyInv ++;
+	}
+      }
         fVyyInv=CreateSparseMatrix
-           (GetNy(),GetNy(),nVyyInv,rowVyyInv,colVyyInv,dataVyyInv);
+	  (GetNy(),GetNy(),nVyyInv,rowVyyInv,colVyyInv,dataVyyInv);
         delete [] rowVyyInv;
         delete [] colVyyInv;
         delete [] dataVyyInv;
-     } else {
-        if(nOffDiagNonzero) {
-           Error("SetInput",
-                 "input covariance has elements C(X,Y)!=0 where V(X)==0");
-        }
-     }
+    } else {
+      if(nOffDiagNonzero) {
+	Error("SetInput",
+	      "input covariance has elements C(X,Y)!=0 where V(X)==0");
+      }
+    }
   }
   DeleteMatrix(&fVyy);
   fVyy = CreateSparseMatrix
-     (GetNy(),GetNy(),nVyyN,rowVyyN,colVyyN,dataVyyN);
+    (GetNy(),GetNy(),nVyyN,rowVyyN,colVyyN,dataVyyN);
 
   delete[] rowVyyN;
   delete[] colVyyN;
   delete[] dataVyyN;
 
   TMatrixDSparse *vecV=CreateSparseMatrix
-     (GetNy(),1,nVyy1,rowVyy1,colVyy1, dataVyy1);
+    (GetNy(),1,nVyy1,rowVyy1,colVyy1, dataVyy1);
 
   delete[] rowVyy1;
   delete[] colVyy1;
@@ -2822,43 +2826,43 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
   Int_t nError2=0;
   Int_t error2bin=-1;
   for (Int_t i = 0; i <mAtV->GetNrows();i++) {
-     if(mAtV->GetRowIndexArray()[i]==
-        mAtV->GetRowIndexArray()[i+1]) {
-        nError2 ++;
-        error2bin=i;
-     }
+    if(mAtV->GetRowIndexArray()[i]==
+       mAtV->GetRowIndexArray()[i+1]) {
+      nError2 ++;
+      error2bin=i;
+    }
   }
   if(nVarianceForced) {
-     if(nVarianceForced>1) {
-        Warning("SetInput","%d/%d input bins have zero error,"
-                " 1/error set to %lf.",
-                nVarianceForced,GetNy(),oneOverZeroError);
-     } else {
-        Warning("SetInput","One input bin has zero error,"
-                " 1/error set to %lf.",oneOverZeroError);
-     }
+    if(nVarianceForced>1) {
+      Warning("SetInput","%d/%d input bins have zero error,"
+	      " 1/error set to %lf.",
+	      nVarianceForced,GetNy(),oneOverZeroError);
+    } else {
+      Warning("SetInput","One input bin has zero error,"
+	      " 1/error set to %lf.",oneOverZeroError);
+    }
   }
   if(nVarianceZero) {
-     if(nVarianceZero>1) {
-        Warning("SetInput","%d/%d input bins have zero error,"
-                " and are ignored.",nVarianceZero,GetNy());
-     } else {
-        Warning("SetInput","One input bin has zero error,"
-                " and is ignored.");
-     }
-     fIgnoredBins=nVarianceZero;
+    if(nVarianceZero>1) {
+      Warning("SetInput","%d/%d input bins have zero error,"
+	      " and are ignored.",nVarianceZero,GetNy());
+    } else {
+      Warning("SetInput","One input bin has zero error,"
+	      " and is ignored.");
+    }
+    fIgnoredBins=nVarianceZero;
   }
   if(nError2>0) {
-     // check whether data points with zero error are responsible
-     if(oneOverZeroError<=0.0) {
-        //const Int_t *a_rows=fA->GetRowIndexArray();
-        //const Int_t *a_cols=fA->GetColIndexArray();
-        for (Int_t col = 0; col <mAtV->GetNrows();col++) {
-           if(mAtV->GetRowIndexArray()[col]==
-              mAtV->GetRowIndexArray()[col+1]) {
-              TString binlist("no data to constrain output bin ");
-              binlist += GetOutputBinName(fXToHist[col]);
-              /* binlist +=" depends on ignored input bins ";
+    // check whether data points with zero error are responsible
+    if(oneOverZeroError<=0.0) {
+      //const Int_t *a_rows=fA->GetRowIndexArray();
+      //const Int_t *a_cols=fA->GetColIndexArray();
+      for (Int_t col = 0; col <mAtV->GetNrows();col++) {
+	if(mAtV->GetRowIndexArray()[col]==
+	   mAtV->GetRowIndexArray()[col+1]) {
+	  TString binlist("no data to constrain output bin ");
+	  binlist += GetOutputBinName(fXToHist[col]);
+	  /* binlist +=" depends on ignored input bins ";
               for(Int_t row=0;row<fA->GetNrows();row++) {
                  if(dataVyyDiag[row]>0.0) continue;
                  for(Int_t i=a_rows[row];i<a_rows[row+1];i++) {
@@ -2867,17 +2871,17 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
                     binlist +=row;
                  }
                  } */
-              Warning("SetInput","%s",(char const *)binlist);
-           }
-        }
-     }
-     if(nError2>1) {
-        Error("SetInput","%d/%d output bins are not constrained by any data.",
-                nError2,mAtV->GetNrows());
-     } else {
-        Error("SetInput","One output bin [%d] is not constrained by any data.",
-              error2bin);
-     }
+	  Warning("SetInput","%s",(char const *)binlist);
+	}
+      }
+    }
+    if(nError2>1) {
+      Error("SetInput","%d/%d output bins are not constrained by any data.",
+	    nError2,mAtV->GetNrows());
+    } else {
+      Error("SetInput","One output bin [%d] is not constrained by any data.",
+	    error2bin);
+    }
   }
   DeleteMatrix(&mAtV);
 
@@ -2907,6 +2911,32 @@ Double_t TUnfoldV17::DoUnfold(Double_t tau)
    //     fTauSquared and those documented in DoUnfold(void)
    fTauSquared=tau*tau;
    return DoUnfold();
+}
+
+////////////////////////////////////////////////////////////////////////
+// calculate square roots of the eigenvalues of the matrix E
+// returns: vector of eigenvalues
+TVectorD TUnfold::GetSqrtEvEmatrix(void) const {
+   int nRow=GetE()->GetNrows();
+   TMatrixDSym eSym(nRow);
+   const Int_t *rows=GetE()->GetRowIndexArray();
+   const Int_t *cols=GetE()->GetColIndexArray();
+   const Double_t *data=GetE()->GetMatrixArray();
+   for(Int_t irow=0;irow<nRow;irow++) {
+      for(Int_t indexE=rows[irow];indexE<rows[irow+1];indexE++) {
+         Int_t icol=cols[indexE];
+         eSym(irow,icol)=data[indexE];
+      }
+   }
+   TMatrixDSymEigen ev(eSym);
+   TVectorD r=ev.GetEigenValues();
+   for(int i=0;i<r.GetNrows();i++) {
+      double evi=r(i);
+      if(evi<0.) evi= - TMath::Sqrt(evi);
+      else evi = TMath::Sqrt(evi);
+      r(i)=evi;
+   }
+   return r;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -2991,8 +3021,9 @@ Int_t TUnfoldV17::ScanLcurve(Int_t nPoint,
         // unfolding guess maximum tau and store it
         Double_t logTau=
            0.5*(TMath::Log10(fChi2A+3.*TMath::Sqrt(GetNdf()+1.0))
-                -GetLcurveY());
+           -GetLcurveY());
         DoUnfold(TMath::Power(10.,logTau));
+
         if((!TMath::Finite(GetLcurveX())) ||(!TMath::Finite(GetLcurveY()))) {
            Fatal("ScanLcurve","problem (missing regularisation?) X=%f Y=%f",
                  GetLcurveX(),GetLcurveY());
@@ -4098,3 +4129,430 @@ const char *TUnfoldV17::GetTUnfoldVersion(void)
    return TUnfold_VERSION;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+/// return Stein's unbiased risk estimator
+/// See e.g. arXiv:1612.09415
+/// 
+/// A minimum in the SURE variable is a good choice of regularisation strength
+/// 
+/// NOTE: the calculation of SURE depends on the calculation of DF.
+/// See the method GetDF() for caveats with Poisson-distributed data.
+
+double TUnfoldV17::GetSURE(void) const {
+   return GetChi2A()+2.*GetDF();
+}
+
+////////////////////////////////////////////////////////////////////////
+/// return the effecive number of degrees of freedom
+/// See e.g. arXiv:1612.09415 and the references therein
+///
+/// Here, DF is calculated using the dependence of
+///  the unfolding result x on the data y
+///
+/// This calculation is done assuming a CONSTANT data variance.
+///  I.e. the uncertainties reported to TUnfold in "SetInput()"
+/// ought to be independent of the measurements.
+/// This is *NOT* true for standard Poisson-distributed data.
+/// In practice the impact is expected to be small
+
+double TUnfoldV17::GetDF(void) const {
+
+   double r=0.;
+   const Int_t *rows_A=fA->GetRowIndexArray();
+   const Int_t *cols_A=fA->GetColIndexArray();
+   const Double_t *data_A=fA->GetMatrixArray();
+   for (Int_t iy = 0; iy <fA->GetNrows(); iy++) {
+      for(Int_t indexA=rows_A[iy];indexA<rows_A[iy+1];indexA++) {
+         Int_t ix = cols_A[indexA];
+         r += data_A[indexA]*(*fDXDY)(ix,iy);
+      }
+   }
+   return r;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// minimize Stein's unbiased risk estimator "SURE"
+/// using successive calls to DoUnfold at various tau.
+/// Optionally, also the L-curve and its curvature are calculated
+/// for comparison. See description of GetSURE()
+///  See e.g. arXiv:1612.09415 for the definition of SURE
+///
+/// \param[in] nPoint : number of points
+/// \param[in] tauMin : lower end of scan-range 
+/// \param[in] tauMax : upper end of scan-range 
+/// \param[out] logTauSURE : scan result, SURE as a function of log(tau)
+/// \param[out] df_chi2A : parametric plot of DF against chi2A
+/// \param[out] lCurve : parametric plot (lCurve)
+///
+/// return value: index of the "best" point
+///
+/// if tauMin is less than zero of if tauMin is not loer than tauMax, then
+/// the scan range is determined automatically
+/// if tau=0 is included in the scan, then the first x-coordinate
+//  of the result plot logTauSURE is set to -Infinity
+
+Int_t TUnfoldV17::ScanSURE
+(Int_t nPoint,Double_t tauMin,Double_t tauMax,
+ TGraph **logTauSURE,TGraph **df_chi2A,TGraph **lCurve) {
+
+   struct ScanResult {
+      double DF,SURE,chi2A,x,y;
+   };
+   std::map<double,ScanResult > scan;
+
+   DoUnfold(0.);
+   TVectorD ev=GetSqrtEvEmatrix();
+
+   while((int)scan.size()<nPoint) {
+      // add a point
+      double tau;
+      int n=scan.size();
+      if(n==0) {
+         if((tauMin>=0.)&&(tauMax>tauMin)) {
+            tau=tauMin;
+         } else {
+            tau=0.0;
+         }
+      } else if(n==1) {
+         if((tauMin>=0.)&&(tauMax>tauMin)) {
+            tau=tauMax;
+         } else {
+            // estimate of maximum tau         
+            tau=1./ev(ev.GetNrows()-1);
+            if(tau<=tauMin) tau=tauMin+1.;
+         }
+      } else {
+         // interpolate/extrapolate
+         std::vector<double> t,s;
+         t.reserve(n);
+         s.reserve(n);
+         for(std::map<double,ScanResult>::const_iterator i=scan.begin();
+             i!=scan.end();i++) {
+            t.push_back((*i).first);
+            s.push_back((*i).second.SURE);
+         }
+         if((n<nPoint-1)||(n<3)) {
+            // add another point
+            int where=0;
+
+            if(t.size()>2) {
+               // check whether all intervals not including tau=0
+               // have the same (logarithmic) size
+               double s0=0.,s1=0.,s2=0.;
+               double rMax=0;
+               for(size_t i=0;i<t.size()-1;i++) {
+                  if(t[i]>0.) {
+                     double r=TMath::Log(t[i+1]/t[i]);
+                     s0+=1.;
+                     s1+=r;
+                     s2+=r*r;
+                     if(r>rMax) {
+                        rMax=r;
+                        where=i;
+                     }
+                  }
+               }
+               double mean=s1/s0;
+               double diffSq=s2-mean*mean*s0;
+               if(diffSq<0.5*(rMax-mean)) {
+                  where=0;
+               }
+            }
+
+            if((where==0)&&(t[where]<=0.0)) {
+               // automatic scan
+               // change minimum by 1/2
+               tau=t[where+1]/2.;
+            } else {
+               // geometric mean
+               tau=TMath::Sqrt(t[where]*t[where+1]);
+            }
+         } else {
+            // improve minimum
+            int where=1;
+            for(size_t i=2;i<t.size()-1;i++) {
+               if(s[i]<s[where]) where=i;
+            }
+            // quadratic interpolation
+            if(where!=1) {
+               // log in tau
+               for(int i=-1;i<2;i++) t[where+i]=TMath::Log10(t[where+i]);
+            }
+            Info("ScanSURE","minimum near: [%f,%f,%f] -> [%f,%f,%f}",
+                 t[where-1],t[where],t[where+1],s[where-1],s[where],s[where+1]);
+            double s21=s[where+1]-s[where];
+            double s01=s[where-1]-s[where];
+            double t21=t[where+1]-t[where];
+            double t01=t[where-1]-t[where];
+            double t20=t[where+1]-t[where-1];
+            double ct0t2=(s21*t01-s01*t21)/t20;
+            double bt0t2=(s01*t21*t21-s21*t01*t01)/t20;
+            if(ct0t2<0.0) {
+               tau=t[where]-0.5*bt0t2/ct0t2;
+               //Info("ScanSURE","try tau=%f",tau);
+            } else {
+               // not a minimum - not clear what to do
+               if(s21<s01) {
+                  tau=t[where]+0.5*t21;
+               } else {
+                  tau=t[where]+0.5*t01;
+               }
+               //Info("ScanSURE","half of interval: tau=%f",tau);
+            }
+            if(where!=1) tau=TMath::Power(10.,tau);
+         }
+      }
+      DoUnfold(tau);
+      ScanResult &r=scan[tau];
+      r.SURE=GetSURE();
+      r.DF=GetDF();
+      r.chi2A=GetChi2A();
+      r.x=GetLcurveX();
+      r.y=GetLcurveY();
+      
+      if((tau<=0.)&&(GetNdf()<=0)) {
+         Error("ScanSURE","too few input bins, NDF<=0 %d",GetNdf());  
+      }
+      if(tau<=0.) {
+         Info("ScanSURE","logtau=-Infinity Chi2A=%lf SURE=%lf DF=%lf X=%lf Y=%lf",
+              r.chi2A,r.SURE,r.DF,r.x,r.y);
+         if(!TMath::Finite(r.x)) {
+            Fatal("ScanSURE","problem (too few input bins?) x=%f",r.x);
+         }
+         if(!TMath::Finite(r.y)) {
+            Fatal("ScanSURE","problem (missing regularisation?) y=%f",r.y);
+         }
+      } else {
+         Info("ScanSURE","logtau=%lf Chi2A=%lf SURE=%lf DF=%lf X=%lf Y=%lf",
+              TMath::Log10(tau),r.chi2A,r.SURE,r.DF,r.x,r.y);
+      }
+      
+   }
+
+   int iBest=-1;
+   // store results
+   std::vector<double> logTau,SURE,DF,chi2A,X,Y;
+   for(std::map<double,ScanResult>::const_iterator i=scan.begin();
+       i!=scan.end();i++) {
+      if((*i).first>=0) {
+         double log10tau;
+         if((*i).first>0.0) {
+            log10tau=TMath::Log10((*i).first);
+         } else {
+            continue; // log10tau=-HUGE_VAL;
+         }
+         double s=(*i).second.SURE;
+         if((iBest<0)||(SURE[iBest]>s)) {
+            iBest=SURE.size();
+         }
+         logTau.push_back(log10tau);
+         SURE.push_back(s);
+         DF.push_back((*i).second.DF);
+         chi2A.push_back((*i).second.chi2A);
+         X.push_back((*i).second.x);
+         Y.push_back((*i).second.y);
+      }
+   }
+   
+   int n=logTau.size();
+   if(n) {
+      // fill graphs and splines
+      if(logTauSURE) {
+         *logTauSURE=new TGraph(n,logTau.data(),SURE.data());
+      }
+      if(df_chi2A) {
+         *df_chi2A=new TGraph(n,DF.data(),chi2A.data());
+      }
+      if(lCurve) {
+         *lCurve=new TGraph(n,X.data(),Y.data());
+      }
+   }
+   return iBest;
+}
+
+//*********************************************************************//
+//*********************************************************************//
+// Contribution of JLK and MK starts here                              //
+//*********************************************************************//
+//*********************************************************************//
+
+
+TVectorD TUnfoldV17::ComputeCoverage(TMatrixD *beta, Double_t tau)
+{
+  if(!fVyyInv) {
+    GetInputInverseEmatrix(0);
+    if(fConstraint != kEConstraintNone) {
+      fNdf--;
+    }
+  }
+
+  // calculate bias
+  TMatrixDSparse *AtVyyinv=MultiplyMSparseTranspMSparse(fA,fVyyInv);
+  fEinv=MultiplyMSparseMSparse(AtVyyinv,fA);
+  TMatrixDSparse *lSquared=MultiplyMSparseTranspMSparse(fL,fL);
+  AddMSparse(fEinv,tau*tau,lSquared);
+
+  //         T              2 T   -1
+  // fE = [A  Vyyinv A + tau L L]
+  Int_t rank=0;
+  fE = InvertMSparseSymmPos(fEinv,&rank);
+
+  // calculate linear estimator
+  TMatrixDSparse *EAtVyyinv=MultiplyMSparseMSparse(fE,AtVyyinv);
+  TMatrixDSparse *EAtVyyinvA=MultiplyMSparseMSparse(EAtVyyinv,fA);
+
+  TMatrixDSparse *Unit;
+  Unit=new TMatrixDSparse(*EAtVyyinvA);
+  Unit->UnitMatrix();
+
+  AddMSparse(EAtVyyinvA, -1.0, Unit);
+
+  TMatrixDSparse *biasSparse=MultiplyMSparseM(EAtVyyinvA,beta);
+
+  if (fBiasScale != 0.0) {
+    TMatrixDSparse *lSquaredScaled = &((*lSquared)*=tau*tau);
+    TMatrixD *fX0Scaled = &((*fX0)*=fBiasScale);
+    TMatrixDSparse *taulSquaredfX0=MultiplyMSparseM(lSquaredScaled, fX0Scaled);
+    TMatrixDSparse *EtaulSquaredfX0=MultiplyMSparseMSparse(fE, taulSquaredfX0);
+    AddMSparse(biasSparse, 1.0, EtaulSquaredfX0);
+  }
+
+  Double_t *bias_data = biasSparse->GetMatrixArray();
+
+  // calculate SE
+  TMatrixDSparse *EAtVyyinvVyy = MultiplyMSparseMSparse(EAtVyyinv, fVyy);
+
+  // Transpose EAtVyyinv
+  TMatrixDSparse *EAtVyyinvt = new TMatrixDSparse(EAtVyyinv->GetNcols(),EAtVyyinv->GetNrows());
+  EAtVyyinvt->Transpose(*EAtVyyinv);
+
+
+  TMatrixDSparse *SE = MultiplyMSparseMSparse(EAtVyyinvVyy, EAtVyyinvt);
+  SE->Sqrt();
+
+
+  // extract diagonal elements of SE
+  const Int_t *SE_rows=SE->GetRowIndexArray();
+  const Int_t *SE_cols=SE->GetColIndexArray();
+  const Double_t *SE_data=SE->GetMatrixArray();
+  // SEii: diagonals of SE
+  TVectorD SEii(SE->GetNrows());
+  Int_t nError=0;
+  for(Int_t iA=0;iA<SE->GetNrows();iA++) {
+    for(Int_t indexA=SE_rows[iA];indexA<SE_rows[iA+1];indexA++) {
+      Int_t jA=SE_cols[indexA];
+      if(iA==jA) {
+	if(!(SE_data[indexA]>=0.0)) nError++;
+	SEii(iA)=SE_data[indexA];
+      }
+    }
+  }
+
+  Int_t dim = fXToHist.GetSize() - 2;
+  // dim should equal the # of bins in TRUE space
+  // Subtracts 2 because in TUnfold constructor,
+  // 2 is added to the # of bins in TRUE space
+  // for overflow purpose
+
+  TVectorD Coverage_probability(dim);
+
+  for(Int_t i=0; i<dim; i++) {
+    Coverage_probability(i) = ROOT::Math::normal_cdf(bias_data[i]/SEii(i)+1)
+      - ROOT::Math::normal_cdf(bias_data[i]/SEii(i)-1);
+  }
+  return Coverage_probability;
+}
+
+TVectorD TUnfoldV17::ComputeCoverage(TH1 *hist_beta, Double_t tau)
+{
+  // converting TH1 hist_beta to TMatrixD beta
+  TMatrixD *beta;
+  beta = new TMatrixD(GetNx(), 1);
+  for (Int_t i = 0; i < GetNx(); i++) {
+    (*beta) (i, 0) = hist_beta->GetBinContent(fXToHist[i]);
+  }
+
+  TVectorD Coverage_probability = ComputeCoverage(beta, tau);
+  return Coverage_probability;
+}
+
+Double_t TUnfoldV17::UndersmoothTau(Double_t tau, Double_t epsilon, Int_t max_iter)
+{
+  if(tau <= 0) {
+    Error("UndersmoothedUnfolding::UndersmoothTau", "Tau should be strictly positive");
+    return std::numeric_limits<double>::infinity();
+  }
+  if(epsilon <= 0) {
+    Error("UndersmoothedUnfolding::UndersmoothTau", "Tolerance should be strictly positive");
+    return std::numeric_limits<double>::infinity();
+  }
+  if(max_iter <= 0) {
+    Error("UndersmoothedUnfolding::UndersmoothTau", "Max number of iteration should be strictly positive");
+    return std::numeric_limits<double>::infinity();
+  }
+
+  Double_t nominalCoverage = ROOT::Math::normal_cdf(1) - ROOT::Math::normal_cdf(-1);
+
+  //Double_t scaling = sqrt(0.95);
+  Double_t scaling = 0.90;
+
+  Int_t num_iter = 0;
+  Int_t fixed = 0;
+  Double_t coverages[2]={0.0};
+
+  TMatrixD *fXHat = 0;
+  TMatrixD *fXHatPrev = 0;
+
+  do {
+    if (fixed != 1) {
+      fXHatPrev = fXHat;
+
+      TMatrixDSparse *AtVyyinv=MultiplyMSparseTranspMSparse(fA,fVyyInv);
+      TMatrixDSparse *rhs=MultiplyMSparseM(AtVyyinv,fY);
+      TMatrixDSparse *lSquared=MultiplyMSparseTranspMSparse(fL,fL);
+      if (fBiasScale != 0.0) {
+        TMatrixDSparse *rhs2=MultiplyMSparseM(lSquared,fX0);
+	AddMSparse(rhs, tau*tau * fBiasScale ,rhs2);
+	DeleteMatrix(&rhs2);
+      }
+      fEinv=MultiplyMSparseMSparse(AtVyyinv,fA);
+      AddMSparse(fEinv,tau*tau,lSquared);
+      Int_t rank=0;
+      fE = InvertMSparseSymmPos(fEinv,&rank);
+      TMatrixDSparse *xSparse=MultiplyMSparseMSparse(fE,rhs);
+      fXHat = new TMatrixD(*xSparse);
+      DeleteMatrix(&rhs);
+      DeleteMatrix(&xSparse);
+      //std::cout << "Obtained new BetaHat" << std::endl;
+    }
+
+    TVectorD computedCoverage = ComputeCoverage(fXHat, tau);
+    coverages[0] = coverages[1];
+    coverages[1] = computedCoverage.Min();
+    Info("UndersmoothTau", "Current computed coverage: %lf", coverages[1]);
+
+    if (coverages[0] > coverages[1]) {
+      Info("UndersmoothTau", "Computed coverage decreased\nPrevious: %lf, Now: %lf",
+	   coverages[0], coverages[1]);
+
+      fixed = 1;
+      fXHat = fXHatPrev;
+      TVectorD computedCoverage = ComputeCoverage(fXHat, tau);
+      coverages[1] = computedCoverage.Min();
+    }
+    tau = tau * scaling;
+    Info("UndersmoothTau", "Decreasing tau to %lf", tau);
+
+    num_iter = num_iter+1;
+  } while (coverages[1] < nominalCoverage-epsilon && num_iter<max_iter);
+  tau = tau / scaling;
+  Info("UndersmoothTau", "Obtained estimated coverage: %lf", coverages[1]);
+  return tau;
+}
+
+//*********************************************************************//
+//*********************************************************************//
+// Contribution of JLK and MK ends here                              //
+//*********************************************************************//
+//*********************************************************************//

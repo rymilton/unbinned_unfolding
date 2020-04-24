@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 13/10/08
 
-//  Version 17.8, add new method GetDXDY() for histograms
+//  Version 17.9, add new methods GetDF(), GetSURE(), ScanSURE(), GetSqrtEvEmatrix()
 //
 //  History:
+//    Version 17.8, add new method GetDXDY() for histograms
 //    Version 17.7, updates in the TUnfold implementation
 //    Version 17.6,  updated doxygen-style comments, add one argument for scanLCurve
 //    Version 17.5, fix memory leak and other bugs
@@ -99,7 +100,7 @@
 #include <TObjArray.h>
 #include <TString.h>
 
-#define TUnfold_VERSION "V17.8"
+#define TUnfold_VERSION "V17.9"
 #define TUnfold_CLASS_VERSION 17
 
 #define TUnfold TUnfoldV17
@@ -277,8 +278,8 @@ public:
            ERegMode regmode = kRegModeSize,
            EConstraint constraint=kEConstraintArea);
    TUnfoldV17(const TMatrixD *matrix_A, EHistMap histmap,
-           ERegMode regmode = kRegModeSize,
-           EConstraint constraint=kEConstraintArea);
+	      ERegMode regmode = kRegModeSize,
+	      EConstraint constraint=kEConstraintArea);
    // for root streamer and derived classes
    TUnfoldV17(void);
    virtual ~TUnfoldV17(void);
@@ -293,7 +294,14 @@ public:
                             Double_t tauMax,TGraph **lCurve,
 			    TSpline **logTauX=0,TSpline **logTauY=0,
                             TSpline **logTauCurvature=0);
-
+   // minimize Stein's unbiased risk estimator using successive calls to DoUnfold at various tau. Optionally, the contributions to SURE (DF and Chi2A) or the L-curve are saved
+   virtual Int_t ScanSURE(Int_t nPoint,Double_t tauMin,
+                          Double_t tauMax,
+                          TGraph **logTauSURE=0,
+                          TGraph **df_chi2A=0,
+                          TGraph **lCurve=0);
+   // calculate square roots of the Eigenvalues of the Error matrix
+   TVectorD GetSqrtEvEmatrix(void) const;
    // access unfolding results
    Double_t GetTau(void) const;
    void GetOutput(TH1 *output,const Int_t *binMap=0) const;
@@ -301,6 +309,18 @@ public:
    void GetRhoIJ(TH2 *rhoij,const Int_t *binMap=0) const;
    Double_t GetRhoI(TH1 *rhoi,const Int_t *binMap=0,TH2 *invEmat=0) const;
    void GetFoldedOutput(TH1 *folded,const Int_t *binMap=0) const;
+
+   //////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////////////
+   // Implemented by Junhung Lyle Kim and Mikael Kuusela                                   //
+   TVectorD ComputeCoverage(TMatrixD *beta, Double_t tau);                                 //
+   TVectorD ComputeCoverage(TH1 *hist_beta, Double_t tau);                                 //
+   Double_t UndersmoothTau(Double_t tau_init, Double_t epsilon=0.01, Int_t max_iter=1000); //
+   //////////////////////////////////////////////////////////////////////////////////////////
+   //////////////////////////////////////////////////////////////////////////////////////////
+
+   double GetDF(void) const; // effective number of degrees of freedom
+   double GetSURE(void) const; // Stein's unbiased risk estimator
 
    // access input parameters
    void GetProbabilityMatrix(TH2 *A,EHistMap histmap) const;

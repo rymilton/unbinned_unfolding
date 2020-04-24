@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 10/08/11
 
-//  Version 17.8, relaxed DTD definition
+//  Version 17.9, parallel to changes in TUnfold
 //
 //  History:
+//    Version 17.8, relaxed DTD definition
 //    Version 17.7, in parallel to changes in TUnfold
 //    Version 17.6, with updated doxygen comments
 //    Version 17.5, in parallel to changes in TUnfold

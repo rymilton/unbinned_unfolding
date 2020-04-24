@@ -174,16 +174,22 @@ namespace RooUnfolding {
   template<> void h2mNorm<TH1,TH2>  (const TH2* h, TMatrixD& m, const TH1* norm, bool overflow, bool correctDensity){
     // sets Matrix to values of bins in a 2D input histogram
     m.ResizeTo(h->GetNbinsX()+2*overflow,h->GetNbinsY()+2*overflow);
+    bool needSanitization = !norm;
     for (Int_t j= 0; j < h->GetNbinsY()+2*overflow; ++j) {
       double fac = 1.;
       if (norm){
-        fac= norm->GetBinContent(j)* (correctDensity ? binVolume(norm,j,overflow) : 1);
-        if (fac != 0.0) fac= 1.0/fac;
+        fac= norm->GetBinContent(j + !overflow)* (correctDensity ? binVolume(norm,j,overflow) : 1);
+        if (fac != 0.0){
+          fac= 1.0/fac;
+        } else {
+          needSanitization = true;
+        }
       }
       for (Int_t i= 0; i < h->GetNbinsX()+2*overflow; ++i) {
         m(i,j)= h->GetBinContent(i+!overflow,j+!overflow) * fac* (correctDensity ? binVolume(h,i,j,overflow) : 1);
       }
     }
+    if(needSanitization) sanitize(m);
   }
   template<> void h2meNorm<TH1,TH2>  (const TH2* h, TMatrixD& m, const TH1* norm, bool overflow, bool correctDensity){
     // sets Matrix to values of bins in a 2D input histogram
@@ -191,7 +197,7 @@ namespace RooUnfolding {
     for (Int_t j= 0; j < h->GetNbinsY()+2*overflow; ++j) {
       double fac = 1.;
       if (norm){
-        fac= norm->GetBinContent(j)* (correctDensity ? binVolume(norm,j,overflow) : 1);
+        fac= norm->GetBinContent(j + !overflow)* (correctDensity ? binVolume(norm,j,overflow) : 1);
         if (fac != 0.0) fac= 1.0/fac;
       }
       for (Int_t i= 0; i < h->GetNbinsX()+2*overflow; ++i) {

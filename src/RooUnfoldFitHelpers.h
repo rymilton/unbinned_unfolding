@@ -98,6 +98,7 @@ namespace RooUnfolding {
   void printServers(const RooAbsArg* obj);
   TH1* convertTH1(const TVectorD& values, const TVectorD& errors, const RooUnfolding::RooFitHist* hist);
   TH1* convertTH1(const TVectorD& values, const RooUnfolding::RooFitHist* hist);
+  TH2* convertTH2(const TMatrixD& values, const TMatrixD& errors, const RooUnfolding::RooFitHist* hist);
 }
 
 #endif

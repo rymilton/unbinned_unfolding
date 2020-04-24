@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 23/01/09
 
-// Version 17.8, parallel to changes in TUnfold
+//  Version 17.9, parallel to changes in TUnfold
 //
 //  History:
+//    Version 17.8, parallel to changes in TUnfold
 //    Version 17.7, bug fix in GetBackground()
 //    Version 17.6, with updated doxygen comments
 //    Version 17.5, in parallel to changes in TUnfold
@@ -200,7 +201,7 @@ TUnfoldSysV17::TUnfoldSysV17(void)
 /// propagated to the unfolding result, method GetEmatrixSysUncorr().
 TUnfoldSysV17::TUnfoldSysV17
 (const TH2 *hist_A, EHistMap histmap, ERegMode regmode,EConstraint constraint)
-   : TUnfoldV17(hist_A,histmap,regmode,constraint)
+   : TUnfold(hist_A,histmap,regmode,constraint)
 {
    // data members initialized to something different from zero:
    //    fDA2, fDAcol
@@ -268,76 +269,79 @@ TUnfoldSysV17::TUnfoldSysV17
    delete[] colDAinRelSq;
    delete[] dataDAinRelSq;      
 }
+
 TUnfoldSysV17::TUnfoldSysV17
 (const TMatrixD *matrix_A, EHistMap histmap, ERegMode regmode,EConstraint constraint)
-   : TUnfoldV17(matrix_A,histmap,regmode,constraint)
+  : TUnfoldV17(matrix_A,histmap,regmode,constraint)
 {
-   // data members initialized to something different from zero:
-   //    fDA2, fDAcol
+  // data members initialized to something different from zero:
+  //    fDA2, fDAcol
 
-   // initialize TUnfoldSys
-   InitTUnfoldSys();
+  // initialize TUnfoldSys
+  InitTUnfoldSys();
 
-   // save underflow and overflow bins
-   fAoutside = new TMatrixD(GetNx(),2);
-   // save the normalized errors on hist_A
-   // to the matrices fDAinRelSq and fDAinColRelSq
-   fDAinColRelSq = new TMatrixD(GetNx(),1);
+  // save underflow and overflow bins
+  fAoutside = new TMatrixD(GetNx(),2);
+  // save the normalized errors on hist_A
+  // to the matrices fDAinRelSq and fDAinColRelSq
+  fDAinColRelSq = new TMatrixD(GetNx(),1);
 
-   Int_t nmax=GetNx()*GetNy();
-   Int_t *rowDAinRelSq = new Int_t[nmax];
-   Int_t *colDAinRelSq = new Int_t[nmax];
-   Double_t *dataDAinRelSq = new Double_t[nmax];
+  Int_t nmax=GetNx()*GetNy();
+  Int_t *rowDAinRelSq = new Int_t[nmax];
+  Int_t *colDAinRelSq = new Int_t[nmax];
+  Double_t *dataDAinRelSq = new Double_t[nmax];
 
-   Int_t da_nonzero=0;
-   for (Int_t ix = 0; ix < GetNx(); ix++) {
-      Int_t ibinx = fXToHist[ix];
-      Double_t sum_sq= fSumOverY[ix]*fSumOverY[ix];
-      for (Int_t ibiny = 0; ibiny <= GetNy()+1; ibiny++) {
-         Double_t dz;
-         if (histmap == kHistMapOutputHoriz) {
-	   (*matrix_A)[ibinx][ibiny];
-         } else {
-	   (*matrix_A)[ibiny][ibinx];
-         }
-         Double_t normerr_sq=dz*dz/sum_sq;
-         // quadratic sum of all errors from all bins,
-         //   including under/overflow bins
-         (*fDAinColRelSq)(ix,0) += normerr_sq;
-
-         if(ibiny==0) {
-            // underflow bin
-            if (histmap == kHistMapOutputHoriz) {
-	      (*fAoutside)[ix][0] = (*matrix_A)[ibinx][ibiny];          
-            } else {
-	      (*fAoutside)[ix][0] = (*matrix_A)[ibiny][ibinx];
-            }
-         } else if(ibiny==GetNy()+1) {
-            // overflow bins
-            if (histmap == kHistMapOutputHoriz) {
-	      (*fAoutside)[ix][1] = (*matrix_A)[ibinx][ibiny];
-            } else {
-	      (*fAoutside)[ix][1] = (*matrix_A)[ibiny][ibinx];
-            }
-         } else {
-            // error on this bin
-            rowDAinRelSq[da_nonzero]=ibiny-1;
-            colDAinRelSq[da_nonzero] = ix;
-            dataDAinRelSq[da_nonzero] = normerr_sq;
-            if(dataDAinRelSq[da_nonzero]>0.0) da_nonzero++;
-         }
+  Int_t da_nonzero=0;
+  for (Int_t ix = 0; ix < GetNx(); ix++) {
+    Int_t ibinx = fXToHist[ix];
+    Double_t sum_sq= fSumOverY[ix]*fSumOverY[ix];
+    for (Int_t ibiny = 0; ibiny <= GetNy()+1; ibiny++) {
+      Double_t dz;
+      if (histmap == kHistMapOutputHoriz) {
+	(*matrix_A)[ibinx][ibiny];
+      } else {
+	(*matrix_A)[ibiny][ibinx];
       }
-   }
-   if(da_nonzero) {
-      fDAinRelSq = CreateSparseMatrix(GetNy(),GetNx(),da_nonzero,
-                                      rowDAinRelSq,colDAinRelSq,dataDAinRelSq);
-   } else {
-      DeleteMatrix(&fDAinColRelSq);
-   }
-   delete[] rowDAinRelSq;
-   delete[] colDAinRelSq;
-   delete[] dataDAinRelSq;      
+      Double_t normerr_sq=dz*dz/sum_sq;
+      // quadratic sum of all errors from all bins,
+      //   including under/overflow bins
+      (*fDAinColRelSq)(ix,0) += normerr_sq;
+
+      if(ibiny==0) {
+	// underflow bin
+	if (histmap == kHistMapOutputHoriz) {
+	  (*fAoutside)[ix][0] = (*matrix_A)[ibinx][ibiny];          
+	} else {
+	  (*fAoutside)[ix][0] = (*matrix_A)[ibiny][ibinx];
+	}
+      } else if(ibiny==GetNy()+1) {
+	// overflow bins
+	if (histmap == kHistMapOutputHoriz) {
+	  (*fAoutside)[ix][1] = (*matrix_A)[ibinx][ibiny];
+	} else {
+	  (*fAoutside)[ix][1] = (*matrix_A)[ibiny][ibinx];
+	}
+      } else {
+	// error on this bin
+	rowDAinRelSq[da_nonzero]=ibiny-1;
+	colDAinRelSq[da_nonzero] = ix;
+	dataDAinRelSq[da_nonzero] = normerr_sq;
+	if(dataDAinRelSq[da_nonzero]>0.0) da_nonzero++;
+      }
+    }
+  }
+  if(da_nonzero) {
+    fDAinRelSq = CreateSparseMatrix(GetNy(),GetNx(),da_nonzero,
+				    rowDAinRelSq,colDAinRelSq,dataDAinRelSq);
+  } else {
+    DeleteMatrix(&fDAinColRelSq);
+  }
+  delete[] rowDAinRelSq;
+  delete[] colDAinRelSq;
+  delete[] dataDAinRelSq;      
 }
+
+
 
 ////////////////////////////////////////////////////////////////////////
 /// Specify a correlated systematic uncertainty

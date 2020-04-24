@@ -1,463 +1,296 @@
-
 #!/usr/bin/env python
 # ==============================================================================
 #  File and Version Information:
 #       $Id$
 #
 #  Description:
-#       Simple example usage of the RooUnfold package using toy MC.
+#       This example shows a simple unfolding scenario. Truth data is generated
+#       according to a bimodal p.d.f. and then simulates detector response on
+#       these events in a naive way by applying a simple smearing and 
+#       efficiency function. The resulting truth and reco level events are
+#       then used to build a response matrix that can be used for unfolding.
+#       The to-be unfolded data is simulated by Poisson smearing a disjoint
+#       reco level dataset. This data is then unfolded with a unfolding method
+#       of choice and, in case of regularization, a preset set of regularization
+#       strengths.
 #
-#  Author: Tim Adye <T.J.Adye@rl.ac.uk>
+#  Author: Pim Verschuuren <pim.verschuuren@rhul.ac.uk>
 #
 # ==============================================================================
 
-infname = "hist_tmp.root"
 
-def prepare(smear,write):
 
-  truthBins = 40
-  recoBins = 40
-  xmin = -10.0
-  xmax = 10.0
+# ====== Plotting ====== #
+
+
+def plot_input(truth, reco, data, response, purity, eff):
 
   import ROOT
 
-  response= ROOT.RooUnfoldResponse (recoBins, xmin, xmax, truthBins, xmin, xmax);
-
-  nevents = 100000
+  c = ROOT.TCanvas("input","input", 900, 500)
+  c.Divide(2,2)
   
-  # The histograms that are used to validate the unfolding result.
-  sig_theory= ROOT.TH1D ("sig_theory", "Test Truth",    truthBins, xmin, xmax);
-  sig_theory_alt= ROOT.TH1D ("sig_theory_alt", "Test Truth",    truthBins, xmin, xmax);
+  c.cd(1)
 
-  # The histograms that will be unfolded.
-  sigbkg_reco= ROOT.TH1D ("sigbkg_reco", "Test Measured", recoBins, xmin, xmax);
-  sigbkg_reco_alt= ROOT.TH1D ("sigbkg_reco_alt", "Test Measured", recoBins, xmin, xmax);
+  ROOT.gStyle.SetOptStat(0)
+
+  truth.SetLineColor(46)
+  truth.GetYaxis().SetRangeUser(0,1.2*truth.GetMaximum())
+  truth.GetYaxis().SetTitle("Events")
+  truth.GetXaxis().SetTitle("#Delta#eta")
+  truth.SetTitle("Input distributions")
+  truth.Draw("HIST")
+
+  reco.SetLineColor(38)
+  reco.SetTitle("")
+  reco.Draw("HISTSAME")
+
+  data.SetMarkerColor(ROOT.kBlack)  
+  data.SetLineColor(ROOT.kBlack)  
+  data.SetMarkerStyle(20)
+  data.SetMarkerSize(0.5)
+  data.SetTitle("")
+  data.Draw("SAMEPE")
+
+  leg = ROOT.TLegend(0.65, 0.65, 0.85, 0.85)
+  leg.SetLineWidth(0)
+  leg.SetFillStyle(0)
+  leg.AddEntry( truth, "Truth MC", "l" )
+  leg.AddEntry( reco, "Reco MC", "l" )
+  leg.AddEntry( data, "Measured Data", "pe" )
+  leg.Draw()
   
-  # The histogram containing the background that is needed for the unfolding.
-  bkg_reco= ROOT.TH1D ("bkg", "Test Bkg",    recoBins, xmin, xmax);
+  c.cd(2)
+
+  ROOT.gStyle.SetOptStat(0)
+
+  response.GetXaxis().SetTitle("#Delta#eta_{reco}")
+  response.GetYaxis().SetTitle("#Delta#eta_{truth}")
+  response.SetTitle("Response matrix")
+  response.Draw("COLZ")
+  c.cd(3)
+  
+  ROOT.gStyle.SetOptStat(0)
+  
+  purity.SetLineColor(30)
+  purity.GetYaxis().SetRangeUser(0,1.2*purity.GetMaximum())
+  purity.GetYaxis().SetTitle("Purity")
+  purity.GetXaxis().SetTitle("#Delta#eta_{reco}")
+  purity.SetTitle("Bin purity")
+  purity.Draw()
+
+  c.cd(4)
+
+  ROOT.gStyle.SetOptStat(0)
+  
+  eff.SetLineColor(30)
+  eff.GetYaxis().SetRangeUser(0,1.2*eff.GetMaximum())
+  eff.GetYaxis().SetTitle("Efficiency")
+  eff.GetXaxis().SetTitle("#Delta#eta_{truth}")
+  eff.SetTitle("Reconstruction efficiency")
+  eff.Draw()
+  
+  c.SaveAs("input.png")
 
 
-  #  Train with a Breit-Wigner, mean 0.3 and width 2.5.
-  for i in range(nevents):
-    xt= ROOT.gRandom.BreitWigner (0.3, 2.5);
-    x= smear (xt);
-    if x!=None:
-      response.Fill (x, xt);
-    else:
-      response.Miss (xt);
 
-    xt2= ROOT.gRandom.BreitWigner (0.3, 2.5);
-    x2 = smear(xt2)
-    sig_theory.Fill(xt2)
-
-    if x2!=None: sigbkg_reco.Fill(x2)
-      
-  #  Test with a Gaussian, mean 0 and width 2.
-  for i in range(nevents):
-    xt= ROOT.gRandom.Gaus (0.0, 2.0)
-    x= smear (xt);
-    sig_theory_alt.Fill(xt);
-    if x!=None: sigbkg_reco_alt.Fill(x);
-
-  for i in range(nevents):
-    x= ROOT.gRandom.Uniform (-10,10.)
-    bkg_reco.Fill(x)
-    xd= ROOT.gRandom.Uniform (-10,10.)    
-    sigbkg_reco.Fill(xd)
-    sigbkg_reco_alt.Fill(xd)
-
-  histograms = {"sig_theory":sig_theory,
-                "sig_theory_alt":sig_theory_alt,
-                "sigbkg_reco":sigbkg_reco,
-                "sigbkg_reco_alt":sigbkg_reco_alt,
-                "sig_response":response.Hresponse(),
-                "sig_reco":response.Hmeasured(),
-                "sig_truth":response.Htruth(),
-                "bkg_reco":bkg_reco}
-
-  if write:
-    infile = ROOT.TFile.Open(infname,"RECREATE")
-    clones = []
-    for k in histograms.keys():
-      clone = histograms[k].Clone()
-      clone.SetName(k)
-      clone.SetDirectory(infile)
-      clones.append(clone)
-    infile.Write()
-    infile.Close()
-
-  for h in histograms.values():
-    h.SetDirectory(0)
-
-  return histograms
-
-def algorithm(method):
+def plot_result(theory, unfold_func, errors):
 
   import ROOT
-  alg = None
-  if method == "bayes":
-    alg= ROOT.RooUnfolding.kBayes;
-  elif method == "bbb":
-    alg= ROOT.RooUnfolding.kBinByBin;
-  elif method == "inv":
-    alg= ROOT.RooUnfolding.kInvert;
-  elif method == "svd":
-    alg= ROOT.RooUnfolding.kSVD;
-  elif method == "root":
-    alg= ROOT.RooUnfolding.kTUnfold;
-  elif method == "ids":
-    alg= ROOT.RooUnfolding.kIDS;
-  return alg
 
-def makeAuxWorkspace():
-  # Create the measurement
-  import ROOT
-  meas = ROOT.RooStats.HistFactory.Measurement("unfolding", "unfolding")
+  print('Plotting unfolding results...')
+
+  truth_obs = unfold_func.unfolding().response().Htruth().obs(0)
+  frame = truth_obs.frame()
+
+  frame.GetXaxis().SetTitle("#Delta#eta")
+  frame.GetYaxis().SetTitle("events")
+
+  canvas_truth = ROOT.TCanvas("result","result")
+
+  ROOT.gPad.SetLeftMargin(0.15)
  
-  meas.SetPOI( "mu" )
-  meas.AddConstantParam("Lumi")
- 
-  meas.SetLumi( 1.0 )
-  meas.SetLumiRelErr( 0.10 )
-  meas.SetExportOnly( False )
 
-  ##############################################################################
-  # Create the reco signal region
-  srt = ROOT.RooStats.HistFactory.Channel( "SRtruth" )
-  srt.SetStatErrorConfig( 0.005, "Poisson" )
-  # Create the signal sample
-  signal_truth = ROOT.RooStats.HistFactory.Sample( "sig_truth", "sig_truth", infname )
-  signal_truth.GetStatError().Activate(True);  
-  signal_truth.AddNormFactor( "mu", 1, 0, 3 )
-  srt.AddSample( signal_truth )
-  meas.AddChannel( srt )
-  ##############################################################################    
+  if errors:
+    unfold_func.plotOn(frame,ROOT.RooFit.DrawOption("P"),ROOT.RooFit.Name("plot_unfolded"),ROOT.RooFit.MarkerStyle(20),ROOT.RooFit.VisualizeError(ROOT.RooFitResult.prefitResult(unfold_func.makeParameterList())))
+  else:
+    unfold_func.plotOn(frame,ROOT.RooFit.DrawOption("P"),ROOT.RooFit.Name("plot_unfolded"),ROOT.RooFit.MarkerStyle(20))
 
-  ##############################################################################
-  # Create the response mapping
-  response = ROOT.RooStats.HistFactory.Channel( "response" )
-  sample = ROOT.RooStats.HistFactory.Sample( "sig_response", "sig_response", infname )
-  sample.GetStatError().Activate(False);  
-  response.AddSample( sample )  
-  meas.AddChannel( response )
-  
-  truthRegion = ROOT.RooStats.HistFactory.Channel( "truth" )
-  sig_theory = ROOT.RooStats.HistFactory.Sample( "sig_theory", "sig_theory", infname )
-  sig_theory.GetStatError().Activate(False);  
-  truthRegion.AddSample( sig_theory )  
-  sig_theory_alt = ROOT.RooStats.HistFactory.Sample( "sig_theory_alt", "sig_theory_alt", infname )
-  sig_theory_alt.GetStatError().Activate(False);  
-  truthRegion.AddSample( sig_theory_alt )  
-  meas.AddChannel( truthRegion )
-  ##############################################################################  
- 
-  # Collect the histograms from their files,
-  # print some output, 
-  meas.CollectHistograms()
- 
-  # Now, do the measurement
-  ws = ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast( meas );
-  return ws
-
-def makeWorkspace():
-  # Create the measurement
-  import ROOT
-  meas = ROOT.RooStats.HistFactory.Measurement("unfolding", "unfolding")
- 
-  meas.SetPOI( "mu" )
-  meas.AddConstantParam("Lumi")
- 
-  meas.SetLumi( 1.0 )
-  meas.SetLumiRelErr( 0.10 )
-  meas.SetExportOnly( False )
-
-  ##############################################################################
-  # Create the reco signal region
-  sr = ROOT.RooStats.HistFactory.Channel( "SRreco" )
-  sr.SetStatErrorConfig( 0.005, "Poisson" )
-  # Create the signal sample
-  signal = ROOT.RooStats.HistFactory.Sample( "sig_reco", "sig_reco", infname )
-  signal.GetStatError().Activate(True);  
-  signal.AddNormFactor( "mu", 1, 0, 3 )
-  sr.AddSample( signal )
-  # Background 
-  background = ROOT.RooStats.HistFactory.Sample( "bkg_reco", "bkg_reco", infname )
-  sr.AddSample( background )
-  # Data 
-  sr.SetData( "sigbkg_reco_alt", infname )
-  meas.AddChannel( sr )
-  ##############################################################################
-
-  # Collect the histograms from their files,
-  # print some output, 
-  meas.CollectHistograms()
- 
-  # Now, do the measurement
-  ws = ROOT.RooStats.HistFactory.MakeModelAndMeasurementFast( meas );
-  return ws
-
-def loadws(fname,wsname):
-  import ROOT
-  f = ROOT.TFile.Open(fname,"READ")
-  ws = f.Get(wsname).Clone()
-  f.Close()
-  return ws
-
-def wsimport(ws,obj):
-  import ROOT
-  getattr(ws,"import")(obj,
-                       ROOT.RooFit.RenameVariable("obs_x_response","obs_reco"),
-                       ROOT.RooFit.RenameVariable("obs_y_response","obs_truth"),
-                       ROOT.RooFit.RenameVariable("obs_x_SRtruth","obs_truth"),
-                       ROOT.RooFit.RenameVariable("obs_x_truth","obs_truth"),
-                       ROOT.RooFit.RenameVariable("obs_x_SRreco","obs_reco"))
-  
-
-def makeFinalWorkspace(method,mainws,auxws,regparm):
-  import ROOT
-  helpws = ROOT.RooWorkspace("helper","helper")
-  
-  allvars = ROOT.RooArgSet()
-  allvars.add(auxws.obj("obs_x_SRtruth"))
-  sig_truth_dataset = auxws.pdf("model_SRtruth").generate(allvars,100,True)
-  sig_truth_dataset.SetName("sig_truth_dataset")
-
-  sig_response = auxws.function("sig_response_response_nominal")
-  sig_response.SetName("sig_response")
-  sig_theory = auxws.function("sig_theory_alt_truth_nominal")
-  sig_theory.SetName("sig_theory")
-  sigbkg_reco_dataset = mainws.data("obsData")
-  sigbkg_reco_dataset.SetName("sigbkg_reco_dataset")
-  sig_truth = auxws.function("L_x_sig_truth_SRtruth_overallSyst_x_StatUncert")
-  sig_truth.SetName("sig_truth")
-  sig_reco = mainws.function("L_x_sig_reco_SRreco_overallSyst_x_StatUncert")
-  sig_reco.SetName("sig_reco")
-  bkg_reco = mainws.function("L_x_bkg_reco_SRreco_overallSyst_x_Exp")
-  bkg_reco.SetName("bkg_reco")
-  mc = auxws.obj("ModelConfig")
-
-  wsimport(helpws,sig_theory)
-  wsimport(helpws,sig_response)
-  wsimport(helpws,sig_truth)
-  wsimport(helpws,sig_reco)
-  wsimport(helpws,bkg_reco)
-  wsimport(helpws,sigbkg_reco_dataset)
-  wsimport(helpws,sig_truth_dataset)
-
-  sig_response = helpws.function("sig_response")
-  sig_theory = helpws.function("sig_theory")
-  sigbkg_reco_dataset = helpws.data("sigbkg_reco_dataset").binnedClone()
-  sigbkg_reco_dataset.SetName("sigbkg_reco_dataset")
-  sig_truth_dataset = helpws.data("sig_truth_dataset")
-  sig_truth = helpws.function("sig_truth")
-  sig_reco = helpws.function("sig_reco")
-  bkg_reco = helpws.function("bkg_reco")
-  
-  unfold_response = ROOT.RooFitUnfoldResponse("unfold_response","unfold_response",sig_response,sig_truth,sig_reco,0,helpws.var("obs_truth"),helpws.var("obs_reco"))
-
-  sigbkg_reco = unfold_response.makeHistFunc(sigbkg_reco_dataset)
-  sigbkg_reco.SetName("sigbkg_reco_dataset")
-  sig_reco_dataset = unfold_response.makeHistSum(sigbkg_reco,bkg_reco,1.,-1.)
-  sig_reco_dataset.func().SetName("sig_reco_dataset")
-  
-  if method == ROOT.RooUnfolding.kBayes:
-    unfold= ROOT.RooFitUnfoldBayes     (unfold_response, sig_reco_dataset, regparm);     #  OR
-  elif method == ROOT.RooUnfolding.kBinByBin:
-    unfold= ROOT.RooFitUnfoldBinByBin     (unfold_response, sig_reco_dataset);     #  OR    
-  elif method  == ROOT.RooUnfolding.kInvert:
-    unfold= ROOT.RooFitUnfoldInvert     (unfold_response, sig_reco_dataset);     #  OR    
-  elif method == ROOT.RooUnfolding.kSVD:
-    unfold= ROOT.RooFitUnfoldSvd     (unfold_response, sig_reco_dataset, regparm);     #  OR
-  elif method == ROOT.RooUnfolding.kTUnfold:
-    unfold= ROOT.RooFitUnfoldTUnfold     (unfold_response, sig_reco_dataset);     #  OR    
-  elif method == ROOT.RooUnfolding.kIDs:
-    unfold= ROOT.RooFitUnfoldIds     (unfold_response, sig_reco_dataset, regparm);     #  OR      
-  
-  sig_theory_hist = unfold_response.makeHist(sig_theory)
-
-  unfold.PrintTable(ROOT.cout,sig_theory_hist)
-
-  unfoldpdf = ROOT.RooUnfoldPdf("unfolding","unfolding",unfold)
-  components = ROOT.RooArgList()
-  components.add(unfoldpdf)
-  for constr in ROOT.RooUnfolding.matchingObjects(mainws.allPdfs(),"gamma_stat_.*_constraint"):
-    components.add(constr)
-  for constr in ROOT.RooUnfolding.matchingObjects(auxws.allPdfs(),"gamma_stat_.*_constraint"):
-    components.add(constr)
-  pdf = ROOT.RooProdPdf("mainPdf","mainPdf",components)
-  
-  ws = ROOT.RooWorkspace("workspace","workspace")
-  ROOT.RooUnfolding.importToWorkspace(ws,sig_theory)
-  ROOT.RooUnfolding.importToWorkspace(ws,sig_reco)
-  ROOT.RooUnfolding.importToWorkspace(ws,pdf)
-  ROOT.RooUnfolding.importToWorkspace(ws,sig_truth_dataset)
-  ROOT.RooUnfolding.importToWorkspace(ws,sigbkg_reco_dataset)
-  ws.var("obs_truth").setConstant(True)
-
-  return ws
-
-    
-def makePlots(outdir,ws,obsname,hist_truth,hist_reco,label):
-  import ROOT
-
-  unfoldfunc = ws.obj("unfold")
-  unfolding = unfoldfunc.unfolding()
-
-  sig_truth = ws.function("sig_theory")
-  sig_reco = ws.function("sig_reco")
-  data_minus_bkg_reco = ws.function("unfold_data_minus_bkg")
-  bkg_reco = ws.function("bkg_reco")
-  asm_reco = ws.function("asm_reco")
-
-  allVars = ROOT.RooArgList(ws.allVars())
-  sysVars = ROOT.RooArgList()
-
-  obs_var = ws.var("obs_truth")
-  
-
-  for v in allVars:
-
-    if "alpha_" in v.GetName():
-      sysVars.add(v)
-
-  prefit_all = ROOT.RooFitResult.prefitResult(allVars)
-  prefit_sys = ROOT.RooFitResult.prefitResult(sysVars)
-  obs_truth = ws.var(obsname+"_truth")
-  plot_truth = obs_truth.frame(ROOT.RooFit.Title(obs_truth.GetTitle() +", "+label))
-  plot_truth.SetYTitle("Number of Events")
-  plot_truth.SetMinimum(0)
-  copyBinning(hist_truth,plot_truth)  
-  nexp = unfoldpdf.expectedEvents(0)
-  unfoldpdf.plotOn(plot_truth,ROOT.RooFit.Invisible(),ROOT.RooFit.DrawOption("P"))
-  unfoldpdf.plotOn(plot_truth,ROOT.RooFit.LineColor(0),ROOT.RooFit.FillColor(ROOT.kGray),ROOT.RooFit.FillStyle(1001),ROOT.RooFit.Name("unfold_graph_sys"),ROOT.RooFit.VisualizeError(prefit_sys),
-                   ROOT.RooFit.Normalization(nexp,ROOT.RooAbsReal.NumEvent),ROOT.RooFit.NormRange("full"))
-  unfoldpdf.plotOn(plot_truth,ROOT.RooFit.LineColor(ROOT.kBlack),ROOT.RooFit.Name("unfold_graph"),ROOT.RooFit.MarkerColor(ROOT.kBlack),ROOT.RooFit.MarkerSize(1),ROOT.RooFit.MarkerStyle(20),ROOT.RooFit.DrawOption("P"),ROOT.RooFit.VisualizeError(prefit_all),
-                   ROOT.RooFit.Normalization(nexp,ROOT.RooAbsReal.NumEvent),ROOT.RooFit.NormRange("full"))
-  sig_truth.plotOn(plot_truth,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.FillColor(ROOT.kRed),ROOT.RooFit.FillStyle(3345),ROOT.RooFit.Name("sig_truth_graph"),
-                   ROOT.RooFit.Normalization(nexp,ROOT.RooAbsReal.NumEvent),ROOT.RooFit.NormRange("full"))
-  canvas_truth = ROOT.TCanvas("unfolded","unfolded")
-  plot_truth.Draw()
+  frame.Draw()
+  ROOT.gStyle.SetOptStat(0)
+  ROOT.gStyle.SetOptTitle(0)  
+  theory.SetLineColor(ROOT.kRed)
+  theory.GetXaxis().SetTitle("#Delta#eta")
+  theory.Draw("HISTSAME")
   leg_truth = ROOT.TLegend(0.7, 0.7, 0.9, 0.9)
   leg_truth.SetLineWidth(0)
   leg_truth.SetFillStyle(0)
-  leg_truth.AddEntry( plot_truth.findObject("sig_truth_graph"), "Theory Prediction", "l" )
-  leg_truth.AddEntry( plot_truth.findObject("unfold_graph"), "Unfolded Signal", "pe" )
-  leg_truth.AddEntry( plot_truth.findObject("unfold_graph_sys"), "Unfolded Signal, Sys. Uncertainty", "f" )  
+  leg_truth.AddEntry( theory, "Truth MC", "l" )
+  leg_truth.AddEntry( frame.findObject("plot_unfolded"), "Unfolded Data", "pe" )
   leg_truth.Draw()
-  canvas_truth.SaveAs(pjoin(outdir,"unfolded.pdf"))
-  canvas_truth.SaveAs(pjoin(outdir,"unfolded.root"))
-  canvas_truth.SaveAs(pjoin(outdir,"unfolded.C"))
-  canvas_truth.SaveAs(pjoin(outdir,"unfolded.png"))
+  canvas_truth.SaveAs("result.png")
+
+
+
+
+# ====== Efficiencies ====== #
+
+# A quadratic efficiency.
+def quad_eff(xt, xmin, xmax):
+
+  diff = xmax - xmin
+
+  center = xmin + diff/2
+
+  xeff = 0.1 + 0.7 * (1 - ((center - xt)/diff)**2 )
+
+  return xeff
+
+# A linear efficiency.
+def lin_eff(xt, xmin, xmax):
+
+  xeff = 0.3 + (1.0-0.3)/(xmax - xmin)*(xt - xmin)
+
+  return xeff
+
+
+# ====== Smearing ====== #
+
+def smear(xt, xmin, xmax, bias, sigma, eff):
+
+  from ROOT import gRandom
+
+  if eff == 'lin':
+    xeff = lin_eff(xt, xmin, xmax)
+  elif eff == 'quad':
+    xeff = quad_eff(xt, xmin, xmax)
+  else:
+    print("Unknown passed efficiency type. Pass either lin or quad.")
+    exit(0)
+
+  x= gRandom.Rndm();
+
+  if x>xeff: return None;
+
+  xsmear= gRandom.Gaus(bias,sigma);     #  bias and smear
   
-  obs_reco = ws.var(obsname+"_reco")
-  plot_reco = obs_reco.frame(ROOT.RooFit.Title(obs_reco.GetTitle() +", "+label))
-  plot_reco.SetYTitle("Number of Events")
-  plot_reco.SetMinimum(0)
-  copyBinning(hist_reco,plot_reco)
-  data_minus_bkg_reco.plotOn(plot_reco,ROOT.RooFit.Name("data_minus_bkg_reco_graph"),
-                             ROOT.RooFit.MarkerColor(1),ROOT.RooFit.MarkerSize(1),ROOT.RooFit.MarkerStyle(20),ROOT.RooFit.DrawOption("P"),ROOT.RooFit.VisualizeError(prefit_all))
-  sig_reco.plotOn           (plot_reco,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.Name("sig_reco_graph"),ROOT.RooFit.Normalization(hist_reco.Integral(),ROOT.RooAbsReal.NumEvent),ROOT.RooFit.NormRange("full"))
-  canvas_reco = ROOT.TCanvas("reco","reco")
-  plot_reco.Draw()
-  leg_reco = ROOT.TLegend(0.7, 0.8, 0.9, 0.9)
-  leg_reco.SetLineWidth(0)
-  leg_reco.SetFillStyle(0)
-  leg_reco.AddEntry( plot_reco.findObject("data_minus_bkg_reco_graph"), "Background Subtracted Data", "pe" )
-  leg_reco.AddEntry( plot_reco.findObject("sig_reco_graph"), "Signal Reco Monte Carlo", "l" )
-  leg_reco.Draw()
-  canvas_reco.SaveAs(pjoin(outdir,"reco.pdf"))
-  canvas_reco.SaveAs(pjoin(outdir,"reco.C"))    
-  canvas_reco.SaveAs(pjoin(outdir,"reco.root"))  
-  canvas_reco.SaveAs(pjoin(outdir,"reco.png"))
+  return xt+xsmear
 
 
 
-def makePlots_HistFactory(ws):
+def prepare_bimodal(dict_data):
+
+  print("Generating the data...")
+
   import ROOT
 
-  unfoldfunc = ws.obj("unfold")
+  # Get the parameters.
+  xmin = dict_data['xmin']
+  xmax = dict_data['xmax']
+  recoBins = dict_data['rbins']
+  truthBins = dict_data['tbins']
+  bias = dict_data['bias']
+  sigma = dict_data['sigma']
+  frac = dict_data['frac']
+  nevents = dict_data['nevents']
+  bkg_events = dict_data['nbkg']
+  mcLumiFactor = dict_data['mcLumiFactor']
+  eff_type = dict_data['eff']
+
+  # Define the response matrix as a 2D histogram.
+  response= ROOT.RooUnfoldResponse (recoBins, xmin, xmax, truthBins, xmin, xmax);  
+
+  # Define the truth histogram that will be used for testing.
+  truth = ROOT.TH1D ("Truth", "Truth", truthBins, xmin, xmax);
+
+  # Define the reco histogram to compare to the data.
+  reco = ROOT.TH1D ("Reco", "Reco", recoBins, xmin, xmax);
   
-  unfolding = unfoldfunc.unfolding()
+  # Define the data histogram.
+  data = ROOT.TH1D ("Data", "Data", recoBins, xmin, xmax);
 
+  for i in range(1,truth.GetNbinsX() + 1):
+    truth.SetBinContent(i, bkg_events)
+  for i in range(reco.GetNbinsX() + 2):
+    reco.SetBinContent(i, bkg_events)
+    data.SetBinContent(i, bkg_events)
 
-  sig_response = ws.function("sig_response")
-  sig_theory = ws.function("sig_theory")
-  sigbkg_reco_dataset = ws.data("sigbkg_reco_dataset")
-  sig_truth_dataset = ws.data("sig_truth_dataset")
-  sig_truth = ws.function("sig_truth")
-  sig_reco = ws.function("sig_reco")
-  bkg_reco = ws.function("bkg_reco")
+  # Generate events according too a simple double Gaussian
+  # distribution.
+  for i in range(nevents*mcLumiFactor):
 
-  obs_truth = ws.var("obs_truth")
-  plot_truth = obs_truth.frame()
-  sig_theory.plotOn(plot_truth,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.Name("sig_theory"))
-  unfoldfunc.plotOn(plot_truth,ROOT.RooFit.Name("unfoldedpdf"))
-  canvas_truth = ROOT.TCanvas("unfolded","unfolded")
-  plot_truth.Draw()
-  leg_truth = ROOT.TLegend(0.1, 0.8, 0.3, 0.9)
-  leg_truth.AddEntry( plot_truth.findObject("sig_theory"), "Theory Prediction", "l" )
-  leg_truth.AddEntry( plot_truth.findObject("unfoldedpdf"), "Unfolded Signal", "l" )
-  leg_truth.Draw()
-  canvas_truth.SaveAs("unfolded.pdf")
-  canvas_truth.SaveAs("unfolded.png")
+    if i%2 == 0:
+      peak_loc = 0.3
+    else:
+      peak_loc = 0.7
+
+    x_truth = ROOT.gRandom.Gaus(xmin + (xmax-xmin)*peak_loc, (xmax-xmin)*0.1)
+
+    # Use a specific smearing function that also models
+    # detector inefficiencies. 
+    x_reco = smear(x_truth, xmin, xmax, bias, sigma, eff_type)
+
+    # The truth event is reconstructed.
+    if x_reco!=None:
+      response.Fill (x_reco, x_truth, 1./mcLumiFactor);
+
+    # The truth event did not pass inefficiencies.
+    else:
+      response.Miss (x_truth, 1./mcLumiFactor);
+
+    # Fill the testing histograms with seperate events.
+    x_truth = ROOT.gRandom.Gaus(xmin + (xmax-xmin)*peak_loc, (xmax-xmin)*0.1)
+    x_reco = smear(x_truth, xmin, xmax, bias, sigma, eff_type)
+ 
+    if x_reco!=None: reco.Fill(x_reco, 1./mcLumiFactor)      
+
+    truth.Fill(x_truth, 1./mcLumiFactor)
+
+    # Introduce a shape difference for the data.
+    if i > int(frac*nevents*mcLumiFactor):
+      peak_loc = 0.3
+    else:
+      peak_loc = 0.7
+
+    x_truth = ROOT.gRandom.Gaus(xmin + (xmax-xmin)*peak_loc, (xmax-xmin)*0.1)
+    x_data = smear(x_truth, xmin, xmax, bias, sigma, eff_type)
+    
+    if x_data!=None: data.Fill(x_data, 1./mcLumiFactor)
+
+     
+  # Create Poisson distributed observed data events.
+  for i in range(data.GetNbinsX() + 2):
+    x_data = ROOT.gRandom.Poisson(data.GetBinContent(i))
+    data.SetBinContent(i, x_data)
+
+  eff = ROOT.RooUnfolding.convertTH1(response.Vefficiency(),response.Htruth())
+  pur = ROOT.RooUnfolding.convertTH1(response.Vpurity(),response.Htruth())  
+    
+  # Save the histograms in a dictionary.
+  histograms = {"truth_train":response.Htruth(),
+                "reco_train":response.Hmeasured(),
+                "truth_test":truth,
+                "reco_test":reco,
+                "data":data,
+                "response":response.Hresponse(),
+                "purity":pur,
+                "eff":eff
+              }
   
-  sig_reco_hist = unfolding.response().Hmeasured()
-  sigbkg_reco_hist = unfolding.response().makeHistSum(sig_reco_hist.func(),bkg_reco,1.,1.)
-  obs_reco = sig_reco_hist.obs(0)
-  plot_reco = obs_reco.frame()
-  sigbkg_reco_dataset.plotOn(plot_reco,ROOT.RooFit.Name("data"))
-  sigbkg_reco_hist.func().plotOn(plot_reco,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.Name("sigbkg_reco_hist"))
-  canvas_reco = ROOT.TCanvas("reco","reco")
-  plot_reco.Draw()
-  leg_reco = ROOT.TLegend(0.1, 0.8, 0.3, 0.9)
-  leg_reco.AddEntry( plot_reco.findObject("data"), "Data", "l" )
-  leg_reco.AddEntry( plot_reco.findObject("sigbkg_reco_hist"), "Reco Monte Carlo", "l" )
-  leg_reco.Draw()
-  canvas_reco.SaveAs("reco.pdf")
-  canvas_reco.SaveAs("reco.png")
-
-def makePlots_RooUnfoldSpec(ws):
-  import ROOT
-  ws.Print("t")
-  unfoldfunc = ws.obj("unfold")
-
-  sig_response = ws.obj("response")
-  sig_theory = ws.obj("sig_theory")
-  sigbkg_reco = ws.obj("sigbkg_reco_histfunc")
-  sig_truth = ws.obj("sig_truth")
-  sig_reco = ws.obj("unfold_data_minus_bkg")
-  bkg_reco = ws.obj("bkg_histfunc")
-
-  obs_truth = ws.var("obs_truth")
-  plot_truth = obs_truth.frame()
-
-  sig_theory.plotOn(plot_truth,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.Name("sig_theory_graph"))
-  unfoldfunc.plotOn(plot_truth,ROOT.RooFit.LineColor(ROOT.kBlue),ROOT.RooFit.Name("unfolded_data_graph"))
-  canvas_truth = ROOT.TCanvas("unfolded","unfolded")
-  plot_truth.Draw()
-  leg_truth = ROOT.TLegend(0.1, 0.8, 0.3, 0.9)
-  leg_truth.AddEntry( plot_truth.findObject("sig_theory_graph"), "Theory Prediction", "l" )
-  leg_truth.AddEntry( plot_truth.findObject("unfolded_data_graph"), "Unfolded Signal", "l" )
-  leg_truth.Draw()
-  canvas_truth.SaveAs("unfolded.pdf")
-  canvas_truth.SaveAs("unfolded.png")
   
-  obs_reco = ws.var("obs_reco")
-  plot_reco = obs_reco.frame()
-  sigbkg_reco.plotOn(plot_reco,ROOT.RooFit.LineColor(ROOT.kRed),ROOT.RooFit.Name("sigbkg_reco_graph"))
-  bkg_reco.plotOn(plot_reco,ROOT.RooFit.LineColor(ROOT.kBlue),ROOT.RooFit.Name("bkg_reco_graph"))
-  canvas_reco = ROOT.TCanvas("reco","reco")
-  plot_reco.Draw()
-  leg_reco = ROOT.TLegend(0.1, 0.8, 0.3, 0.9)
-  leg_reco.AddEntry( plot_reco.findObject("bkg_reco_graph"), "Background", "l" )
-  leg_reco.AddEntry( plot_reco.findObject("sigbkg_reco_graph"), "Signal + Background", "l" )
-  leg_reco.Draw()
-  canvas_reco.SaveAs("reco.pdf")
-  canvas_reco.SaveAs("reco.png")
+  for i in range(0,histograms["response"].GetNbinsX()+2):
+    for j in range(0,histograms["response"].GetNbinsY()+2):
+      histograms["response"].SetBinError(i,j,0)
 
+  return histograms
+
+
+
+# Unfolding methods.
 def algorithm(method):
+
   import ROOT
+
   alg = None
   if method == "bayes":
     alg= ROOT.RooUnfolding.kBayes;
@@ -471,87 +304,130 @@ def algorithm(method):
     alg= ROOT.RooUnfolding.kTUnfold;
   elif method == "ids":
     alg= ROOT.RooUnfolding.kIDS;
+  elif method == "gp":
+    alg= ROOT.RooUnfolding.kGP;
+  elif method == "ps":
+    alg= ROOT.RooUnfolding.kPoisson;
+  else:
+    print("The passed unfolding method does not match any of the supported methods. Please pass one of the following methods:")
+    print("bayes")
+    print("bbb")
+    print("inv")
+    print("svd")
+    print("root")
+    print("ids")
+    print("gp")
+    print("ps")
+    exit(0)
+
   return alg
 
+
+
+
+
+
+# ======= Settings ======= #
+
+dict_data = {}       
+
+# Kinematic ranges. (delta eta)
+dict_data['xmin'] = -4         
+dict_data['xmax'] = 4          
+                      
+# Smearing parameters.
+dict_data['bias'] = 0.2
+dict_data['sigma'] = 0.5
+
+# Efficiency type
+dict_data['eff'] = 'lin'
+                         
+# Bimodal assymmetry.
+dict_data['frac'] = 0.5
+                                                  
+# Overflow flag.         
+overflow = True
+                                                        
+# Number of events.            
+dict_data['nevents'] = 50000    
+                                       
+# Constant background bin count        
+dict_data['nbkg'] = 0
+
+# Truth/Reco bin count.  
+dict_data['tbins'] = 20  
+dict_data['rbins'] = 30  
+                               
+# How much more MC do we have than data
+dict_data['mcLumiFactor'] = 1         
+
+
+# ======================== #
+
+
+
+
 def main(args):
-  from os.path import exists
-  
-  def smear(xt):
-    from ROOT import gRandom
-    xeff= 0.3 + (1.0-0.3)/20*(xt+10.0);  #  efficiency
-    x= gRandom.Rndm();
-    if x>xeff: return None;
-    xsmear= gRandom.Gaus(args.bias,args.smear);     #  bias and smear
-    return xt+xsmear;
 
   import ROOT
-  if args.mode == "HistFactory":
-    prepare(smear,True)
+
+  # # Prepare the histograms and response matrix.
+  histograms = prepare_bimodal(dict_data)
+
+  # Plot the input distributions.
+  #plot_input(histograms["truth_train"], histograms["reco_train"], histograms["data"], histograms["response"], histograms["purity"], histograms["eff"])  
+
+  #return
+  # Set the unfolding method and corresponding
+  # regularization parameter values. See helpers.py
+  # for the actual values.
+  alg = algorithm(args.method)
+
+  # Get the truth distribution for training.
+  train_truth = histograms["truth_train"]
   
-    if exists("ws-aux.root") and exists("ws.root"):
-      mainws = loadws("ws.root","combined")
-      auxws = loadws("ws-aux.root","combined")
-    else:
-      mainws = makeWorkspace()
-      auxws = makeAuxWorkspace()
-      mainws.writeToFile("ws.root")
-      auxws.writeToFile("ws-aux.root")
+  # Get the reco distribution for training.
+  train_reco = histograms["reco_train"]
   
-    ROOT.RooUnfoldResponse
-    
-    ROOT.RooUnfolding.setGammaUncertainties(mainws)
-    ROOT.RooUnfolding.setGammaUncertainties(auxws)
+  # Get the to-be unfolded data distribution.
+  data = histograms["data"]
+
+  # Get the response matrix.
+  response = histograms["response"]
+
+  # Set the regularization parameter.
+  regparm = args.regparm
   
-    import sys
-    ws = makeFinalWorkspace(algorithm(args.method),mainws,auxws,4)
+  print('Unfolding with the '+str(args.method)+r'-method and regularization strength of '+str(regparm))
+  
+  # Create a spectator object.  
+  spec = ROOT.RooUnfoldSpec("unfold","unfold",train_truth,"obs_truth",train_reco,"obs_reco",response,0,data,overflow,0.0005)
+  if not regparm == None:
+    func = spec.makeFunc(alg, regparm)
   else:
-    histograms = prepare(smear,False)
+    func = spec.makeFunc(alg)
 
-    spec = ROOT.RooUnfoldSpec("unfold","unfold",histograms["sig_truth"],"obs_truth",histograms["sig_reco"],"obs_reco",histograms["sig_response"],histograms["bkg_reco"],histograms["sigbkg_reco"],False,0.0005,False)
-    
-    # This line instantiates one of the subclasses specific to the unfolding algorithm.
-    if args.regparm:
-      unfolding = spec.makeFunc(algorithm(args.method),args.regparm)
-    else:
-      unfolding = spec.makeFunc(algorithm(args.method))
+  # Create a RooFitHist object as input for the unfolding
+  # results printing.
+  test_truth_RFH = spec.makeHistogram(histograms["truth_test"])
 
-    # required to avoid python garbage collector messing up the RooDataHists added to gDirectory
-    ROOT.gDirectory.Clear()
-    
-    test_truth = spec.makeHistogram(histograms["sig_theory"])
-    test_truth_func = test_truth.func()
-    test_truth_func.SetName("sig_theory")
-    ws = ROOT.RooWorkspace("workspace","workspace")
+  unfold = func.unfolding()
 
-    getattr(ws,"import")(unfolding)
-    getattr(ws,"import")(test_truth_func)
-
-    # Here the first unfolding is performed.
-    src = str(unfolding.getStringAttribute("source"))
-    func = ws.function(src)
-    func.unfolding().PrintTable(ROOT.cout, test_truth)
-
-    ws.Print("t")
-   
-    unfolding.Delete()
-
-#  return
-
-  ws.writeToFile("unfolding.root")
+  #unfold.SetTruth(test_truth_RFH)
   
-  if args.mode == "HistFactory":
-    makePlots_HistFactory(ws)
-  else:
-    makePlots_RooUnfoldSpec(ws)
+  # Print the unfolding results and compare to a truth histogram.
+  unfold.PrintTable(ROOT.cout, test_truth_RFH, ROOT.RooUnfolding.kRooFit)
+
+  # Plot the results.
+  #plot_result(histograms["truth_test"], func, True)
+
   
 
-  
+
 if __name__=="__main__":
   from argparse import ArgumentParser
   parser = ArgumentParser(description="RooUnfold testing script")
-  parser.add_argument("method",default="bbb",type=str)
+  parser.add_argument("method",default="inv",type=str)
   parser.add_argument("--regparm",type=float)
-  parser.add_argument("--mode",choices=["RooUnfoldSpec","HistFactory"],default="RooUnfoldSpec",type=str)
-  parser.add_argument("--bias",default=-2.5,type=float)
-  parser.add_argument("--smear",default=.2,type=float)
   main(parser.parse_args())
+  

@@ -1,9 +1,10 @@
 // Author: Stefan Schmitt
 // DESY, 23/01/09
 
-// Version 17.8, parallel to changes in TUnfold
+//  Version 17.9, parallel to changes in TUnfold
 //
 //  History:
+//    Version 17.8, parallel to changes in TUnfold
 //    Version 17.7, bug fix in GetBackground()
 //    Version 17.6, with updated doxygen comments
 //    Version 17.5, bug fixes in TUnfold fix problem with GetEmatrixSysUncorr
@@ -114,7 +115,7 @@ class TUnfoldSysV17 : public TUnfoldV17 {
    TUnfoldSysV17(const TH2 *hist_A, EHistMap histmap, ERegMode regmode = kRegModeSize,
              EConstraint constraint=kEConstraintArea);      // constructor
    TUnfoldSysV17(const TMatrixD *matrix_A, EHistMap histmap, ERegMode regmode = kRegModeSize,
-             EConstraint constraint=kEConstraintArea);      // constructor
+		 EConstraint constraint=kEConstraintArea);      // constructor
    TUnfoldSysV17(void);            // for derived classes
    virtual ~ TUnfoldSysV17(void);    // delete data members
    void AddSysError(const TH2 *sysError,const char *name, EHistMap histmap,

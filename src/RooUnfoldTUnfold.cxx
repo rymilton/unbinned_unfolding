@@ -48,16 +48,16 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldTUnfoldT& rhs)
 }
 
 template<class Hist,class Hist2D>
-RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, TUnfold::ERegMode reg, const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title),_reg_method(reg)
+RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, TUnfold::ERegMode reg, Bool_t handleFakes, const char* name, const char* title)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title),_reg_method(reg), _handleFakes(handleFakes)
 {
   // Constructor with response matrix object and measured unfolding input histogram.
   Init();
 }
 
 template<class Hist,class Hist2D>
-RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Double_t tau, TUnfold::ERegMode reg, const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title),_reg_method(reg)
+RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Double_t tau, TUnfold::ERegMode reg, Bool_t handleFakes, const char* name, const char* title)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title),_reg_method(reg), _handleFakes(handleFakes)
 {
   // Constructor with response matrix object and measured unfolding input histogram.
   // This one uses a fixed regularisation parameter, tau.
@@ -72,6 +72,8 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::Destroy()
   delete _lCurve;
   delete _logTauX;
   delete _logTauY;
+  delete _logTauSURE;
+  delete _df_chi2A;
 }
 
 // template<class Hist,class Hist2D>RooUnfoldTUnfoldT*
@@ -109,6 +111,8 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::CopyData (const RooUnfoldTUnfoldT& rhs)
   _lCurve  = (rhs._lCurve  ? dynamic_cast<TGraph*> (rhs._lCurve ->Clone()) : 0);
   _logTauX = (rhs._logTauX ? dynamic_cast<TSpline*>(rhs._logTauX->Clone()) : 0);
   _logTauY = (rhs._logTauY ? dynamic_cast<TSpline*>(rhs._logTauY->Clone()) : 0);
+  _logTauSURE = (rhs._logTauSURE  ? dynamic_cast<TGraph*> (rhs._logTauSURE ->Clone()) : 0);
+  _df_chi2A = (rhs._df_chi2A  ? dynamic_cast<TGraph*> (rhs._df_chi2A ->Clone()) : 0);
 }
 
 
@@ -116,11 +120,13 @@ template<class Hist,class Hist2D>void
 RooUnfoldTUnfoldT<Hist,Hist2D>::Init()
 {
   tau_set=false;
-  _tau=0;
+  _tau=-1e30;
   _unf=0;
   _lCurve = 0;
   _logTauX = 0;
   _logTauY = 0;
+  _logTauSURE = 0;
+  _df_chi2A = 0;
   GetSettings();
 }
 
@@ -187,8 +193,7 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::Unfold() const
   }
     
   // Subtract fakes from measured distribution
-  // TODO: Check if the fakes are handled well here.
-  if (this->_res->HasFakes()) {
+  if (this->_res->HasFakes() && _handleFakes) {
     TVectorD fakes= this->_res->Vfakes();
     Double_t fac= this->_res->Vmeasured().Sum();
     if (fac!=0.0) fac=  this->Vmeasured().Sum() / fac;
@@ -198,8 +203,6 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::Unfold() const
     }
   }
 
-  // TODO: Add a line that derives the number of dimensions of the to be
-  // unfolded histogram.
   Int_t ndim = dim(this->_meas);
   TUnfold::ERegMode reg= _reg_method;
   
@@ -252,12 +255,19 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::Unfold() const
     delete _lCurve;  _lCurve  = 0;
     delete _logTauX; _logTauX = 0;
     delete _logTauY; _logTauY = 0;
-    Int_t bestPoint = _unf->ScanLcurve(nScan,tauMin,tauMax,&_lCurve,&_logTauX,&_logTauY);
+    delete _logTauSURE; _logTauSURE = 0;
+    delete _df_chi2A; _df_chi2A = 0;
+    Int_t bestPoint = _unf->ScanSURE(nScan,tauMin,tauMax,&_logTauSURE,&_df_chi2A,&_lCurve);
+    //Int_t bestPoint = _unf->ScanLcurve(nScan,tauMin,tauMax,&_lCurve,&_logTauX,&_logTauY);
     _tau=_unf->GetTau();  // save value, even if we don't use it unless tau_set
     std::cout <<"Lcurve scan chose tau= "<<_tau<<std::endl<<" at point "<<bestPoint<<std::endl;
-  } else {
-    _unf->DoUnfold(_tau);
+    
+    // Added the undersmoothing method developed by Junhyung Lyle Kim and Mikael Kuusela
+    //_tau = _unf->UndersmoothTau(_tau, 0.01, 1000);
   }
+
+  _unf->DoUnfold(_tau);
+
   TH1F reco("_cache._rec","reconstructed dist",this->_nt,0.0,this->_nt);
   _unf->GetOutput(&reco);
   this->_cache._rec.ResizeTo (this->_nt);
