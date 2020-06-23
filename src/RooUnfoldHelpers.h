@@ -25,10 +25,12 @@ namespace RooUnfolding {
 
   enum ErrorTreatment {  // Error treatment:
     kNoError,            //   no error treatment: returns sqrt(N)
-    kErrors,             //   bin-by-bin errors (diagonal covariance matrix)
-    kCovariance,         //   covariance matrix from unfolding
-    kCovToy,             //   covariance matrix from toy MC
-    kRooFit,             //   toys using RooFit
+    kErrors,             //   the diagonal elements of the covariance calculated by the unfolding derived class.
+    kCovariance,         //   the covariance calculated by the unfolding derived class.
+    kErrorsToys,         //   calculate the error with toy throwing
+    kCovToys,            //   calculate the full covariance with toy throwing
+    kErrorsRooFitToys,   //   calculate the error with toy throwing
+    kCovRooFitToys,      //   calculate the full covariance with toy throwing
     kDefault=-1          //   not specified
   };
 
@@ -39,10 +41,14 @@ namespace RooUnfolding {
   };
 
   enum BiasMethod { // Method of bias calculation
-    kBiasEstimator,
-    kBiasClosure,
-    kBiasAsimov,
-    kBiasData
+    kBiasToys,
+    kBiasRooFitToys
+  };
+
+  enum BiasError {
+    kBiasSD,
+    kBiasSDM,
+    kBiasRMS
   };
   
   enum Dimension { X=0, Y=1, Z=2 };
@@ -51,6 +57,7 @@ namespace RooUnfolding {
   template<class Hist> const char* name(const Hist* hist);
   template<class Hist> Hist* clone(const Hist* hist);
   template<class Hist> Hist* asimovClone(const Hist* hist, bool correctDensity);    
+  template<class Hist> Hist* asimov1DClone(const Hist* hist, bool correctDensity, TVectorD& val, TVectorD& err);    
   template<class Hist> const char* title(const Hist* hist);  
   template<class Hist> double min(const Hist* hist, RooUnfolding::Dimension d);
   template<class Hist> double max(const Hist* hist, RooUnfolding::Dimension d);

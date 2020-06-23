@@ -133,7 +133,7 @@ RooUnfoldErrors::CreatePlots()
 
     unfold->SetNToys(toys);
     const TVectorD errunf= unfold->EunfoldV(RooUnfold::kErrors);
-    const TVectorD errtoy= unfold->EunfoldV(RooUnfold::kCovToy);
+    const TVectorD errtoy= unfold->EunfoldV(RooUnfold::kErrorsToys);
     for (int i= 0; i<ntx; i++) {
       h_err    ->SetBinContent(i+1,errunf[i]);
       h_err_res->SetBinContent(i+1,errtoy[i]);

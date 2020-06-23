@@ -217,8 +217,7 @@ RooUnfoldIdsT<Hist,Hist2D>::GetCov() const
    delete unfoldedCov;
    delete meascov;
    TH1::AddDirectory(oldstat);
-
-   this->_cache._haveCov = kTRUE;
+   this->_cache._haveCov= true;
 }
 
 //______________________________________________________________________________

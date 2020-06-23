@@ -41,6 +41,7 @@ namespace RooUnfolding {
     virtual size_t dim() const;
     RooFitHist* clone() const;
     RooFitHist* asimovClone(bool correctDensity) const;    
+    RooFitHist* asimov1DClone(bool correctDensity, TVectorD& val, TVectorD& err) const;    
 
     virtual double error() const;
     virtual double value() const;

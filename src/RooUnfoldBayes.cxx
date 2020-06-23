@@ -105,7 +105,7 @@ RooUnfoldBayesT<Hist,Hist2D>::GetCov() const
 {
   getCovariance();
   this->_cache._cov.ResizeTo (this->_nt, this->_nt);  // drop fakes in final bin
-  this->_cache._haveCov= true;
+  this->_cache._haveCov = true;
 }
 
 template<class Hist,class Hist2D> void

@@ -932,7 +932,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   }
 
   template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& v, const char* name, const char* title, const std::vector<Variable<RooUnfolding::RooFitHist>>& x, bool overflow){
-    std::runtime_error("createHist 5 called");                
+    std::runtime_error("createHist 5 called");
     return 0;
   }
   template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& v, const TVectorD& ve, const char* name, const char* title, const std::vector<Variable<RooUnfolding::RooFitHist>>& x, bool overflow){
@@ -1195,9 +1195,37 @@ RooUnfolding::RooFitHist* RooUnfolding::RooFitHist::asimovClone(bool correctDens
         }
       }
     } else {
-      double volume = ::useIf(dh->binVolume(),correctDensity);        
+      double volume = ::useIf(dh->binVolume(),correctDensity);
       dh->add(args,this->value(),sqrt(volume*this->value())/volume) ;
     }
+  }
+  
+  dh->removeSelfFromDir();
+  
+  return new RooFitHist(dh,arglist,0);
+}
+
+RooUnfolding::RooFitHist* RooUnfolding::RooFitHist::asimov1DClone(bool correctDensity, TVectorD& val, TVectorD& err) const {   
+  // Define x,y,z as 1st, 2nd and 3rd observable
+  RooAbsArg* xvar = _obs.at(0);
+
+  RooArgSet args;
+  RooArgList arglist;    
+  for(auto v:this->_obs){
+    args.add(*v);
+    arglist.add(*v);      
+  }
+  TString name = TString::Format("%s_asimov",this->name());
+  
+  RooDataHist* dh = new RooDataHist(name,this->title(),args);
+  
+  // Transfer contents
+  Int_t xmin(0),ymin(0),zmin(0) ;
+  
+  for (int ix=0 ; ix < ::nBins(xvar) ; ix++) {
+    ::setBin(xvar,ix) ;
+    double volume = ::useIf(dh->binVolume(),correctDensity);
+    dh->add(args,val(ix),err(ix));
   }
   
   dh->removeSelfFromDir();
@@ -1207,6 +1235,9 @@ RooUnfolding::RooFitHist* RooUnfolding::RooFitHist::asimovClone(bool correctDens
 namespace RooUnfolding {
   template<> RooUnfolding::RooFitHist* asimovClone(const RooUnfolding::RooFitHist* hist, bool correctDensity){
     return hist->asimovClone(correctDensity);
+  }
+  template<> RooUnfolding::RooFitHist* asimov1DClone(const RooUnfolding::RooFitHist* hist, bool correctDensity, TVectorD& val, TVectorD& err){
+    return hist->asimov1DClone(correctDensity, val, err);
   }
   std::vector<Variable<TH1>> convertTH1(const std::vector<Variable<RooUnfolding::RooFitHist> >& vars){
     std::vector<Variable<TH1> > outvars;

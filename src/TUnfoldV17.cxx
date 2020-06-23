@@ -519,8 +519,7 @@ Double_t TUnfoldV17::DoUnfold(void)
    rank=0;
    fVxxInv = InvertMSparseSymmPos(fVxx,&rank);
    if(rank != GetNx()) {
-      Warning("DoUnfold","rank of output covariance is %d expect %d",
-              rank,GetNx());
+      Warning("DoUnfold","rank of output covariance is %d expect %d",rank,GetNx());
    }
 
    TVectorD VxxInvDiag(fVxxInv->GetNrows());
@@ -1824,8 +1823,8 @@ TUnfoldV17::TUnfoldV17(const TH2 *hist_A, EHistMap histmap, ERegMode regmode,
 	      "do not depend on the input data");
       } else {
          Warning("TUnfold","%d output bins "
-                 "do not depend on the input data %s",nDisconnected,
-                 static_cast<const char *>(binlist));         
+	"do not depend on the input data %s",nDisconnected,
+	static_cast<const char *>(binlist));         
       }
    }
    // store bias as matrix
@@ -2020,8 +2019,8 @@ TUnfoldV17::TUnfoldV17(const TMatrixD *matrix_A, EHistMap histmap, ERegMode regm
 	   "do not depend on the input data");
     } else {
       Warning("TUnfold","%d output bins "
-	      "do not depend on the input data %s",nDisconnected,
-	      static_cast<const char *>(binlist));         
+      "do not depend on the input data %s",nDisconnected,
+      static_cast<const char *>(binlist));         
     }
   }
   // store bias as matrix
@@ -2562,7 +2561,7 @@ Int_t TUnfoldV17::SetInput(const TH1 *input, Double_t scaleBias,
      }
      if(hist_vyy_inv) {
         Warning("SetInput",
-                "inverse of input covariance is taken from user input");
+       "inverse of input covariance is taken from user input");
         Int_t *rowVyyInv=new Int_t[GetNy()*GetNy()+1];
         Int_t *colVyyInv=new Int_t[GetNy()*GetNy()+1];
         Double_t *dataVyyInv=new Double_t[GetNy()*GetNy()+1];
@@ -2625,20 +2624,20 @@ Int_t TUnfoldV17::SetInput(const TH1 *input, Double_t scaleBias,
   if(nVarianceForced) {
      if(nVarianceForced>1) {
         Warning("SetInput","%d/%d input bins have zero error,"
-                " 1/error set to %lf.",
-                nVarianceForced,GetNy(),oneOverZeroError);
+       " 1/error set to %lf.",
+       nVarianceForced,GetNy(),oneOverZeroError);
      } else {
         Warning("SetInput","One input bin has zero error,"
-                " 1/error set to %lf.",oneOverZeroError);
+       " 1/error set to %lf.",oneOverZeroError);
      }
   }
   if(nVarianceZero) {
      if(nVarianceZero>1) {
         Warning("SetInput","%d/%d input bins have zero error,"
-                " and are ignored.",nVarianceZero,GetNy());
+       " and are ignored.",nVarianceZero,GetNy());
      } else {
         Warning("SetInput","One input bin has zero error,"
-                " and is ignored.");
+       " and is ignored.");
      }
      fIgnoredBins=nVarianceZero;
   }
@@ -2772,7 +2771,7 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
     }
     if(hist_vyy_inv) {
       Warning("SetInput",
-	      "inverse of input covariance is taken from user input");
+      "inverse of input covariance is taken from user input");
       Int_t *rowVyyInv=new Int_t[GetNy()*GetNy()+1];
       Int_t *colVyyInv=new Int_t[GetNy()*GetNy()+1];
       Double_t *dataVyyInv=new Double_t[GetNy()*GetNy()+1];
@@ -2835,20 +2834,20 @@ Int_t TUnfoldV17::SetInput(const TVectorD *vec_y, const TVectorD *errvec_y, Doub
   if(nVarianceForced) {
     if(nVarianceForced>1) {
       Warning("SetInput","%d/%d input bins have zero error,"
-	      " 1/error set to %lf.",
-	      nVarianceForced,GetNy(),oneOverZeroError);
+      " 1/error set to %lf.",
+            nVarianceForced,GetNy(),oneOverZeroError);
     } else {
       Warning("SetInput","One input bin has zero error,"
-	      " 1/error set to %lf.",oneOverZeroError);
+            " 1/error set to %lf.",oneOverZeroError);
     }
   }
   if(nVarianceZero) {
     if(nVarianceZero>1) {
       Warning("SetInput","%d/%d input bins have zero error,"
-	      " and are ignored.",nVarianceZero,GetNy());
+      " and are ignored.",nVarianceZero,GetNy());
     } else {
       Warning("SetInput","One input bin has zero error,"
-	      " and is ignored.");
+            " and is ignored.");
     }
     fIgnoredBins=nVarianceZero;
   }
@@ -3517,7 +3516,7 @@ void TUnfoldV17::GetInputInverseEmatrix(TH2 *out)
 
       if(rank<GetNy()-fIgnoredBins) {
          Warning("GetInputInverseEmatrix","input covariance matrix has rank %d expect %d",
-                 rank,GetNy());
+	rank,GetNy());
       }
       if(fNdf<0) {
          Error("GetInputInverseEmatrix","number of parameters %d > %d (rank of input covariance). Problem can not be solved",GetNpar(),rank);
@@ -4040,8 +4039,7 @@ Double_t TUnfoldV17::GetRhoIFromMatrix(TH1 *rhoi,const TMatrixDSparse *eOrig,
       Int_t rank=0;
       TMatrixDSparse *einvSparse=InvertMSparseSymmPos(&eSparse,&rank);
       if(rank!=einvSparse->GetNrows()) {
-         Warning("GetRhoIFormMatrix","Covariance matrix has rank %d expect %d",
-                 rank,einvSparse->GetNrows());
+         Warning("GetRhoIFormMatrix","Covariance matrix has rank %d expect %d",rank,einvSparse->GetNrows());
       }
       // fill to histogram
       const Int_t *rows_eInv=einvSparse->GetRowIndexArray();

@@ -213,7 +213,6 @@ RooUnfoldSvdT<Hist,Hist2D>::GetCov() const
   // if (this->_dosys){
   //   add(this->_cache._cov,this->_svd->GetAdetCovMatrix (this->_NToys));
   // }
-
   this->_cache._haveCov= true;
 }
 

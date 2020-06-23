@@ -26,6 +26,7 @@ public:
   typedef RooUnfolding::Algorithm Algorithm;
   typedef RooUnfolding::ErrorTreatment ErrorTreatment;
   typedef RooUnfolding::BiasMethod BiasMethod;
+  typedef RooUnfolding::BiasError BiasError;
   static const Algorithm kNone;
   static const Algorithm kBayes;
   static const Algorithm kSVD;
@@ -39,13 +40,16 @@ public:
   static const ErrorTreatment kNoError;
   static const ErrorTreatment kErrors;
   static const ErrorTreatment kCovariance;
-  static const ErrorTreatment kCovToy;
+  static const ErrorTreatment kErrorsToys;
+  static const ErrorTreatment kCovToys;
+  static const ErrorTreatment kErrorsRooFitToys;
+  static const ErrorTreatment kCovRooFitToys;
   static const ErrorTreatment kDefault;
-  static const ErrorTreatment kRooFit;
-  static const BiasMethod kBiasAsimov;
-  static const BiasMethod kBiasEstimator;
-  static const BiasMethod kBiasClosure;
-  static const BiasMethod kBiasData;
+  static const BiasMethod kBiasToys;
+  static const BiasMethod kBiasRooFitToys;
+  static const BiasError kBiasSD;
+  static const BiasError kBiasSDM;
+  static const BiasError kBiasRMS;
   
   // Standard methods
 
@@ -91,7 +95,7 @@ public:
   const    TVectorD& Vtruth() const;   // Truth distribution as a TVectorD
   const    TVectorD& Vbkg() const;   // Background distribution as a TVectorD
   const    TVectorD Vbias() const;   // Bias distribution as a TVectorD
-  const    TVectorD Ebias() const;   // Bias distribution errors as a TVectorD
+  const    TVectorD Ebias(RooUnfolding::BiasError E_type=RooUnfolding::kBiasSDM) const;   // Bias distribution errors as a TVectorD
   const    TMatrixD& GetMeasuredCov() const;   // Measured distribution covariance matrix
 
   virtual const TVectorD&  Vunfold() const;
@@ -117,8 +121,8 @@ public:
   virtual void       SetRegParm (Double_t parm);
   virtual Double_t   GetRegParm() const; // Get Regularisation Parameter
   Double_t Chi2 (const Hist* hTrue,RooUnfolding::ErrorTreatment DoChi2=RooUnfolding::kCovariance) const;
-  virtual void CalculateBias(RooUnfolding::BiasMethod method, Int_t ntoys = 50, const Hist* hTrue = 0, Bool_t relative=true) const; // Estimate bias
-  virtual void CalculateBias(Int_t ntoys = 50, const Hist* hTrue = 0, Bool_t relative=true) const; // Estimate bias by throwing toys.
+  virtual void CalculateBias(RooUnfolding::BiasMethod method, Int_t ntoys = 50, const Hist* hTrue = 0) const; // Estimate bias
+  virtual void CalculateBias(Int_t ntoys = 50, const Hist* hTrue = 0) const; // Estimate bias by throwing toys.
 
   RooUnfolding::Algorithm GetAlgorithm() const;
   Double_t GetMinParm() const;
@@ -126,9 +130,8 @@ public:
   Double_t GetStepSizeParm() const;
   Double_t GetDefaultParm() const;
   double RunToy(TVectorD& x, TVectorD& xe) const;
-  void RunToys(int ntoys, std::vector<TVectorD>& x, std::vector<TVectorD>& xe, std::vector<double>& chi2) const;
-  void RunBiasAsimovToys(int ntoys, std::vector<TVectorD>& vbias, Bool_t relative = true) const;
-  void RunBiasDataToys(int ntoys, std::vector<TVectorD>& vbias, Bool_t relative = true) const;
+  void RunRooFitToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const;
+  void RunToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const;
   
   void Print(Option_t* opt="") const;
   void Dump() const;    
@@ -152,9 +155,16 @@ private:
 
 protected:
   // cache 
+  virtual void GetErrors() const; // Get 
   virtual void GetCov() const; // Get covariance matrix using errors on measured distribution
-  virtual void GetErrors() const;
-  virtual void GetErrorsCovariance() const;
+  void GetErrorsToys() const;
+  void GetCovToys() const;
+  void GetErrorsRooFitToys() const;
+  void GetCovRooFitToys() const;
+
+  void GetSampleVar(std::vector<TVectorD>& munfolded) const;
+  void GetSampleCov(std::vector<TVectorD>& munfolded) const;
+
   virtual void GetSettings() const;
   virtual void GetErrMat() const; // Get covariance matrix using errors from residuals on reconstructed distribution
   virtual void GetWgt() const; // Get weight matrix using errors on measured distribution
@@ -176,7 +186,9 @@ protected:
     Bool_t   _haveErrors;    // have _variances
     Bool_t   _haveBias;      // have _bias
     TVectorD _bias;          // Estimated bias on each truth bin
-    TVectorD _sigbias;       // SD of the bias
+    TVectorD _sdbias;        // SD of the bias on each truth bin
+    TVectorD _sdmbias;       // SD of the mean of the bias on each truth bin
+    TVectorD _rmsbias;       // Root mean squared on each bin
     TVectorD _rec;           // Reconstructed distribution
     TMatrixD _cov;           // Reconstructed distribution covariance
     TMatrixD _wgt;           // Reconstructed distribution weights (inverse of _cov)

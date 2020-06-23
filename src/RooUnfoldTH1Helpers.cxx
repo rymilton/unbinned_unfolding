@@ -362,6 +362,24 @@ namespace RooUnfolding {
       return hist;
     }
   }
+  template<> TH1* asimov1DClone<TH1>(const TH1* orighist, bool correctDensity, TVectorD& val, TVectorD& err){
+    if(orighist->InheritsFrom(TH3::Class())){
+      return asimovClone<TH3>((TH3*)orighist,correctDensity);
+    } else if(orighist->InheritsFrom(TH2::Class())){
+      return asimovClone<TH2>((TH2*)orighist,correctDensity);
+    } else {
+      TH1* hist = (TH1*)(orighist->Clone());
+      
+      Int_t start_i = 1;
+      if (val.GetNrows()+2 == hist->GetNbinsX()) start_i = 0;
+
+      for(int i=start_i; i<hist->GetNbinsX()+2 - start_i; ++i){
+	hist->SetBinContent(i,val(i-start_i));
+	hist->SetBinError(i,err(i-start_i));
+      }
+      return hist;
+    }
+  }
   template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& ve, const char* name, const char* title, const std::vector<Variable<Hist>>& x, bool overflow){  
     // Sets the bin content of the histogram as that element of the input vector
     int nb = v.GetNrows();

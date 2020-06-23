@@ -22,6 +22,7 @@ Chi^2 of change 2.24414
 Iteration : 3
 Chi^2 of change 1.01193
 Calculating covariances due to number of measured events
+Calculating covariances due to number of measured events
 covariance matrix condition=1.86696e+16, determinant=2.75342e+42, tolerance=2.22045e-16
 Inverse covariance matrix 70.124% maximum error
 ===============================================================================

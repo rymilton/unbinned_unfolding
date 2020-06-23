@@ -81,12 +81,12 @@ RooUnfoldBinByBinT<Hist,Hist2D>::GetCov() const
 {
   //! Get covariance matrix
   const TMatrixD& covmeas(this->GetMeasuredCov());
-    this->_cache._cov.ResizeTo(this->_nt,this->_nt);
-    Int_t nb= std::min(this->_nm,this->_nt);
-    for (int i=0; i<nb; i++)
-      for (int j=0; j<nb; j++)
-        this->_cache._cov(i,j)= pow(this->_specialcache._factors[i],2)*covmeas(i,j);
-    this->_cache._haveCov= true;
+  this->_cache._cov.ResizeTo(this->_nt,this->_nt);
+  Int_t nb= std::min(this->_nm,this->_nt);
+  for (int i=0; i<nb; i++)
+    for (int j=0; j<nb; j++)
+      this->_cache._cov(i,j)= pow(this->_specialcache._factors[i],2)*covmeas(i,j);
+  this->_cache._haveCov= true;
 }
 
 
