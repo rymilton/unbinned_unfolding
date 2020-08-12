@@ -244,6 +244,8 @@ Alternatively, you can use `cmake`
     cd build
     cmake ..
     make -j4
+    cd ..
+    source build/setup.sh
 
 Running
 --------
