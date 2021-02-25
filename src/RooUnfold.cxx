@@ -82,6 +82,7 @@
 #include "TMath.h"
 #include "Math/ProbFunc.h"
 #include "RooRandom.h"
+#include "RooMultiVarGaussian.h"
 
 #include "RooUnfoldResponse.h"
 #include "RooUnfoldErrors.h"
@@ -1641,9 +1642,12 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
 
   //! Save the parameter values.
   auto* snsh = errorParams.snapshot();
+
   RooArgList errorParamList(errorParams);
-  RooFitResult * prefitResult = RooFitResult::prefitResult(errorParamList);
-  
+  RooArgList errorParamListMu(errorParams);
+
+  RooFitResult * prefitResult = RooFitResult::prefitResult(errorParams);
+
   //! Evaluate this part with Carsten.
 
   // if(_cache._covMes && !this->_dosys==kNoMeasured){
@@ -1671,10 +1675,11 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
 
   //! Create a multidimensional pdf of which each nuisance parameter
   //! represents one dimension.
-  RooAbsPdf* paramPdf = prefitResult->createHessePdf(errorParams);
+  const TMatrixDSym& V = prefitResult->covarianceMatrix();
+  RooAbsPdf* paramPdf = new RooMultiVarGaussian("mvg", "mvg", errorParamList, errorParamListMu, V);
 
   //! Sample new values for these nuisance parameters.
-  RooDataSet* d = paramPdf->generate(errorParams,ntoys);
+  RooDataSet* d = paramPdf->generate(errorParamList,ntoys);
 
   Int_t failed_toys = 0;
   auto errorType = _withError;

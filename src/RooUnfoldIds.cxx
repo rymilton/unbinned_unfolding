@@ -171,7 +171,6 @@ RooUnfoldIdsT<Hist,Hist2D>::Unfold() const
    // Perform IDS unfolding.
    TVectorD *rechist = GetIDSUnfoldedSpectrum(vtrain, vtruth, mres, vmeas, verror, _niter);
 
-
    this->_cache._rec.ResizeTo(this->_nt);
 
    for (Int_t i = 0; i < this->_nt; ++i) {
@@ -429,7 +428,7 @@ RooUnfoldIdsT<Hist,Hist2D>::GetIDSUnfoldedSpectrum(TVectorD h_RecoMC, TVectorD h
 {
   
   Int_t bins_reco = h_RecoData.GetNrows();
-  
+
   // Sanity checks
   if (h_TruthMC.GetNrows() != bins_reco || h_RecoMC.GetNrows() != bins_reco  ||
       h_2DSmear.GetNrows() != bins_reco){
