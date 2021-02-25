@@ -1018,11 +1018,16 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth)
 {
   //! set up - measured and truth only used for shape
   Reset();
-  _mes= createHist<TH1>(measured->GetName(),measured->GetTitle(), vars(measured));
-  _fak= createHist<TH1>("fakes","Fakes",vars(measured));
-  _tru= createHist<TH1>("truth",truth->GetTitle(), vars(truth));
-  _tru_m= createHist<TH1>("truth_m","truth_m", vars(measured));
-  _mestru= createHist<TH1>("meastru","meastru", vars(measured));
+  _mes= clone(measured);
+  _fak= clone(measured);
+  _tru= clone(truth);
+  _tru_m= clone(measured);
+  _mestru=clone(measured);
+  _mes->Reset();
+  _fak->Reset();
+  _tru->Reset();
+  _tru_m->Reset();
+  _mestru->Reset();
   if (_overflow && (GetDimensionMeasured() > 1 || GetDimensionTruth() > 1)) {
     cerr << "UseOverflow setting ignored for multi-dimensional distributions" << endl;
     _overflow= 0;
