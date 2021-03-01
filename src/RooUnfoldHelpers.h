@@ -113,6 +113,7 @@ namespace RooUnfolding {
   template<class Hist> Hist* createHist(const TVectorD& vec, const char* name, const char* title, const Variable<Hist>& x, bool overflow=false);
   template<class Hist> Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const std::vector<Variable<Hist>>& x, bool overflow=false);
   template<class Hist> Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const Variable<Hist>& x, bool overflow=false);
+  template<class Hist> Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const Hist* origHist, bool overflow=false);
 
   void printTable (std::ostream& o, const TVectorD& vTrainTrue, const TVectorD& vTrain, const TVectorD& vMeas, const TVectorD& vReco);
   void printTable (std::ostream& o, int dim, int ntxb, int ntyb,

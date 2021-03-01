@@ -851,13 +851,18 @@ RooUnfoldT<Hist,Hist2D>::Hunfold (ErrorTreatment withError)
     3: Errors from the square root of the covariance matrix from the variation of the results in toy MC tests
     */
   if (!UnfoldWithErrors (withError)) withError= kNoError;
-  const Hist* t = _res->Htruth();
   if (!_cache._unfolded){
-    return RooUnfolding::createHist(name(t),title(t),vars(t));
+    return clone(_res->Htruth());
   } else {
     TVectorD rec(this->Vunfold());
     TVectorD errors(this->EunfoldV());
-    return RooUnfolding::createHist(rec,errors,name(t),title(t),vars(t),_overflow);
+    Hist* unfolded = RooUnfolding::createHist<Hist>(rec, errors, GetName(), GetTitle(), _res->Htruth(), this->_overflow);    
+    // for (Int_t i= 0; i < rec.GetNrows(); i++) {
+    //   Int_t j= RooUnfolding::bin<Hist>(unfolded, i, this->_overflow);
+    //   unfolded->SetBinContent (j, rec(i));
+    //   unfolded->SetBinError (j, errors(i));
+    // }
+    return unfolded;
   }
 }
 
@@ -1631,7 +1636,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   if(this->_dosys != kNoMeasured){
     getParameters(toyFactory->Hmeasured(),errorParams);
   }
-  
+
   //! Get all other possible systematic and statistical uncertainties.
   if(this->_dosys == kAll){
     getParameters(res->Hmeasured(),errorParams);
@@ -1687,6 +1692,11 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   for(int i=0; i<ntoys; ++i){
     errorParams = (*d->get(i));
     toyFactory->ForceRecalculation();
+
+    TVectorD vreco = toyFactory->Vmeasured();
+
+    RooUnfolding::randomize(vreco, this->rnd);
+    *(toyFactory->_cache._vMes) = vreco;
 
     //! add this extra check in case a toy unfolding failed
     if (toyFactory->Vunfold().GetNrows() == 1){
@@ -1766,7 +1776,7 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
     
     //! Get a new histogram by sampling from Poisson distributions.
     RooUnfolding::randomize(*(toyFactory->_cache._vMes), this->rnd);
-    
+
     //! Unfold.
     TVectorD vunfolded(toyFactory->Vunfold());
     

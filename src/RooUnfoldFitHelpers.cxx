@@ -939,6 +939,10 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     std::runtime_error("createHist 6 called");   
     return 0;
   }
+  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& v, const TVectorD& verr, const char* name, const char* title, const RooUnfolding::RooFitHist* origHist, bool overflow){
+    std::runtime_error("createHist 7 called");
+    return 0;
+  }
   template<> TVectorD subtract<RooUnfolding::RooFitHist,TVectorD>(const TVectorD& orig, const RooUnfolding::RooFitHist* hist, bool overflow) {
     TVectorD res(orig);
     size_t n = nBins(hist);

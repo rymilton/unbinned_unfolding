@@ -312,6 +312,17 @@ namespace RooUnfolding {
     }
     return h;
   }
+  template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& verr, const char* name, const char* title, const Hist* origHist, bool overflow){  
+    // Sets the bin content of the histogram as that element of the input vector
+    int nb = v.GetNrows();
+    Hist* h = (Hist*)(origHist ->Clone());
+    for (Int_t i= 0; i < nb; i++) {
+      Int_t j= RooUnfolding::bin<TH1>(h, i, overflow);
+      h->SetBinContent (j, v(i));
+      h->SetBinError (j, verr(i));
+    }
+    return h;
+  }
   template<class Hist> Hist* clone(const Hist* orighist){
     if(!orighist) return NULL;
 
@@ -559,6 +570,7 @@ template TH1* RooUnfolding::createHist<TH1>(char const*, char const*, std::vecto
 template TH2* RooUnfolding::createHist<TH2>(char const*, char const*, std::vector<RooUnfolding::Variable<TH2> > const&);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<TH1> const&, bool);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&, bool);
+template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, TH1 const*, bool);
 template TH2* RooUnfolding::createHist<TH2>(TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH2> > const&, bool);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<TH1> const&, bool);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&, bool);
