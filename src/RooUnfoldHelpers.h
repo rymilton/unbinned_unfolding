@@ -36,8 +36,9 @@ namespace RooUnfolding {
 
   enum SystematicsTreatment {       // Systematics treatment
     kNoSystematics=0,
-    kAll=1,
-    kNoMeasured=2
+    kGammas=1,
+    kAlphas=2,
+    kAll=3
   };
 
   enum BiasMethod { // Method of bias calculation

@@ -857,11 +857,6 @@ RooUnfoldT<Hist,Hist2D>::Hunfold (ErrorTreatment withError)
     TVectorD rec(this->Vunfold());
     TVectorD errors(this->EunfoldV());
     Hist* unfolded = RooUnfolding::createHist<Hist>(rec, errors, GetName(), GetTitle(), _res->Htruth(), this->_overflow);    
-    // for (Int_t i= 0; i < rec.GetNrows(); i++) {
-    //   Int_t j= RooUnfolding::bin<Hist>(unfolded, i, this->_overflow);
-    //   unfolded->SetBinContent (j, rec(i));
-    //   unfolded->SetBinError (j, errors(i));
-    // }
     return unfolded;
   }
 }
@@ -1586,7 +1581,7 @@ template<> void RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::S
   SetNameTitleDefault();
 }
 namespace {
-  void getParameters(const RooUnfolding::RooFitHist* hist, RooArgSet& params){
+  void getParameters(const RooUnfolding::RooFitHist* hist, RooArgSet& params, std::string type){
     if(hist){
       RooArgSet* args = hist->func()->getParameters((RooArgSet*)0);
       for(auto p:*args){
@@ -1597,6 +1592,8 @@ namespace {
         if(rrv->getError() == 0.){
           throw std::runtime_error(TString::Format("unable to build covariance matrix for parameter '%s' with error 0 - is this an observable? please set constant",rrv->GetName()).Data());
         }
+	std::string paramName(rrv->GetName());
+	if (paramName.find(type) != 0 && type != "all") continue;
         params.add(*rrv);
       }
       delete args;
@@ -1631,19 +1628,28 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   const auto* res = toyFactory->response();
   RooArgSet errorParams;
 
-  //! Get nuisance parameters corresponding to the stat. uncertainties
-  //! on the asimov data.
-  if(this->_dosys != kNoMeasured){
-    getParameters(toyFactory->Hmeasured(),errorParams);
+  //! Get all other possible systematic and statistical uncertainties.
+  std::string paramType;
+
+  switch(this->_dosys) {
+  case kNoSystematics:
+    this->RunToys(ntoys, vx, vxe, chi2);
+    return;
+  case kGammas:
+    paramType = "gamma";
+    break;
+  case kAlphas:
+    paramType = "alpha";
+    break;
+  case kAll:
+    paramType = "all";
+    break;
   }
 
-  //! Get all other possible systematic and statistical uncertainties.
-  if(this->_dosys == kAll){
-    getParameters(res->Hmeasured(),errorParams);
-    getParameters(res->Hresponse(),errorParams);
-    getParameters(res->Htruth(),errorParams);
-    getParameters(res->Hfakes(),errorParams);
-  }
+  getParameters(res->Hmeasured(),errorParams,paramType);
+  getParameters(res->Hresponse(),errorParams,paramType);
+  getParameters(res->Htruth(),errorParams,paramType);
+  getParameters(res->Hfakes(),errorParams,paramType);
 
   //! Save the parameter values.
   auto* snsh = errorParams.snapshot();
@@ -1693,10 +1699,20 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     errorParams = (*d->get(i));
     toyFactory->ForceRecalculation();
 
-    TVectorD vreco = toyFactory->Vmeasured();
+    //! Get the varied reco distribution.
+    TVectorD vtruth = res->Vtruth();
+    TVectorD vreco = res->Vfolded(vtruth);
 
+    //! Sample from Poisson p.d.f.s the toy data.
     RooUnfolding::randomize(vreco, this->rnd);
-    *(toyFactory->_cache._vMes) = vreco;
+
+    //! Set the parameters i.e. distributions used in the unfolding
+    //! back to their nominal values for the unfolding.
+    errorParams = *snsh;
+    toyFactory->ForceRecalculation();
+
+    //! Set the sampled toy data distribution.
+    toyFactory->_cache._vMes = new TVectorD(vreco);
 
     //! add this extra check in case a toy unfolding failed
     if (toyFactory->Vunfold().GetNrows() == 1){
@@ -1726,6 +1742,21 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
 
     errorParams = (*d_retry->get(0)) ;
     toyFactory->ForceRecalculation();
+
+    //! Get the varied reco distribution.
+    TVectorD vtruth = res->Vtruth();
+    TVectorD vreco = res->Vfolded(vtruth);
+
+    //! Sample from Poisson p.d.f.s the toy data.
+    RooUnfolding::randomize(vreco, this->rnd);
+
+    //! Set the parameters i.e. distributions used in the unfolding
+    //! back to their nominal values for the unfolding.
+    errorParams = *snsh;
+    toyFactory->ForceRecalculation();
+
+    //! Set the sampled toy data distribution.
+    toyFactory->_cache._vMes = new TVectorD(vreco);
   
     //! add this extra check in case a toy unfolding failed
     if (toyFactory->Vunfold().GetNrows() == 1){
