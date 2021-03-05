@@ -1621,6 +1621,14 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   //! set as the measured histogram.
   RooUnfolding::RooFitHist* asimov = RooUnfolding::asimovClone(this->response()->Hmeasured(),this->response()->UseDensityStatus());
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  TVectorD vbkg_nom(this->response()->Vmeasured().GetNrows());
+
+  //! Get the background if its there.
+  if (this->Hbkg()){
+    toyFactory->SetBkg(this->Hbkg());
+    vbkg_nom = this->Vbkg();
+  }
+
   toyFactory->SetVerbose(0);
 
   //! run a number of toys, fill the values, errors and chi2 in the
@@ -1642,6 +1650,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     paramType = "alpha";
     break;
   case kAll:
+  case kNoStatistics:
     paramType = "all";
     break;
   }
@@ -1682,7 +1691,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   //   ((::FitResultHack*)prefitResult)->setCovariance(setCov);
   // }
 
-  RooRandom::randomGenerator()->SetSeed(0);
+  RooRandom::randomGenerator()->SetSeed();
 
   //! Create a multidimensional pdf of which each nuisance parameter
   //! represents one dimension.
@@ -1703,16 +1712,26 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     TVectorD vtruth = res->Vtruth();
     TVectorD vreco = res->Vfolded(vtruth);
 
-    //! Sample from Poisson p.d.f.s the toy data.
-    RooUnfolding::randomize(vreco, this->rnd);
+    //! Get the varied background reco distribution.
+    TVectorD vbkg(toyFactory->Vbkg());
+
+    //! Add the background.
+    TVectorD vreco_tot = vreco + vbkg;
+
+    //! Sample from Poisson p.d.f.s the toy data. This
+    //! will include statistical uncertainty.
+    if (this->_dosys == kAll){
+      RooUnfolding::randomize(vreco_tot, this->rnd);
+    }
 
     //! Set the parameters i.e. distributions used in the unfolding
     //! back to their nominal values for the unfolding.
     errorParams = *snsh;
     toyFactory->ForceRecalculation();
 
-    //! Set the sampled toy data distribution.
-    toyFactory->_cache._vMes = new TVectorD(vreco);
+    //! Set the sampled toy data distribution after subtracting the
+    //! nominal background.
+    toyFactory->_cache._vMes = new TVectorD(vreco_tot-vbkg_nom);
 
     //! add this extra check in case a toy unfolding failed
     if (toyFactory->Vunfold().GetNrows() == 1){
@@ -1747,16 +1766,26 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     TVectorD vtruth = res->Vtruth();
     TVectorD vreco = res->Vfolded(vtruth);
 
-    //! Sample from Poisson p.d.f.s the toy data.
-    RooUnfolding::randomize(vreco, this->rnd);
+    //! Get the varied background reco distribution.
+    TVectorD vbkg(toyFactory->Vbkg());
+
+    //! Add the background.
+    TVectorD vreco_tot = vreco + vbkg;
+
+    //! Sample from Poisson p.d.f.s the toy data. This
+    //! will include statistical uncertainty.
+    if (this->_dosys == kAll){
+      RooUnfolding::randomize(vreco_tot, this->rnd);
+    }
 
     //! Set the parameters i.e. distributions used in the unfolding
     //! back to their nominal values for the unfolding.
     errorParams = *snsh;
     toyFactory->ForceRecalculation();
 
-    //! Set the sampled toy data distribution.
-    toyFactory->_cache._vMes = new TVectorD(vreco);
+    //! Set the sampled toy data distribution after subtracting the
+    //! nominal background.
+    toyFactory->_cache._vMes = new TVectorD(vreco_tot-vbkg_nom);
   
     //! add this extra check in case a toy unfolding failed
     if (toyFactory->Vunfold().GetNrows() == 1){
