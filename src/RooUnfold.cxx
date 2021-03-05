@@ -1659,6 +1659,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   getParameters(res->Hresponse(),errorParams,paramType);
   getParameters(res->Htruth(),errorParams,paramType);
   getParameters(res->Hfakes(),errorParams,paramType);
+  getParameters(toyFactory->Hbkg(),errorParams,paramType);
 
   //! Save the parameter values.
   auto* snsh = errorParams.snapshot();
