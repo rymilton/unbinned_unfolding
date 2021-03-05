@@ -1594,6 +1594,7 @@ namespace {
         }
 	std::string paramName(rrv->GetName());
 	if (paramName.find(type) != 0 && type != "all") continue;
+	rrv->Print();
         params.add(*rrv);
       }
       delete args;
@@ -1827,16 +1828,25 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
   //! set as the measured histogram.
   Hist* asimov = RooUnfolding::asimovClone(this->response()->Hmeasured(),this->response()->UseDensityStatus());
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  TVectorD vbkg(this->response()->Vmeasured().GetNrows());
+
+  //! Get the background if its there.
+  if (this->Hbkg()){
+    vbkg = this->Vbkg();
+  }
+
   toyFactory->SetVerbose(0);
 
   //! Throw toys around the reconstructed histogram.
   for (int i = 0; i < ntoys; i++){
     
-    toyFactory->_cache._vMes = new TVectorD(vreco);
+    TVectorD vreco_tot = vreco + vbkg;
     toyFactory->_cache._unfolded = false;
     
     //! Get a new histogram by sampling from Poisson distributions.
-    RooUnfolding::randomize(*(toyFactory->_cache._vMes), this->rnd);
+    RooUnfolding::randomize(vreco_tot, this->rnd);
+
+    toyFactory->_cache._vMes = new TVectorD(vreco_tot - vbkg);
 
     //! Unfold.
     TVectorD vunfolded(toyFactory->Vunfold());
