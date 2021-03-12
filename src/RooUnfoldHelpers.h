@@ -29,8 +29,6 @@ namespace RooUnfolding {
     kCovariance,         //   the covariance calculated by the unfolding derived class.
     kErrorsToys,         //   calculate the error with toy throwing
     kCovToys,            //   calculate the full covariance with toy throwing
-    kErrorsRooFitToys,   //   calculate the error with toy throwing
-    kCovRooFitToys,      //   calculate the full covariance with toy throwing
     kDefault=-1          //   not specified
   };
 

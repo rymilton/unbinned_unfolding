@@ -51,7 +51,7 @@ protected:
 private:
   double* Rmu(const double* truth) const;
   Double_t NegativeLLH(const double* truth) const;
-  Double_t TikinovReg(const double* truth) const;
+  Double_t TikhonovReg(const double* truth) const;
   Double_t RegLLH(const double* truth) const;
 
   ROOT::Math::Minimizer* MinimizeRegLLH() const;
@@ -71,6 +71,7 @@ protected:
   mutable TVectorD _data;
   mutable TVectorD _truth_start;
   mutable TVectorD _unfolded;
+  mutable TVectorD _truth_edges;
   mutable TMatrixD _covariance;
 
 public:

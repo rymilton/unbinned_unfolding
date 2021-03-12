@@ -42,11 +42,8 @@ public:
   static const ErrorTreatment kCovariance;
   static const ErrorTreatment kErrorsToys;
   static const ErrorTreatment kCovToys;
-  static const ErrorTreatment kErrorsRooFitToys;
-  static const ErrorTreatment kCovRooFitToys;
   static const ErrorTreatment kDefault;
   static const BiasMethod kBiasToys;
-  static const BiasMethod kBiasRooFitToys;
   static const BiasError kBiasSD;
   static const BiasError kBiasSDM;
   static const BiasError kBiasRMS;
@@ -79,7 +76,6 @@ public:
   virtual void Reset ();
 
   // Accessors
-
   virtual const RooUnfoldResponseT<Hist,Hist2D>* response() const;
   virtual RooUnfoldResponseT<Hist,Hist2D>* response();
   virtual const Hist* Hmeasured() const;
@@ -159,8 +155,6 @@ protected:
   virtual void GetCov() const; // Get covariance matrix using errors on measured distribution
   void GetErrorsToys() const;
   void GetCovToys() const;
-  void GetErrorsRooFitToys() const;
-  void GetCovRooFitToys() const;
 
   void GetSampleVar(std::vector<TVectorD>& munfolded) const;
   void GetSampleCov(std::vector<TVectorD>& munfolded) const;

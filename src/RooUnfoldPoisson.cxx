@@ -138,7 +138,14 @@ RooUnfoldPoissonT<Hist,Hist2D>::setup() const
   this->_data = this->Vmeasured();
   this->_truth_start.ResizeTo(this->_nt);
   this->_truth_start = this->_res->Vtruth();
+  this->_truth_edges.ResizeTo(this->_nt + 1);
   this->_RegLLH_factor = 0.01;
+
+  const Hist* truth = this->_res->Htruth();
+  this->_truth_edges[0] = binLowEdge(truth,0,RooUnfolding::X);
+  for (int i = 0; i < this->_nt; i++){
+    this->_truth_edges[i+1] = binHighEdge(truth,i,RooUnfolding::X);
+  }
 }
 
 template<class Hist,class Hist2D> void
@@ -182,18 +189,33 @@ RooUnfoldPoissonT<Hist,Hist2D>::NegativeLLH(const double* truth) const
   return _RegLLH_factor*func_val;
 }
 
+//! This regularization is changed such that it also includes variable 
+//! bin widths.
 template<class Hist,class Hist2D> Double_t
-RooUnfoldPoissonT<Hist,Hist2D>::TikinovReg(const double* truth) const
+RooUnfoldPoissonT<Hist,Hist2D>::TikhonovReg(const double* truth) const
 {
 
-  Double_t func_val = 0;
+  Double_t second_der_sum = 0;
+  Double_t first_der_sum = 0;
 
   for (int i = 0; i < _response.GetNcols() - 2; i++){
-    Double_t der = (truth[i+2] - truth[i+1]) - (truth[i+1] - truth[i]);
-    func_val += der*der;
+
+    //! Correct for variable bin widths.
+    Double_t binwidth3 = this->_truth_edges[i+3] - this->_truth_edges[i+2];
+    Double_t binwidth2 = this->_truth_edges[i+2] - this->_truth_edges[i+1];
+    Double_t binwidth1 = this->_truth_edges[i+1] - this->_truth_edges[i];
+    Double_t d32 = binwidth3/2 + binwidth2/2;
+    Double_t d21 = binwidth2/2 + binwidth1/2;
+
+    //! Use finite differences to approximate the second derivative.
+    Double_t sec_der = ((truth[i+2]/binwidth3 - truth[i+1]/binwidth2)/d32 - (truth[i+1]/binwidth2 - truth[i]/binwidth1)/d21)/((d32 + d21));
+    //Keep this line commented for now for future studies.
+    //Double_t sec_der = truth[i+2]/binwidth3 - 2*truth[i+1]/binwidth2 + truth[i]/binwidth1;
+    second_der_sum += sec_der*sec_der;
+
   }
 
-  return _RegLLH_factor*func_val;
+  return _RegLLH_factor*second_der_sum;
 }
 
 template<class Hist,class Hist2D> Double_t
@@ -201,7 +223,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::RegLLH(const double* truth) const
 {
   // The _RegLLH_factor is used to reduce the function value such that it stays
   // within machine accuracy limit.
-  return NegativeLLH(truth) + (this->_regparm)*TikinovReg(truth);
+  return NegativeLLH(truth) + (this->_regparm)*TikhonovReg(truth);
 }
 
 
@@ -231,7 +253,6 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
     } else {
       start[i] = _truth_start[i];
     }
-
     
     std::string s = std::to_string(i);
     std::string x("mu");
