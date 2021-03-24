@@ -607,7 +607,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(RooUnfolding::BiasMethod method, Int_t nt
   std::vector<double> chi2;
 
   if (method == RooUnfolding::kBiasToys){
-    toyFactory->RunToys(this->_NToys, munfolded, etoys, chi2);    
+    this->RunToys(this->_NToys, munfolded, etoys, chi2);    
   }
 
   //! Calculate the bias and its stat. error with 

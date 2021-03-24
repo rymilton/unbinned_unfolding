@@ -37,6 +37,9 @@ public:
 
   virtual void  SetRegParm (Double_t parm);
   virtual double GetRegParm() const;
+  virtual void SetMinimizerStart(const Hist* truth);
+  virtual void SetMinimizerStart(TVectorD truth);
+  virtual void SetPrintLevel(Bool_t print = 0);
   virtual void Reset();
   virtual void Print (Option_t* option= "") const;
 
@@ -65,6 +68,7 @@ private:
 protected:
   // instance variables
   mutable ROOT::Math::Minimizer* _min;
+  mutable Bool_t _min_print;
   mutable Double_t _RegLLH_factor;
   mutable double _regparm;
   mutable TMatrixD _response;

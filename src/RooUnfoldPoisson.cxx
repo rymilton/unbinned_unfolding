@@ -77,8 +77,6 @@ RooUnfoldPoissonT<Hist,Hist2D>::Unfold() const
   // passed truth histogram -> User should define this! Default response truth.
 
 
-  // Scale the distributions.
-
   // Minimize the regularized nllh.
   _min = MinimizeRegLLH();
 
@@ -102,7 +100,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::GetCov() const
 
   // Check convergence and otherwise return.
   if (_min->Status()){
-    std::cerr << "Minimization did not converge. No unfolded results available.";
+    std::cerr << "Minimizer did not converge. Returned MINUIT status: " << _min->Status();
     return;
   }
 
@@ -130,6 +128,7 @@ template<class Hist,class Hist2D> void
 RooUnfoldPoissonT<Hist,Hist2D>::setup() const
 {
   this->_min = NULL;
+  this->_min_print = 0;
   this->_unfolded.ResizeTo(this->_nt);
   this->_covariance.ResizeTo(this->_nt,this->_nt);
   this->_response.ResizeTo(this->_nm,this->_nt);
@@ -139,7 +138,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::setup() const
   this->_truth_start.ResizeTo(this->_nt);
   this->_truth_start = this->_res->Vtruth();
   this->_truth_edges.ResizeTo(this->_nt + 1);
-  this->_RegLLH_factor = 0.01;
+  this->_RegLLH_factor = 1;
 
   const Hist* truth = this->_res->Htruth();
   this->_truth_edges[0] = binLowEdge(truth,0,RooUnfolding::X);
@@ -177,7 +176,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::NegativeLLH(const double* truth) const
 {
 
   double* nu = Rmu(truth);
-
+  
   Double_t func_val = 0;
 
   for (int i = 0; i < _response.GetNrows(); i++){
@@ -209,10 +208,8 @@ RooUnfoldPoissonT<Hist,Hist2D>::TikhonovReg(const double* truth) const
 
     //! Use finite differences to approximate the second derivative.
     Double_t sec_der = ((truth[i+2]/binwidth3 - truth[i+1]/binwidth2)/d32 - (truth[i+1]/binwidth2 - truth[i]/binwidth1)/d21)/((d32 + d21));
-    //Keep this line commented for now for future studies.
-    //Double_t sec_der = truth[i+2]/binwidth3 - 2*truth[i+1]/binwidth2 + truth[i]/binwidth1;
-    second_der_sum += sec_der*sec_der;
 
+    second_der_sum += sec_der*sec_der;
   }
 
   return _RegLLH_factor*second_der_sum;
@@ -230,17 +227,17 @@ RooUnfoldPoissonT<Hist,Hist2D>::RegLLH(const double* truth) const
 template<class Hist,class Hist2D> ROOT::Math::Minimizer*
 RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
 {
-  ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Minimize");
+  ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
 
   min->SetMaxFunctionCalls(1000000000);
-  min->SetTolerance(0.01);
-  min->SetPrintLevel(0);
-  min->SetStrategy(3);
+  min->SetTolerance(0.00001);
+  min->SetPrintLevel(_min_print);
+  min->SetStrategy(2);
   min->SetPrecision(0.0000000001);
 
 
   ROOT::Math::Functor f(this, &RooUnfoldPoissonT<Hist,Hist2D>::RegLLH,_response.GetNcols());
-
+  
   min->SetFunction(f);
 
   double* step = new double[_response.GetNcols()];
@@ -253,12 +250,13 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
     } else {
       start[i] = _truth_start[i];
     }
-    
+
     std::string s = std::to_string(i);
     std::string x("mu");
     x.append(s);
 
-    min->SetLowerLimitedVariable(i,x.c_str(),start[i], step[i], 0);
+    //min->SetLowerLimitedVariable(i,x.c_str(),start[i], step[i], 0);
+    min->SetVariable(i,x.c_str(),start[i], step[i]);
   }
 
   // do the minimization
@@ -352,6 +350,51 @@ void  RooUnfoldPoissonT<Hist,Hist2D>::SetRegParm (Double_t parm)
   //! Set regularisation parameter (number of iterations)
   this->_regparm = parm;
 }
+
+template<class Hist,class Hist2D>
+void  RooUnfoldPoissonT<Hist,Hist2D>::SetPrintLevel (Bool_t print)
+{
+  if (print < 2 && print > -2){
+    std::cerr << "Please pass a suitable print level: Quiet=-1, Normal=0, Verbose=1";
+    return;
+  }
+
+  //! Set the print level for the minimizer.
+  this->_min_print = print;
+}
+
+//! Set the starting values for the minimizer.
+template<class Hist,class Hist2D>
+void  RooUnfoldPoissonT<Hist,Hist2D>::SetMinimizerStart (const Hist* truth)
+{
+  if (nBins(truth,this->_overflow) != this->_nt){
+    std::cerr << "Passed truth distribution for minimizer start point has wrong dimensions";
+    std::cerr << "Passed truth distribution dim: " << nBins(truth,this->_overflow);
+    std::cerr << "Required dim: " << this->_nt;
+    return;
+  }
+
+  for (int i = 0; i < nBins(truth,this->_overflow); i++){
+    this->_truth_start(i) = binContent(truth, i, this->_overflow);
+  }
+}
+
+//! Set the starting values for the minimizer.
+template<class Hist,class Hist2D>
+void  RooUnfoldPoissonT<Hist,Hist2D>::SetMinimizerStart (TVectorD truth)
+{
+  if (truth.GetNrows() != this->_nt){
+    std::cerr << "Passed truth distribution for minimizer start point has wrong dimensions";
+    std::cerr << "Passed truth distribution dim: " << truth.GetNrows();
+    std::cerr << "Required dim: " << this->_nt;
+    return;
+  }
+
+  for (int i = 0; i < truth.GetNrows(); i++){
+    this->_truth_start(i) = truth.GetNrows();
+  }
+}
+
 
 template<class Hist,class Hist2D>
 double RooUnfoldPoissonT<Hist,Hist2D>::GetRegParm() const
