@@ -128,7 +128,6 @@ template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorT
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kErrorsToys = RooUnfolding::kErrorsToys;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kCovToys = RooUnfolding::kCovToys;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kDefault = RooUnfolding::kDefault;
-template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::BiasMethod RooUnfoldT<Hist,Hist2D>::kBiasToys = RooUnfolding::kBiasToys;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::BiasError RooUnfoldT<Hist,Hist2D>::kBiasSD = RooUnfolding::kBiasSD;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::BiasError RooUnfoldT<Hist,Hist2D>::kBiasSDM = RooUnfolding::kBiasSDM;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::BiasError RooUnfoldT<Hist,Hist2D>::kBiasRMS = RooUnfolding::kBiasRMS;
@@ -580,7 +579,7 @@ RooUnfoldT<Hist,Hist2D>::GetErrMat() const
 }
 
 template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::CalculateBias(RooUnfolding::BiasMethod method, Int_t ntoys, const Hist* hTrue) const
+RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 {
   //! There are two toy approaches of calculating the bias.
 
@@ -606,9 +605,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(RooUnfolding::BiasMethod method, Int_t nt
   std::vector<TVectorD> munfolded, etoys;
   std::vector<double> chi2;
 
-  if (method == RooUnfolding::kBiasToys){
-    this->RunToys(this->_NToys, munfolded, etoys, chi2);    
-  }
+  this->RunToys(this->_NToys, munfolded, etoys, chi2);    
 
   //! Calculate the bias and its stat. error with 
   //! the unfolded toys.
@@ -654,13 +651,6 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(RooUnfolding::BiasMethod method, Int_t nt
   delete toyFactory;
   
   this->_cache._haveBias=true;
-}
-
-template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
-{
-  //! legacy shorthand for CalculateBias
-  CalculateBias(RooUnfolding::kBiasToys,ntoys,hTrue);
 }
 
 template<class Hist,class Hist2D> Bool_t
@@ -1076,8 +1066,7 @@ RooUnfoldT<Hist,Hist2D>::CoverageProbV(Int_t sigma) const
 
   // Calculate the bias if needed.
   if (!this->_cache._haveBias){
-    //this->CalculateBias(RooUnfolding::kBiasToys,100,0);
-    std::cout << "Please call CalculateBias before calculating the coverage probability." << std::endl;
+    this->CalculateBias(this->_NToys);
     return coverage;
   }
 
@@ -1140,7 +1129,7 @@ RooUnfoldT<Hist,Hist2D>::ScanBias2Var(TVectorD& regparms, Int_t bin) const
     auto* toy_unfold = this->New(this->GetAlgorithm(),this->response(),this->Hmeasured(),regparms(i));
     
     //! Calculate the bias.
-    toy_unfold->CalculateBias(RooUnfolding::kBiasToys,100);
+    toy_unfold->CalculateBias(this->_NToys);
   
     //! Get the unfolded distribution.
     TVectorD unfold(toy_unfold->Vunfold());
