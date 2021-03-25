@@ -17,7 +17,9 @@
 #include "RooStats/HistFactory/FlexibleInterpVar.h"
 #include "RooStats/HistFactory/ParamHistFunc.h"
 #include "RooProduct.h"
+#ifndef NO_WRAPPERPDF
 #include "RooWrapperPdf.h"
+#endif
 #include "RooBinning.h"
 
 
@@ -858,6 +860,10 @@ void RooUnfoldSpec::registerSystematic(Contribution c, const char* name, double 
 
 RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
   //! create an unfolding pdf
+  #ifdef NO_WRAPPERPDF
+  throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
+  return NULL;
+  #else
   RooUnfoldFunc* func = static_cast<RooUnfoldFunc*>(this->makeFunc(alg,regparam));
   func->setDensity(true);
   RooWrapperPdf* pdf = new RooWrapperPdf(TString::Format("%s_pdf",func->GetName()),TString::Format("%s Pdf",func->GetTitle()),*func);
@@ -869,6 +875,7 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
   RooProdPdf* prod = new RooProdPdf(TString::Format("%s_x_constraints",this->GetName()),"Unfolding pdf, including constraints",comps);
   prod->setStringAttribute("source",func->GetName());
   return prod;
+  #endif
 }
 
 
