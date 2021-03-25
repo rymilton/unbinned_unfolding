@@ -94,4 +94,6 @@ install( FILES ${CMAKE_BINARY_DIR}/${ATLAS_PLATFORM}/env_setup.sh
 # Set up CPack:
 atlas_cpack_setup()
 
+atlas_install_python_modules( python/* )
+
 endif()

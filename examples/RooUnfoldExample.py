@@ -16,6 +16,7 @@ if len(sys.argv) > 1: method = sys.argv[1]
 
 from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
+import RooUnfold
 
 # ==============================================================================
 #  Gaussian smearing, systematic translation, and variable inefficiency

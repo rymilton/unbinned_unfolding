@@ -55,4 +55,16 @@ if(${ROOT_FOUND})
     add_executable( ${ExecName} ${ExecSource} )
     target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES} )
   endforeach()
+  
+  file(GLOB pyfiles "python/*.py")
+  execute_process(
+    COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/RooUnfold
+    )
+  foreach(pyfile ${pyfiles})
+    execute_process(
+      COMMAND ln -sf ${pyfile} ${CMAKE_CURRENT_BINARY_DIR}/RooUnfold
+      )
+  endforeach()
+  
+  
 endif()

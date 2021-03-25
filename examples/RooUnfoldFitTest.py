@@ -13,14 +13,15 @@
 
 infname = "hist_tmp.root"
 
+import ROOT
+import RooUnfold  
+
 def prepare(smear,write):
 
   truthBins = 40
   recoBins = 40
   xmin = -10.0
   xmax = 10.0
-
-  import ROOT
 
   response= ROOT.RooUnfoldResponse (recoBins, xmin, xmax, truthBins, xmin, xmax);
 
