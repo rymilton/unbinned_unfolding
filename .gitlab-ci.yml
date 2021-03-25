@@ -55,7 +55,6 @@ stages:
     - mkdir source 
     - mkdir source/RooUnfold 
     - ls | grep -v source | xargs -i mv {} source/RooUnfold/
-    - mv source/RooUnfold/CMakeLists_forAtlasCI.txt source/CMakeLists.txt
     - mkdir build
     - cd build
     - cmake ../source
