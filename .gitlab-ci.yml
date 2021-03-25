@@ -85,6 +85,7 @@ stages:
 .GNUtest: &GNUtest          
   stage: test
   script:
+    - make python
     - python -u examples/RooUnfoldExample.py > RooUnfoldExample.ref
     - diff RooUnfoldExample.ref ref/RooUnfoldExample.py.bayes.ref
   artifacts:
