@@ -80,6 +80,7 @@ stages:
       - libRooUnfold.so
       - RooUnfoldDict_rdict.pcm
       - libRooUnfold.rootmap
+      - RooUnfold/*.py
 
 .GNUtest: &GNUtest          
   stage: test
