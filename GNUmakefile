@@ -32,6 +32,7 @@
 #   bin     - make lib and example programs
 #   commands- show commands to make each type of target
 #   html    - make documentation in htmldoc subdirectory
+#   python  - make python package
 #   cleanbin- delete test binaries and objects
 #   clean   - delete all intermediate and final build objects
 #   FILE    - if FILE.cxx (or FILE.cc or FILE.C) exists, builds executable FILE
@@ -391,11 +392,11 @@ $(EXEDIR)%$(ExeSuf) : $(OBJDIR)%.$(ObjSuf) $(LINKLIB)
 
 # === Explicit rules ===========================================================
 
-default : shlib
+default : shlib python
 
 help        :
 	@echo "Usage: $(MAKE) [TARGET] [ROOTBUILD=debug] [VERBOSE=1] [NOROOFIT=1] [SHARED=1]"
-	@echo "Some TARGETs are: 'bin', 'html', 'clean', and 'commands'"
+	@echo "Some TARGETs are: 'bin', 'html', 'clean', 'python', and 'commands'"
 
 # Rule to make ROOTCINT output file
 ifeq ($(ROOTCLING),)
@@ -488,7 +489,13 @@ $(HTMLDOC)/index.html : $(SHLIBFILE)
 
 html : $(HTMLDOC)/index.html
 
-.PHONY : include depend shlib lib exe bin default clean cleanbin html help
+python : RooUnfold/__init__.py
+
+$(PACKAGE)/%.py: python/%.py
+	@mkdir -p $(PACKAGE)
+	@ln -sf $^ $@ 
+
+.PHONY : include depend shlib lib exe bin default clean cleanbin html help python
 
 ifneq ($(GOALS),)
 ifneq ($(DLIST),)
