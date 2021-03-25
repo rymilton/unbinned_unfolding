@@ -86,6 +86,8 @@ stages:
   stage: test
   script:
     - make python
+    - export PYTHONPATH=$(pwd)
+    - ls RooUnfold/
     - python -u examples/RooUnfoldExample.py > RooUnfoldExample.ref
     - diff RooUnfoldExample.ref ref/RooUnfoldExample.py.bayes.ref
   artifacts:
