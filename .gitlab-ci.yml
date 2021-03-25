@@ -106,9 +106,9 @@ stages:
 ## building
 ############################################     
     
-#compile_atlas:
-#  <<: *atlas
-#  <<: *atlascmake
+compile_atlas:
+  <<: *atlas
+  <<: *atlascmake
 
 compile_cmake:
   <<: *standalone
@@ -131,11 +131,11 @@ compile_GNUmake_dAgostini:
 ## testing      
 ############################################
 
-#test_atlas:
-#  <<: *atlas
-#  <<: *atlasctest  
-#  dependencies:
-#    - compile_atlas    
+test_atlas:
+  <<: *atlas
+  <<: *atlasctest  
+  dependencies:
+    - compile_atlas    
 
 test_cmake:
   <<: *standalone

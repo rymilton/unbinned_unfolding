@@ -1,6 +1,6 @@
 find_package( ROOT COMPONENTS Tree Unfold Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser)
 
-if(${ROOT_FOUND}){
+if(${ROOT_FOUND})
   message("Setup using plain ROOT")    
   set(PlainROOT_BUILD 1)
   
