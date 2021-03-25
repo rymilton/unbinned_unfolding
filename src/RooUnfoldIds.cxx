@@ -833,6 +833,7 @@ void RooUnfoldIdsT<Hist,Hist2D>::SetNIter(Int_t niter)
 {
    // Set number of iterations
    _niter = niter;
+   this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>
@@ -847,6 +848,7 @@ void RooUnfoldIdsT<Hist,Hist2D>::SetLambdaM(Double_t lambdaM)
 {
    // Set number of iterations
    _lambdaMmin = lambdaM;
+   this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>
@@ -861,6 +863,7 @@ void RooUnfoldIdsT<Hist,Hist2D>::SetLambdaU(Double_t lambdaU)
 {
    // Set number of iterations
    _lambdaUmin = lambdaU;
+   this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>
@@ -875,6 +878,7 @@ void RooUnfoldIdsT<Hist,Hist2D>::SetLambdaL(Double_t lambdaL)
 {
    // Set number of iterations
    _lambdaL = lambdaL;
+   this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>
@@ -889,6 +893,7 @@ void RooUnfoldIdsT<Hist,Hist2D>::SetLambdaS(Double_t lambdaS)
 {
    // Set number of iterations
    _lambdaS = lambdaS;
+   this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>

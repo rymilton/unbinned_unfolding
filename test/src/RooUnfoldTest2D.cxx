@@ -4,7 +4,7 @@
 //
 // Description:
 //      2D test of RooUnfold package using toy MC generated according to PDFs
-//      defined in RooUnfoldTestPdf.icc or RooUnfoldTestPdfRooFit.icc.
+//      defined in RooUnfoldTestPdf.cxx or RooUnfoldTestPdfRooFit.cxx.
 //      This is the main program. The actual tests are performed using the
 //      RooUnfoldTestHarness2D class.
 //

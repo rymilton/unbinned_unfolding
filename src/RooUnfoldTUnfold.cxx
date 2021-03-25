@@ -257,8 +257,8 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::Unfold() const
     delete _logTauY; _logTauY = 0;
     delete _logTauSURE; _logTauSURE = 0;
     delete _df_chi2A; _df_chi2A = 0;
-    Int_t bestPoint = _unf->ScanSURE(nScan,tauMin,tauMax,&_logTauSURE,&_df_chi2A,&_lCurve);
-    //Int_t bestPoint = _unf->ScanLcurve(nScan,tauMin,tauMax,&_lCurve,&_logTauX,&_logTauY);
+    //Int_t bestPoint = _unf->ScanSURE(nScan,tauMin,tauMax,&_logTauSURE,&_df_chi2A,&_lCurve);
+    Int_t bestPoint = _unf->ScanLcurve(nScan,tauMin,tauMax,&_lCurve,&_logTauX,&_logTauY);
     _tau=_unf->GetTau();  // save value, even if we don't use it unless tau_set
     std::cout <<"Lcurve scan chose tau= "<<_tau<<std::endl<<" at point "<<bestPoint<<std::endl;
     
@@ -318,6 +318,7 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::FixTau(Double_t tau)
   // Fix regularisation parameter to a specified value
   _tau=tau;
   tau_set=true;
+  this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>void
@@ -334,6 +335,7 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::SetRegMethod(TUnfold::ERegMode regmethod)
       TUnfold::kRegModeCurvature    minimize the 2nd derivative of (x-x0)
    */
   _reg_method=regmethod;
+  this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>void
@@ -341,6 +343,7 @@ RooUnfoldTUnfoldT<Hist,Hist2D>::OptimiseTau()
 {
   // Choose optimal regularisation parameter
   tau_set=false;
+  this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>void

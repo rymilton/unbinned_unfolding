@@ -23,7 +23,7 @@ if(${ROOT_FOUND})
   ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeaders} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS} -Wno-inconsistent-missing-override)
   
   # register the shared object to include both sources and dictionaries
-  add_library( RooUnfold SHARED ${RooUnfoldSources} ${RooUnfoldDagostini} G__RooUnfold.cxx)
+  add_library( RooUnfold SHARED ${RooUnfoldSources}  G__RooUnfold.cxx)
   
   # link everything together at the end
   target_link_libraries( RooUnfold ${ROOT_LIBRARIES} )
@@ -53,9 +53,12 @@ if(${ROOT_FOUND})
   foreach(ExecSource ${RooUnfoldExecSources})
     get_filename_component(ExecName ${ExecSource} NAME_WE)    
     add_executable( ${ExecName} ${ExecSource} )
-    target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES} )
+    target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES} gcov)
   endforeach()
   
+  add_subdirectory(test)
+
+
   file(GLOB pyfiles "python/*.py")
   execute_process(
     COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/RooUnfold

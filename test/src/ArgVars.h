@@ -52,7 +52,7 @@ public:
 };
 
 #ifndef NOINLINE
-#include "ArgVars.icc"
+#include "ArgVars.cxx"
 #endif
 
 #endif

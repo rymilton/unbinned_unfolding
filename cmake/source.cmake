@@ -1,26 +1,14 @@
 file(GLOB RooUnfoldLinkDef src/*_LinkDef.h)
-set(RooUnfoldDagostini ${CMAKE_CURRENT_SOURCE_DIR}/src/bayes.for)
 file(GLOB RooUnfoldSources src/*.cxx)
 file(GLOB RooUnfoldHeaders src/*.h src/*.tpp)
 list(REMOVE_ITEM RooUnfoldHeaders ${RooUnfoldLinkDef})
-file(GLOB RooUnfoldExecSources examples/*.cxx)
-
-if(EXISTS ${RooUnfoldDagostini})
-  enable_language (Fortran)
-  set(EXTRA_FLAGS "-DHAVE_DAGOSTINI")
-  get_filename_component (Fortran_COMPILER_NAME ${CMAKE_Fortran_COMPILER} NAME)
-  if (Fortran_COMPILER_NAME MATCHES "gfortran")
-    set (CMAKE_Fortran_FLAGS "-funroll-all-loops -fno-f2c -O3 -std=f95 -fimplicit-none")
-  elseif (Fortran_COMPILER_NAME MATCHES "g77")
-    set (CMAKE_Fortran_FLAGS "-funroll-all-loops -fno-f2c -O3 -std=f95 -fimplicit-none -m32")
-  endif()
-else()
-  message("disabling d'Agostini implementation")
-  file(GLOB RooUnfoldDagostini src/RooUnfoldDagostini.*)
-  list(REMOVE_ITEM RooUnfoldHeaders ${RooUnfoldDagostini})
-  list(REMOVE_ITEM RooUnfoldSources ${RooUnfoldDagostini})
-  set(RooUnfoldDagostini "")  
-endif()
+#file(GLOB RooUnfoldExecSources examples/*.cxx)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g")
 
+file(GLOB RooUnfoldExecSources test/src/RooUnfoldTest.cxx test/src/RooUnfoldTest2D.cxx test/src/RooUnfoldTest3D.cxx)
+file(GLOB RooUnfoldUnitTests test/*.cxx)
+
+# -fprofile-arcs -ftest-coverage
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g -ftest-coverage  -fprofile-arcs ")
+set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)

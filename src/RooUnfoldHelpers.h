@@ -17,7 +17,7 @@ namespace RooUnfolding {
     kBinByBin,           //   RooUnfoldBinByBin
     kTUnfold,            //   RooUnfoldTUnfold
     kInvert,             //   RooUnfoldInvert
-    kDagostini,          //   RooUnfoldDagostini
+    //kDagostini,          //   RooUnfoldDagostini
     kIDS,                //   RooUnfoldIds
     kGP,                 //   RooUnfoldGP
     kPoisson             //   RooUnfoldPoisson

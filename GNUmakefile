@@ -22,7 +22,6 @@
 #     To used the shared library: export LD_LIBRARY_PATH="$PWD:$LD_LIBRARY_PATH"
 #   - Add ROOTBUILD=debug for debug version.
 #   - Add VERBOSE=1 to show commands as they are executed.
-#   - Add HAVE_TSVDUNFOLD=0 to disable local version of TSVDUnfold and use version in ROOT.
 #
 # Build targets:
 #   help    - give brief help
@@ -173,45 +172,9 @@ endif
 ROOTLIBS     += $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),Unfold)))
 endif
 
-# RooUnfoldDagostini is an interface to D'Agostini's implementation
-# of his algorithm: http://www.roma1.infn.it/~dagos/bayes_distr.txt .
-# To use this, put it in src/bayes.for and src/bayes_c.for.
-ifeq ($(HAVE_DAGOSTINI),)
-ifneq ($(wildcard $(SRCDIR)/bayes.for),)
-HAVE_DAGOSTINI = 1
-endif
-endif
-
-ifeq ($(HAVE_DAGOSTINI),1)
-EXTRASRC     += bayes.for
-FDEP          = $(SRCDIR)bayes_c.for
-CPPFLAGS     += -DHAVE_DAGOSTINI
-else
-EXCLUDE      += RooUnfoldDagostini.cxx RooUnfoldDagostini.h
-endif
-
-# TSVDUnfold is included in ROOT 5.28/00 and later, but we need changes yet to be added to ROOT.
-# So, use our own copy.
-ifeq ($(HAVE_TSVDUNFOLD),)
-###ifeq ($(wildcard $(ROOTINCDIR)/TSVDUnfold.h),)
-HAVE_TSVDUNFOLD = 1
-###else
-###ifneq ($(shell $(RC) --version | grep '^5\.28'),)
-###HAVE_TSVDUNFOLD = 1
-###endif
-###endif
-endif
-
-ifeq ($(HAVE_TSVDUNFOLD),1)
-CPPFLAGS     += -DHAVE_TSVDUNFOLD=1
-else
-CPPFLAGS     += -DHAVE_TSVDUNFOLD=0
-EXCLUDE      += TSVDUnfold.cxx TSVDUnfold_local.h
-endif
-
 # RooFit is included in ROOT if ROOT was compiled with --enable-roofit.
 # We only use it for better-normalised test distributions in RooUnfoldTest
-# (uses examples/RooUnfoldTestPdfRooFit.icc instead of examples/RooUnfoldTestPdf.icc).
+# (uses examples/RooUnfoldTestPdfRooFit.cxx instead of examples/RooUnfoldTestPdf.cxx).
 ifeq ($(NOROOFIT),)
 ifneq ($(shell $(RC) --has-roofit),yes)
 $(warning This version of ROOT does not support RooFit. We will build the test programs without it.)

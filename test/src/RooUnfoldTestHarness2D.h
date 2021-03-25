@@ -55,7 +55,7 @@ public:
 };
 
 #ifndef NOINLINE
-#include "RooUnfoldTestHarness2D.icc"
+#include "RooUnfoldTestHarness2D.cxx"
 #endif
 
 #endif

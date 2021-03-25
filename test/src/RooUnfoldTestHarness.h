@@ -4,7 +4,7 @@
 //
 // Description:
 //      Test Harness class for the RooUnfold package using toy MC generated
-//      according to PDFs defined in RooUnfoldTestPdf.icc or RooUnfoldTestPdfRooFit.icc.
+//      according to PDFs defined in RooUnfoldTestPdf.cxx or RooUnfoldTestPdfRooFit.cxx.
 //
 // Authors: Tim Adye <T.J.Adye@rl.ac.uk> and Fergus Wilson <fwilson@slac.stanford.edu>
 //
@@ -117,7 +117,7 @@ public:
   static TF1*      FitFunc (Int_t fpdf, TH1* h, Double_t mean= 0.0, Double_t width= 2.5, Double_t bkg= 0.0);
 };
 #ifndef NOINLINE
-#include "RooUnfoldTestHarness.icc"
+#include "RooUnfoldTestHarness.cxx"
 #endif
 
 #endif

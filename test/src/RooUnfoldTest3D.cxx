@@ -3,32 +3,32 @@
 //      $Id$
 //
 // Description:
-//      Tests RooUnfold package using toy MC generated according to PDFs
-//      defined in RooUnfoldTestPdf.icc or RooUnfoldTestPdfRooFit.icc.
+//      3D test of RooUnfold package using toy MC generated according to PDFs
+//      defined in RooUnfoldTestPdf.cxx or RooUnfoldTestPdfRooFit.cxx.
 //      This is the main program. The actual tests are performed using the
-//      RooUnfoldTestHarness class.
+//      RooUnfoldTestHarness3D class.
 //
 // Author: Tim Adye <T.J.Adye@rl.ac.uk>
 //
 //==============================================================================
 
-#include "RooUnfoldTestHarness.h"
+#include "RooUnfoldTestHarness3D.h"
 
-RooUnfoldTestHarness* test= 0;
+RooUnfoldTestHarness3D* test3d= 0;
 
 //==============================================================================
 // Routine to run with parameters specified as a string
 //==============================================================================
 
-void RooUnfoldTest (const char* args= "")
+void RooUnfoldTest3D (const char* args= "")
 {
 // If run interactively, remove canvas and all histograms that might have been
 // created with a previous invocation.
-  delete test; test= 0;
+  delete test3d; test3d= 0;
   gDirectory->Clear();
 
-  test= new RooUnfoldTestHarness ("RooUnfoldTest", args);
-  test->Run();
+  test3d= new RooUnfoldTestHarness3D ("RooUnfoldTest3D", args);
+  test3d->Run();
 }
 
 #ifndef __CINT__
@@ -38,8 +38,8 @@ void RooUnfoldTest (const char* args= "")
 //==============================================================================
 
 int main (int argc, char** argv) {
-  RooUnfoldTestHarness maintest ("RooUnfoldTest", argc, argv);
-  return maintest.Run();
+  RooUnfoldTestHarness3D maintest3d ("RooUnfoldTest3D", argc, argv);
+  return maintest3d.Run();
 }
 
 #endif

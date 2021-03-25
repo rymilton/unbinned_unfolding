@@ -100,11 +100,6 @@ stages:
     paths:
       - "*.ref"        
 
-.dAgostini: &dAgostini
-  <<: *standalone
-  before_script:
-    - export FC=gfortran
-    - bash get_dagos_bayes.sh
     
 ############################################
 ## building
@@ -122,13 +117,6 @@ compile_GNUmake:
   <<: *standalone
   <<: *GNUmake  
 
-compile_cmake_dAgostini:
-  <<: *dAgostini
-  <<: *cmake
-  
-compile_GNUmake_dAgostini:
-  <<: *dAgostini
-  <<: *GNUmake  
 
 
 ############################################           
