@@ -23,7 +23,7 @@ stages:
   stage: doc
 
 .atlas: &atlas
-  image: atlas/analysisbase:21.2.93
+  image: atlas/analysisbase:21.2.120
   before_script:
     - source /home/atlas/release_setup.sh
 
