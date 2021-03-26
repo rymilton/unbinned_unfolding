@@ -23,6 +23,9 @@ stages:
 
 .doxygen: &doxygen
   <<: *standalone
+  before_script:
+    - apt-get update
+    - apt-get -y install doxygen
   stage: doc
 
 .atlas: &atlas
@@ -156,13 +159,13 @@ test_GNUmake:
 
 doxygen:
   <<: *doxygen
-  dependencies:
-    - compile_cmake
   artifacts:
     paths:
       - build/doxygen
   script:
+    - mkdir build
     - cd build
+    - cmake ..
     - make doxygen
 
 doc_bayes_errors:
