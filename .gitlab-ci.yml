@@ -162,6 +162,7 @@ doxygen:
   artifacts:
     paths:
       - build/doxygen
+  dependencies: []      
   script:
     - mkdir build
     - cd build
