@@ -17,6 +17,9 @@ stages:
 
 .standalone: &standalone    
   image: rootproject/root:6.22.00-ubuntu20.04
+  before_script:
+    - apt-get update
+    - apt-get -y install python
 
 .doxygen: &doxygen
   <<: *standalone
