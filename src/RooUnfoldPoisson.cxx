@@ -80,7 +80,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::Unfold() const
   // Minimize the regularized nllh.
   _min = MinimizeRegLLH();
 
-  if (_min->Status() && this->_verbose){
+  if (_min->Status() == 0 && this->_verbose){
     std::cout << "Regularized negative log-likelihood did not converge. Check input and minimization settings." << std::endl;
     return;
   }
@@ -99,7 +99,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::GetCov() const
 {
 
   // Check convergence and otherwise return.
-  if (_min->Status()){
+  if (_min->Status() == 0){
     std::cerr << "Minimizer did not converge. Returned MINUIT status: " << _min->Status();
     return;
   }
@@ -197,7 +197,9 @@ RooUnfoldPoissonT<Hist,Hist2D>::TikhonovReg(const double* truth) const
   Double_t second_der_sum = 0;
   Double_t first_der_sum = 0;
 
-  for (int i = 0; i < _response.GetNcols() - 2; i++){
+  Int_t i_start = this->_overflow;
+
+  for (int i = i_start; i < _response.GetNcols() - 2 - i_start; i++){
 
     //! Correct for variable bin widths.
     Double_t binwidth3 = this->_truth_edges[i+3] - this->_truth_edges[i+2];
@@ -261,7 +263,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
 
   // do the minimization
   min->Minimize();
-
+  
   delete[] step;
   delete[] start;
   return min;

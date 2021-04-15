@@ -605,7 +605,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   std::vector<TVectorD> munfolded, etoys;
   std::vector<double> chi2;
 
-  this->RunToys(this->_NToys, munfolded, etoys, chi2);    
+  this->RunToys(ntoys, munfolded, etoys, chi2);    
 
   //! Calculate the bias and its stat. error with 
   //! the unfolded toys.
@@ -615,7 +615,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
     //! Sum over all toys.
     for (int j = 0; j < ntoys; j++){
-      av_unfolded += munfolded[j][i];
+      av_unfolded += munfolded.at(j)(i);
     }
     
     //! Divide to get the average of the unfolded histograms.
@@ -645,7 +645,6 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
     //! Get the rms.
     _cache._rmsbias(i) = sqrt(rms/ntoys);
   }
-
 
   delete asimov;
   delete toyFactory;
@@ -1062,15 +1061,25 @@ RooUnfoldT<Hist,Hist2D>::CoverageProbV(Int_t sigma) const
   
   TVectorD bias(_cache._bias);
 
-  TVectorD coverage(_cache._bias.GetNrows());
-
   // Calculate the bias if needed.
   if (!this->_cache._haveBias){
     this->CalculateBias(this->_NToys);
-    return coverage;
   }
+  TVectorD coverage(_cache._bias.GetNrows());
+  
+  TVectorD se(_cache._bias.GetNrows());
 
-  TVectorD se(this->EunfoldV(RooUnfolding::kErrorsToys));
+  if (_cache._haveCov){
+    for (int i = 0; i < _cache._bias.GetNrows(); i++){
+      se(i) = sqrt(_cache._cov(i,i));
+    }
+  } else if (_cache._haveErrors){
+    for (int i = 0; i < _cache._bias.GetNrows(); i++){
+      se(i) = sqrt(_cache._variances(i));
+    }
+  } else {
+    se = this->EunfoldV(RooUnfolding::kErrorsToys);
+  }
 
   if (sigma < 1){
     std::cout << "Pass a positive integer to define the confidence interval" << std::endl;
@@ -1497,7 +1506,6 @@ void RooUnfoldT<Hist,Hist2D>::IncludeSystematics (RooUnfolding::SystematicsTreat
   //! Include systematic errors from response matrix?
   //! Use dosys=2 to exclude measurement errors.
   if (dosys!=_dosys){
-    this->ClearCache();
     _dosys= dosys;
   }
 }
@@ -1666,9 +1674,9 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
 
     //! Sample from Poisson p.d.f.s the toy data. This
     //! will include statistical uncertainty.
-    if (this->_dosys == kAll){
-      RooUnfolding::randomize(vreco_tot, this->rnd);
-    }
+    //if (this->_dosys == kAll){
+    RooUnfolding::randomize(vreco_tot, this->rnd);
+      //}
 
     //! Set the parameters i.e. distributions used in the unfolding
     //! back to their nominal values for the unfolding.
@@ -1720,9 +1728,9 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
 
     //! Sample from Poisson p.d.f.s the toy data. This
     //! will include statistical uncertainty.
-    if (this->_dosys == kAll){
-      RooUnfolding::randomize(vreco_tot, this->rnd);
-    }
+    //if (this->_dosys == kAll){
+    RooUnfolding::randomize(vreco_tot, this->rnd);
+      //}
 
     //! Set the parameters i.e. distributions used in the unfolding
     //! back to their nominal values for the unfolding.
