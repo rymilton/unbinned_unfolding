@@ -292,7 +292,6 @@ RooUnfoldGPT<Hist,Hist2D>::MLEstimator() const
     std::cerr << "Response matrix Solve failed" << std::endl;
     return;
   }
-  
   _specialcache._haveMLEst = true;
 }
 

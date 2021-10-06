@@ -1032,8 +1032,22 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth)
     cerr << "UseOverflow setting ignored for multi-dimensional distributions" << endl;
     _overflow= 0;
   }
+  
+
   SetNameTitleDefault();
-  _res=createHist<TH2>(GetName(), GetTitle(), Variable<TH2>(GetNbinsMeasured(), 0.0, GetNbinsMeasured(), "xm"), Variable<TH2>(GetNbinsTruth(), 0.0, GetNbinsTruth(), "xt"));
+
+  Double_t measbinedges[_mes->GetNbinsX()+1]; 
+  Double_t truthbinedges[_tru->GetNbinsX()+1]; 
+  
+  for (int i = 0; i < _mes->GetNbinsX()+1; i++){
+    measbinedges[i] = _mes->GetBinLowEdge(i+1);
+  }
+  for (int i = 0; i < _tru->GetNbinsX()+1; i++){
+    truthbinedges[i] = _tru->GetBinLowEdge(i+1);
+  }
+  _res = new TH2D(GetName(), GetTitle(), _mes->GetNbinsX(), measbinedges, _tru->GetNbinsX(), truthbinedges);
+  _res->Sumw2();
+
   return *this;
 }
 

@@ -80,7 +80,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::Unfold() const
   // Minimize the regularized nllh.
   _min = MinimizeRegLLH();
 
-  if (_min->Status() == 0 && this->_verbose){
+  if (!(_min->Status() == 0) && this->_verbose){
     std::cout << "Regularized negative log-likelihood did not converge. Check input and minimization settings." << std::endl;
     return;
   }
@@ -99,7 +99,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::GetCov() const
 {
 
   // Check convergence and otherwise return.
-  if (_min->Status() == 0){
+  if (!(_min->Status() == 0) && this->_verbose){
     std::cerr << "Minimizer did not converge. Returned MINUIT status: " << _min->Status();
     return;
   }
@@ -163,7 +163,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::Rmu(const double* truth) const
   for (int i = 0; i < _response.GetNrows(); i++){
     double reco_bin = 0;
     for (int j = 0; j < _response.GetNcols(); j++){
-      reco_bin += _response[i][j]*truth[j];
+      reco_bin += this->_response[i][j]*truth[j];
     }
     Rmu[i] = reco_bin;
   }
@@ -178,9 +178,9 @@ RooUnfoldPoissonT<Hist,Hist2D>::NegativeLLH(const double* truth) const
   double* nu = Rmu(truth);
   
   Double_t func_val = 0;
-
+  
   for (int i = 0; i < _response.GetNrows(); i++){
-    func_val += nu[i] - _data[i] * log(nu[i]);
+    func_val += nu[i] - this->_data[i] * log(nu[i]);
   }
 
   delete[] nu;
@@ -232,10 +232,10 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
   ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
 
   min->SetMaxFunctionCalls(1000000000);
-  min->SetTolerance(0.00001);
-  min->SetPrintLevel(_min_print);
+  min->SetTolerance(1);
+  min->SetPrintLevel(this->_verbose);
   min->SetStrategy(2);
-  min->SetPrecision(0.0000000001);
+  min->SetPrecision(0.000000001);
 
 
   ROOT::Math::Functor f(this, &RooUnfoldPoissonT<Hist,Hist2D>::RegLLH,_response.GetNcols());
@@ -257,8 +257,8 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
     std::string x("mu");
     x.append(s);
 
-    //min->SetLowerLimitedVariable(i,x.c_str(),start[i], step[i], 0);
-    min->SetVariable(i,x.c_str(),start[i], step[i]);
+    min->SetLowerLimitedVariable(i,x.c_str(),start[i], step[i], 0);
+    //min->SetVariable(i,x.c_str(),start[i], step[i]);
   }
 
   // do the minimization
@@ -356,7 +356,7 @@ void  RooUnfoldPoissonT<Hist,Hist2D>::SetRegParm (Double_t parm)
 template<class Hist,class Hist2D>
 void  RooUnfoldPoissonT<Hist,Hist2D>::SetPrintLevel (Bool_t print)
 {
-  if (print < 2 && print > -2){
+  if (print > 2 || print < -2){
     std::cerr << "Please pass a suitable print level: Quiet=-1, Normal=0, Verbose=1";
     return;
   }
@@ -393,10 +393,9 @@ void  RooUnfoldPoissonT<Hist,Hist2D>::SetMinimizerStart (TVectorD truth)
   }
 
   for (int i = 0; i < truth.GetNrows(); i++){
-    this->_truth_start(i) = truth.GetNrows();
+    this->_truth_start(i) = truth(i);
   }
 }
-
 
 template<class Hist,class Hist2D>
 double RooUnfoldPoissonT<Hist,Hist2D>::GetRegParm() const

@@ -595,6 +595,10 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
   toyFactory->SetVerbose(0);
 
+  if (this->Htruth()){
+    toyFactory->SetTruth(this->Htruth());
+  }
+   
   //! Resize the bias vectors.
   _cache._bias.ResizeTo(_nt);
   _cache._sdbias.ResizeTo(_nt);
@@ -1508,6 +1512,8 @@ void RooUnfoldT<Hist,Hist2D>::IncludeSystematics (RooUnfolding::SystematicsTreat
   if (dosys!=_dosys){
     _dosys= dosys;
   }
+  _cache._haveErrors = false;
+  _cache._haveCov = false;
 }
 
 template<class Hist,class Hist2D> 
@@ -1580,6 +1586,11 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   if (this->Hbkg()){
     toyFactory->SetBkg(this->Hbkg());
     vbkg_nom = this->Vbkg();
+  }
+
+  //! Set truth other that the response truth if available.
+  if (this->Htruth()){
+    toyFactory->SetTruth(this->Htruth());
   }
 
   toyFactory->SetVerbose(0);
@@ -1774,8 +1785,14 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
 {
   
   //! Get the reconstructed histogram from the response matrix.
-  TVectorD vreco(h2v(this->response()->Hmeasured(),this->_overflow, this->response()->UseDensityStatus()));
-    
+  TVectorD vreco((this->response()->Vmeasured()).GetNrows());
+
+  if (this->Htruth()){
+    vreco = this->response()->Vfolded(this->Vtruth());
+  } else {
+    vreco = this->response()->Vmeasured();
+  }
+
   //! Create un unfolding instance with the reconstructed histogram
   //! set as the measured histogram.
   Hist* asimov = RooUnfolding::asimovClone(this->response()->Hmeasured(),this->response()->UseDensityStatus());
@@ -1787,12 +1804,19 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
     vbkg = this->Vbkg();
   }
 
+  //! Set the truth other than the truth of the response matrix.
+  if (this->Htruth()){
+    toyFactory->SetTruth(this->Htruth());
+  }
+  
+
   toyFactory->SetVerbose(0);
 
   //! Throw toys around the reconstructed histogram.
   for (int i = 0; i < ntoys; i++){
-    
+
     TVectorD vreco_tot = vreco + vbkg;
+
     toyFactory->_cache._unfolded = false;
     
     //! Get a new histogram by sampling from Poisson distributions.

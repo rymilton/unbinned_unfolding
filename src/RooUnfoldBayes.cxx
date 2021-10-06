@@ -84,7 +84,6 @@ template<class Hist,class Hist2D> void
 RooUnfoldBayesT<Hist,Hist2D>::Unfold() const
 {
   
-  
   this->setup();
   if (this->verbose() >= 2) {
     Print();
