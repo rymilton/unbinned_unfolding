@@ -17,6 +17,12 @@ if len(sys.argv) > 1: method = sys.argv[1]
 from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
 
+try:
+  import RooUnfold
+except ImportError:
+  # somehow the python module was not found, let's try loading the library by hand
+  ROOT.gSystem.Load("libRooUnfold.so")
+
 # ==============================================================================
 #  Gaussian smearing, systematic translation, and variable inefficiency
 # ==============================================================================

@@ -1442,6 +1442,7 @@ const TVectorD          RooUnfoldT<Hist,Hist2D>::Ebias(RooUnfolding::BiasError E
   case kBiasRMS:
     return _cache._rmsbias;
   }
+  throw std::runtime_error("unknown bias type given!");
 }
 
 
@@ -1543,7 +1544,9 @@ namespace {
   void getParameters(const RooUnfolding::RooFitHist* hist, RooArgSet& params, std::string type){
     if(hist){
       RooArgSet* args = hist->func()->getParameters((RooArgSet*)0);
-      for(auto p:*args){
+      RooFIter iter(args->fwdIterator()) ;
+      RooAbsArg* p = nullptr;
+      while((p=iter.next())) {
         if(params.find(*p)) continue;
         RooRealVar* rrv = dynamic_cast<RooRealVar*>(p);
         if(!rrv) continue;
@@ -1626,8 +1629,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   getParameters(toyFactory->Hbkg(),errorParams,paramType);
 
   //! Save the parameter values.
-  auto* snsh = errorParams.snapshot();
-
+  RooArgSet* snsh = dynamic_cast<RooArgSet*>(errorParams.snapshot());
   RooArgList errorParamList(errorParams);
   RooArgList errorParamListMu(errorParams);
 
