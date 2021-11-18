@@ -53,7 +53,7 @@ if(EXISTS ${RooUnfoldDagostini})
   set(RooUnfoldDagostini "")
 endif()
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS}")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -Wall -Wpedantic -Wshadow")
 
 if(${foundAnalysisRelease})
   atlas_subdir( RooUnfold )
