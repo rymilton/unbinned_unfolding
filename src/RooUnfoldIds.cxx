@@ -384,18 +384,18 @@ RooUnfoldIds::GetIDSUnfoldedSpectrum(const TH1 *h_RecoMC, const TH1 *h_TruthMC, 
    // Put inputs into vectors, and if necessary turn 2-D inputs into 1-D inputs
    TVectorD reco(nbins), truth(nbins);
    TVectorD data(nbins), dataerror(nbins);
-   Int_t i = 0;
+   Int_t iVec = 0;
    for (Int_t by = 1; by <= nbinsy; ++by) { // loop over pt
       for (Int_t bx = 1; bx <= nbinsx; ++bx) { // loop over gap_size, for each pt value
-         reco[i]  = h_RecoMC->GetBinContent(bx, by);
-         truth[i] = h_TruthMC->GetBinContent(bx, by);
-         data[i]  = h_RecoData->GetBinContent(bx, by);
-         if (data[i] > 0.0) {
-            dataerror[i] = h_RecoData->GetBinError(bx, by);
+         reco[iVec]  = h_RecoMC->GetBinContent(bx, by);
+         truth[iVec] = h_TruthMC->GetBinContent(bx, by);
+         data[iVec]  = h_RecoData->GetBinContent(bx, by);
+         if (data[iVec] > 0.0) {
+            dataerror[iVec] = h_RecoData->GetBinError(bx, by);
          } else {
-            dataerror[i] = 1.0;
+            dataerror[iVec] = 1.0;
          }
-         i++;
+         iVec++;
       }
    }
 
@@ -449,10 +449,10 @@ RooUnfoldIds::GetIDSUnfoldedSpectrum(const TH1 *h_RecoMC, const TH1 *h_TruthMC, 
    h_DataUnfolded->SetTitle("unfolded");
    h_DataUnfolded->Reset();
 
-   i = 0;
+   iVec = 0;
    for (Int_t by = 1; by <= nbinsy; ++by) {
       for (Int_t bx = 1; bx <= nbinsx; ++bx) {
-         h_DataUnfolded->SetBinContent(bx, by, result[i++]);
+         h_DataUnfolded->SetBinContent(bx, by, result[iVec++]);
       }
    }
 

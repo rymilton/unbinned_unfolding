@@ -50,7 +50,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-ClassImp (RooUnfoldErrors);
+ClassImp (RooUnfoldErrors)
 
 RooUnfoldErrors::RooUnfoldErrors (int NToys,  RooUnfold* unfold_in, const TH1* Truth)
   : toys(NToys),unfold(unfold_in),hTrue(Truth)

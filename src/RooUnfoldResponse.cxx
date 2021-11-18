@@ -145,7 +145,7 @@ private:
 };
 #endif  
 
-ClassImp (RooUnfoldResponse);
+ClassImp (RooUnfoldResponse)
 
 RooUnfoldResponse::RooUnfoldResponse (const RooUnfoldResponse& rhs)
   : TNamed (rhs.GetName(), rhs.GetTitle())

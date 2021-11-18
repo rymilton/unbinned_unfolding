@@ -46,7 +46,7 @@ using std::setw;
 using std::left;
 using std::right;
 
-ClassImp (RooUnfoldBayes);
+ClassImp (RooUnfoldBayes)
 
 RooUnfoldBayes::RooUnfoldBayes (const RooUnfoldBayes& rhs)
   : RooUnfold (rhs)
