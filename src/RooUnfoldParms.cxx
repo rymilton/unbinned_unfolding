@@ -45,7 +45,7 @@ using std::cerr;
 using std::endl;
 using std::vector;
 
-ClassImp (RooUnfoldParms);
+ClassImp (RooUnfoldParms)
 
 RooUnfoldParms::RooUnfoldParms(const RooUnfold* unfold_in,RooUnfold::ErrorTreatment err,const TH1* truth)
 :unfold(unfold_in),doerror(err),hTrue(truth)

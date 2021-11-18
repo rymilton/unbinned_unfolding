@@ -43,7 +43,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-ClassImp (RooUnfoldSvd);
+ClassImp (RooUnfoldSvd)
 
 RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldSvd& rhs)
   : RooUnfold (rhs)

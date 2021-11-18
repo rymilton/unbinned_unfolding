@@ -117,7 +117,7 @@ using std::setprecision;
 using std::sqrt;
 using std::fabs;
 
-ClassImp (RooUnfold);
+ClassImp (RooUnfold)
 
 RooUnfold::RooUnfold (const RooUnfoldResponse* res, const TH1* meas, const char* name, const char* title)
   : TNamed (name, title)

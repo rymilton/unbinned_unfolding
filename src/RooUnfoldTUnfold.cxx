@@ -46,7 +46,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-ClassImp (RooUnfoldTUnfold);
+ClassImp (RooUnfoldTUnfold)
 
 RooUnfoldTUnfold::RooUnfoldTUnfold (const RooUnfoldTUnfold& rhs)
   : RooUnfold (rhs)

@@ -27,7 +27,7 @@
 
 #include "RooUnfoldResponse.h"
 
-ClassImp (RooUnfoldBinByBin);
+ClassImp (RooUnfoldBinByBin)
 
 RooUnfoldBinByBin::RooUnfoldBinByBin (const RooUnfoldBinByBin& rhs)
   : RooUnfold (rhs)

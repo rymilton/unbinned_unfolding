@@ -36,7 +36,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-ClassImp (RooUnfoldInvert);
+ClassImp (RooUnfoldInvert)
 
 RooUnfoldInvert::RooUnfoldInvert (const RooUnfoldInvert& rhs)
   : RooUnfold (rhs)

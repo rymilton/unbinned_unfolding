@@ -99,6 +99,9 @@ CXXFLAGS     += -O2
 endif
 endif
 
+# add more warnings to the C++ compiler output
+CXXFLAGS     += -Wall -Wpedantic -Wshadow
+
 ifeq ($(PLATFORM),macosx)
 # Remove stupid shared library option on MacOSX. The option doesn't work (and we don't
 # need it) because our linker output file specifies the full path.
