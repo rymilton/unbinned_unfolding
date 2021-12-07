@@ -5,7 +5,7 @@
 project(RooUnfold)
 
 if (${RunningAtlasCI})
-  message("Setup for CI in ATLAS analysis release")
+  message("-- Setup for CI in ATLAS analysis release")
   include (CMakeLists_forAtlasCI.txt)
 endif()
 
@@ -46,7 +46,7 @@ if(EXISTS ${RooUnfoldDagostini})
      set (CMAKE_Fortran_FLAGS "-funroll-all-loops -fno-f2c -O3 -std=f95 -fimplicit-none -m32")
   endif()
  else()
-  message("disabling d'Agostini implementation")
+  message("-- Disabling d'Agostini implementation")
   file(GLOB RooUnfoldDagostini src/RooUnfoldDagostini.*)
   list(REMOVE_ITEM RooUnfoldHeaders ${RooUnfoldDagostini})
   list(REMOVE_ITEM RooUnfoldSources ${RooUnfoldDagostini})
@@ -166,28 +166,30 @@ foreach(TestScript ${Tests})
 endforeach()
 
 # first we can indicate the documentation build as an option and set it to ON by default
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 
 # check if Doxygen is installed
-find_package(Doxygen)
-if (DOXYGEN_FOUND)
+if (BUILD_DOC)
+  find_package(Doxygen)
+  if (DOXYGEN_FOUND)
     # set input and output files
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.cmake)
     set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
 
     # request to configure the file
     configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-    message("Doxygen build started")
+    message("-- Doxygen build started")
 
     # note the option ALL which allows to build the docs together with the application
     add_custom_target( doxygen ALL
-        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Generating API documentation with Doxygen"
-        VERBATIM )
-else (DOXYGEN_FOUND)
-  message("Doxygen need to be installed to generate the doxygen documentation")
-endif (DOXYGEN_FOUND)
+      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating API documentation with Doxygen"
+      VERBATIM )
+  else (DOXYGEN_FOUND)
+    message("-- Doxygen needs to be installed to generate the doxygen documentation")
+  endif (DOXYGEN_FOUND)
+endif (BUILD_DOC)
 
 if (SKBUILD)
     # install the compiled python module in src/RooUnfold to be picked up by the python wheels setup
