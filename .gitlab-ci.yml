@@ -18,10 +18,10 @@ stages:
 
 .doxygen: &doxygen
   stage: doc
-  image: rootproject/root-ubuntu16  
+  image: rootproject/root
   before_script:
-    - sudo apt-get update
-    - sudo apt-get install -y doxygen texlive-font-utils
+    - apt-get update
+    - apt-get install -y doxygen texlive-font-utils
 
 .atlas: &atlas
   image: atlas/analysisbase:21.2.64
@@ -29,7 +29,7 @@ stages:
     - source /home/atlas/release_setup.sh
 
 .standalone: &standalone    
-  image: rootproject/root-ubuntu16  
+  image: rootproject/root
 
 .ctest: &ctest  
   stage: test
@@ -103,8 +103,8 @@ stages:
 .dAgostini: &dAgostini
   <<: *standalone
   before_script:
-    - sudo apt-get update
-    - sudo apt-get install wget
+    - apt-get update
+    - apt-get install wget
     - export FC=gfortran
     - bash get_dagos_bayes.sh
     

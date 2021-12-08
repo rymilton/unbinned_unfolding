@@ -2,6 +2,7 @@ build
 doxygen
 *.dylib
 *.so
+/RooUnfoldConfig.cmake
 
 # python
 *.egg-info
