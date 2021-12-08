@@ -18,7 +18,7 @@ stages:
 
 .doxygen: &doxygen
   stage: doc
-  image: rootproject/root-ubuntu16  
+  image: rootproject/root
   before_script:
     - sudo apt-get update
     - sudo apt-get install -y doxygen texlive-font-utils
@@ -29,7 +29,7 @@ stages:
     - source /home/atlas/release_setup.sh
 
 .standalone: &standalone    
-  image: rootproject/root-ubuntu16  
+  image: rootproject/root
 
 .ctest: &ctest  
   stage: test
