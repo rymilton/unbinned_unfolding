@@ -204,7 +204,7 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
     return 0;
   */
   case kIDS:
-    unfold= new RooUnfoldIdsT<Hist,Hist2D>      (res, meas,4);
+    unfold= new RooUnfoldIdsT<Hist,Hist2D>      (res, meas);
     break;
 
   default: 
