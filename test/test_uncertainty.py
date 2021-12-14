@@ -19,7 +19,7 @@ if __name__ == '__main__':
         'ftrainx': ['7'],
         'doerror':['3'],
         'dosys': ['1'],
-        'ntoys':['50', '500' ,'5000'],
+        'ntoys':['50', '500'],
         'verbose': ['3'],
         'seed':['42']
     }
