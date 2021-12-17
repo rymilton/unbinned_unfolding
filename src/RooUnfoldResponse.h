@@ -61,7 +61,8 @@ public:
   const TVectorD& Vfakes()            const;   // Fakes distribution as a TVectorD
   const TVectorD& Vtruth()            const;   // Truth distribution as a TVectorD
   const TVectorD& Etruth()            const;   // Truth distribution errors as a TVectorD
-  const TMatrixD& Mresponse(bool norm = true)         const;   // Response matrix as a TMatrixD: (row,column)=(measured,truth)
+  const TMatrixD& Mresponse(bool norm = true)         const;   // Response matrix as a TMa
+  const TMatrixD& Mresponse(const Hist* truth)         const;   // Response matrix as a TMatrixD: (row,column)=(measured,truth)
   const TMatrixD& Eresponse(bool norm = true)         const;   // Response matrix errors as a TMatrixD: (row,column)=(measured,truth)
 
   Double_t operator() (Int_t r, Int_t t) const;// Response matrix element (measured,truth)

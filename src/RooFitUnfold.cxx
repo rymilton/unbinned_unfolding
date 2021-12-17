@@ -48,6 +48,7 @@ RooUnfoldFunc::RooUnfoldFunc(const char* name, const char* title, const RooUnfol
   //! constructor
   auto unfolding = RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::New(unf->GetAlgorithm(),unf->response(),unf->Hmeasured(),unf->GetRegParm(),unf->GetName(),unf->GetTitle());
   if (unf->Hbkg()) unfolding->SetBkg(unf->Hbkg());
+  unfolding->SetTruth(unf->Htruth());
   this->_unfolding = dynamic_cast<RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>*>(unfolding);
   this->_unfolding->SetVerbose(0);
   const RooUnfoldResponseT<RooFitHist,RooFitHist>* res = this->_unfolding->response();
@@ -754,6 +755,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* RooUnfoldSpec::un
   if (this->_cache._bkg) {
     unfolding->SetBkg(this->_cache._bkg);
   }
+  unfolding->SetTruth(this->_cache._truth);
   unfolding->SetOverflow(this->_includeUnderflowOverflow);
 
   return unfolding;

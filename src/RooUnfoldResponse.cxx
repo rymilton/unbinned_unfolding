@@ -486,14 +486,14 @@ template<class Hist, class Hist2D>
 Int_t RooUnfoldResponseT<Hist,Hist2D>::GetNbinsMeasured() const
 {
   //! Total number of bins in the measured distribution
-  return ::nBins(this->_mes);
+  return ::nBins(this->_mes,_overflow);
 }
 
 template<class Hist, class Hist2D>
 Int_t RooUnfoldResponseT<Hist,Hist2D>::GetNbinsTruth() const
 {
   //! Total number of bins in the truth distribution
-  return ::nBins(this->_tru);
+  return ::nBins(this->_tru,_overflow);
 }
 
 
@@ -671,6 +671,15 @@ const TMatrixD& RooUnfoldResponseT<Hist,Hist2D>::Mresponse(bool norm) const
     if (!_cache._mRes) _cached = (_cache._mRes = new TMatrixD(h2m (_res, _overflow, _density)));
     return *_cache._mRes;
   }
+}
+
+template<class Hist, class Hist2D>
+const TMatrixD& RooUnfoldResponseT<Hist,Hist2D>::Mresponse(const Hist* truth) const
+{
+  //! Response matrix as a TMatrixD: (row,column)=(measured,truth)
+
+    _cached= (_cache._mResNorm= new TMatrixD(h2mNorm  (_res, truth, _overflow,_density)));
+    return *_cache._mResNorm;
 }
 
 template<class Hist, class Hist2D>
@@ -1061,6 +1070,7 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth, const TH2* respo
   //! in "truth" for unmeasured events (inefficiency).
   //! "measured" and/or "truth" can be specified as 0 (1D case only) or an empty histograms (no entries) as a shortcut
   //! to indicate, respectively, no fakes and/or no inefficiency.
+
   Reset();
   _res= clone(response);
   if (measured) {

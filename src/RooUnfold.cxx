@@ -583,6 +583,9 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 {
   //! There are two toy approaches of calculating the bias.
 
+  Bool_t haveerrors = this->_cache._haveErrors;
+  Bool_t havecov = this->_cache._haveCov;
+
   //! Use the response matrix truth if not supplied..
   TVectorD vtruth(hTrue ? h2v(hTrue,false) : _res->Vtruth());
 
@@ -654,9 +657,11 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   delete toyFactory;
   
   this->_cache._haveBias=true;
+  this->_cache._haveErrors=haveerrors;
+  this->_cache._haveCov=havecov;
 }
 
-template<class Hist,class Hist2D> Bool_t
+template <class Hist,class Hist2D> Bool_t
 RooUnfoldT<Hist,Hist2D>::UnfoldWithErrors (ErrorTreatment withError, bool getWeights) const
 {
   //! This method initializes the unfolding with errors.
@@ -1062,16 +1067,17 @@ RooUnfoldT<Hist,Hist2D>::Wunfold(ErrorTreatment withError) const
 template<class Hist,class Hist2D> TVectorD
 RooUnfoldT<Hist,Hist2D>::CoverageProbV(Int_t sigma) const
 {
-  
-  TVectorD bias(_cache._bias);
 
   // Calculate the bias if needed.
   if (!this->_cache._haveBias){
     this->CalculateBias(this->_NToys);
   }
-  TVectorD coverage(_cache._bias.GetNrows());
+ 
+  TVectorD bias(_cache._bias);
   
   TVectorD se(_cache._bias.GetNrows());
+
+  TVectorD coverage(_cache._bias.GetNrows());
 
   if (_cache._haveCov){
     for (int i = 0; i < _cache._bias.GetNrows(); i++){
@@ -1646,7 +1652,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   //     if(idx1<0) continue;
   //     for(size_t j=0; j<covMes.GetNrows(); ++j){
   //       RooRealVar* p2 = gammas[j];
-  //       int idx2 = errorParamList.index(p2);
+  //       int idx2 = errorparamlist.index(p2);
   //       if(idx2<0) continue;
   //       double val = covMes(i,j)/(meas[i]*meas[j]);
   //       setCov(idx1,idx2) = val;
@@ -1655,8 +1661,6 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     
   //   ((::FitResultHack*)prefitResult)->setCovariance(setCov);
   // }
-
-  RooRandom::randomGenerator()->SetSeed();
 
   //! Create a multidimensional pdf of which each nuisance parameter
   //! represents one dimension.
@@ -1674,20 +1678,23 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
     toyFactory->ForceRecalculation();
 
     //! Get the varied reco distribution.
-    TVectorD vtruth = res->Vtruth();
-    TVectorD vreco = res->Vfolded(vtruth);
+    TMatrixD mresp = res->Mresponse(toyFactory->Htruth());
+
+    TVectorD vtruth(res->Vtruth());
+
+    TVectorD vreco = mresp*vtruth;
 
     //! Get the varied background reco distribution.
     TVectorD vbkg(toyFactory->Vbkg());
 
     //! Add the background.
     TVectorD vreco_tot = vreco + vbkg;
-
+    
     //! Sample from Poisson p.d.f.s the toy data. This
     //! will include statistical uncertainty.
-    //if (this->_dosys == kAll){
-    RooUnfolding::randomize(vreco_tot, this->rnd);
-      //}
+    if (this->_dosys == kAll){
+      RooUnfolding::randomize(vreco_tot, this->rnd);
+    }
 
     //! Set the parameters i.e. distributions used in the unfolding
     //! back to their nominal values for the unfolding.
@@ -1809,7 +1816,6 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
     toyFactory->SetTruth(this->Htruth());
   }
   
-
   toyFactory->SetVerbose(0);
 
   //! Throw toys around the reconstructed histogram.
