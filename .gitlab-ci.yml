@@ -16,14 +16,20 @@ stages:
   image: blang/latex:ubuntu
 
 .standalone: &standalone    
-  image: castleard/rootnightly-ubuntu18:2019-10-10.2
+  image: rootproject/root:6.22.00-ubuntu20.04
+  before_script:
+    - apt-get update
+    - apt-get -y install python
 
 .doxygen: &doxygen
   <<: *standalone
+  before_script:
+    - apt-get update
+    - apt-get -y install doxygen
   stage: doc
 
 .atlas: &atlas
-  image: atlas/analysisbase:21.2.93
+  image: atlas/analysisbase:21.2.120
   before_script:
     - source /home/atlas/release_setup.sh
 
@@ -52,18 +58,13 @@ stages:
 .atlascmake: &atlascmake    
   stage: build
   script:
-    - mkdir source 
-    - mkdir source/RooUnfold 
-    - ls | grep -v source | xargs -i mv {} source/RooUnfold/
-    - mv source/RooUnfold/CMakeLists_forAtlasCI.txt source/CMakeLists.txt
     - mkdir build
     - cd build
-    - cmake ../source
+    - cmake ..
     - make
   artifacts:
     paths:
       - build
-      - source
 
 .cmake: &cmake    
   stage: build
@@ -85,10 +86,13 @@ stages:
       - libRooUnfold.so
       - RooUnfoldDict_rdict.pcm
       - libRooUnfold.rootmap
+      - RooUnfold/*.py
 
 .GNUtest: &GNUtest          
   stage: test
   script:
+    - make python
+    - export PYTHONPATH=$PYTHONPATH:$(pwd)
     - python -u examples/RooUnfoldExample.py > RooUnfoldExample.ref
     - diff RooUnfoldExample.ref ref/RooUnfoldExample.py.bayes.ref
   artifacts:
@@ -96,19 +100,14 @@ stages:
     paths:
       - "*.ref"        
 
-.dAgostini: &dAgostini
-  <<: *standalone
-  before_script:
-    - export FC=gfortran
-    - bash get_dagos_bayes.sh
     
 ############################################
 ## building
 ############################################     
     
-#compile_atlas:
-#  <<: *atlas
-#  <<: *atlascmake
+compile_atlas:
+  <<: *atlas
+  <<: *atlascmake
 
 compile_cmake:
   <<: *standalone
@@ -118,24 +117,17 @@ compile_GNUmake:
   <<: *standalone
   <<: *GNUmake  
 
-compile_cmake_dAgostini:
-  <<: *dAgostini
-  <<: *cmake
-  
-compile_GNUmake_dAgostini:
-  <<: *dAgostini
-  <<: *GNUmake  
 
 
 ############################################           
 ## testing      
 ############################################
 
-#test_atlas:
-#  <<: *atlas
-#  <<: *atlasctest  
-#  dependencies:
-#    - compile_atlas    
+test_atlas:
+  <<: *atlas
+  <<: *atlasctest  
+  dependencies:
+    - compile_atlas    
 
 test_cmake:
   <<: *standalone
@@ -155,13 +147,14 @@ test_GNUmake:
 
 doxygen:
   <<: *doxygen
-  dependencies:
-    - compile_cmake
   artifacts:
     paths:
       - build/doxygen
+  dependencies: []      
   script:
+    - mkdir build
     - cd build
+    - cmake ..
     - make doxygen
 
 doc_bayes_errors:

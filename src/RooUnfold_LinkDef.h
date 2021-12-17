@@ -43,8 +43,5 @@
 #pragma link C++ class RooUnfoldErrors+;
 #pragma link C++ class RooUnfoldParms+;
 #pragma link C++ class RooUnfoldInvert+;
-#ifdef HAVE_DAGOSTINI
-#pragma link C++ class RooUnfoldDagostini+;
-#endif
 
 #endif

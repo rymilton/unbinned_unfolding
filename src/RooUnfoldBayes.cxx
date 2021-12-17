@@ -505,6 +505,7 @@ void RooUnfoldBayesT<Hist,Hist2D>::SetIterations (int niter)
 {
   //! Set regularisation parameter (number of iterations)
   this->_niter= niter;
+  this->ResetUnfold();
 }
 
 template<class Hist,class Hist2D>
@@ -512,6 +513,7 @@ void RooUnfoldBayesT<Hist,Hist2D>::SetSmoothing (Bool_t smoothit)
 {
   //! Enable smoothing
   this->_smoothit= smoothit;
+  this->ResetUnfold();
 }
 
 template<class Hist, class Hist2D>

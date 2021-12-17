@@ -26,6 +26,10 @@ Can account for both smearing and biasing
 
 using namespace RooUnfolding;
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 template<class Hist,class Hist2D>
 RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
   : RooUnfoldT<Hist,Hist2D> (rhs)
@@ -283,6 +287,7 @@ RooUnfoldSvdT<Hist,Hist2D>::SetKterm (Int_t kreg)
 {
   //! Set regularisation parameter
   this->_kreg= kreg;
+  this->ResetUnfold();
 }
 
 

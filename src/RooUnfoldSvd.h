@@ -8,7 +8,11 @@
 #define ROOUNFOLDSVD_HH
 
 #include "RooUnfold.h"
+#if ROOT_VERSION_CODE < ROOT_VERSION(6,6,0)
+#pragma message("TSVDUnfold from ROOT version before 6.06 is not supported")
+#endif
 #include "RooUnfoldResponse.h"
+
 
 template<class Hist, class Hist2D>
 class RooUnfoldSvdT : public RooUnfoldT<Hist,Hist2D> {

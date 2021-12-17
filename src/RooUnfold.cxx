@@ -96,9 +96,6 @@
 #ifndef NOTUNFOLD
 #include "RooUnfoldTUnfold.h"
 #endif
-#ifdef HAVE_DAGOSTINI
-#include "RooUnfoldDagostini.h"
-#endif
 #include "RooUnfoldIds.h"
 #include "RooUnfoldHelpers.h"
 #include "RooUnfoldTH1Helpers.h"
@@ -118,7 +115,7 @@ template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algori
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kBinByBin = RooUnfolding::kBinByBin;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kTUnfold = RooUnfolding::kTUnfold;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kInvert = RooUnfolding::kInvert;
-template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kDagostini = RooUnfolding::kDagostini;
+//template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kDagostini = RooUnfolding::kDagostini;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kIDS = RooUnfolding::kIDS;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kGP = RooUnfolding::kGP; 
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kPoisson = RooUnfolding::kPoisson;
@@ -200,13 +197,14 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
     break;
   case kPoisson:
     unfold = new RooUnfoldPoissonT<Hist,Hist2D> (res,meas);
-    break;    
+    break; 
+  /* 
   case kDagostini:
     cerr << "RooUnfoldDagostini is not available" << endl;
     return 0;
-  
+  */
   case kIDS:
-    unfold= new RooUnfoldIdsT<Hist,Hist2D>      (res, meas,4);
+    unfold= new RooUnfoldIdsT<Hist,Hist2D>      (res, meas);
     break;
 
   default: 
@@ -377,6 +375,12 @@ RooUnfoldT<Hist,Hist2D>::Init()
   GetSettings();
 }
 
+template<class Hist,class Hist2D> void
+RooUnfoldT<Hist,Hist2D>::ResetUnfold(){
+  _cache = Cache();
+}
+
+
 template<class Hist,class Hist2D> RooUnfoldT<Hist,Hist2D>&
 RooUnfoldT<Hist,Hist2D>::Setup (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas)
 {
@@ -394,6 +398,7 @@ RooUnfoldT<Hist,Hist2D>::SetMeasured (const Hist* meas)
   //! Set measured distribution and errors. RooUnfold does not own the histogram.
   _meas= clone(meas);
   _cache = Cache();
+  ResetUnfold();
 }
 
 
@@ -454,6 +459,7 @@ RooUnfoldT<Hist,Hist2D>::SetMeasuredCov (const TMatrixD& cov)
   //! Set covariance matrix on measured distribution.
   _cache = Cache();
   _covMes= new TMatrixD (cov);
+  ResetUnfold();
 }
 
 template<class Hist,class Hist2D> const TMatrixD&
@@ -490,6 +496,7 @@ RooUnfoldT<Hist,Hist2D>::SetResponse (const RooUnfoldResponseT<Hist,Hist2D>* res
   _nt= _res->GetNbinsTruth();
   
   SetNameTitleDefault();
+  ResetUnfold();
 }
 
 template<class Hist,class Hist2D> void
@@ -1448,6 +1455,7 @@ const TVectorD          RooUnfoldT<Hist,Hist2D>::Ebias(RooUnfolding::BiasError E
   case kBiasRMS:
     return _cache._rmsbias;
   }
+  throw std::runtime_error("unknown bias type given!");
 }
 
 
@@ -1488,6 +1496,7 @@ void  RooUnfoldT<Hist,Hist2D>::SetNToys (Int_t toys)
 {
   //! Set number of toys used in kCovToy error calculation.
   _NToys= toys;
+  ResetUnfold();
 }
 
 template<class Hist,class Hist2D> 
@@ -1500,7 +1509,7 @@ template<class Hist,class Hist2D>
 Double_t RooUnfoldT<Hist,Hist2D>::GetRegParm() const
 {
   //! Get regularisation parameter.
-  return -1e30;
+  return -1;
 }
 
 template<class Hist,class Hist2D> 
@@ -1549,7 +1558,9 @@ namespace {
   void getParameters(const RooUnfolding::RooFitHist* hist, RooArgSet& params, std::string type){
     if(hist){
       RooArgSet* args = hist->func()->getParameters((RooArgSet*)0);
-      for(auto p:*args){
+      RooFIter iter(args->fwdIterator()) ;
+      RooAbsArg* p = nullptr;
+      while((p=iter.next())) {
         if(params.find(*p)) continue;
         RooRealVar* rrv = dynamic_cast<RooRealVar*>(p);
         if(!rrv) continue;
@@ -1632,8 +1643,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   getParameters(toyFactory->Hbkg(),errorParams,paramType);
 
   //! Save the parameter values.
-  auto* snsh = errorParams.snapshot();
-
+  RooArgSet* snsh = dynamic_cast<RooArgSet*>(errorParams.snapshot());
   RooArgList errorParamList(errorParams);
   RooArgList errorParamListMu(errorParams);
 

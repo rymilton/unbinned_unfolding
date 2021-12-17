@@ -32,7 +32,7 @@ public:
   static const Algorithm kBinByBin;
   static const Algorithm kTUnfold;
   static const Algorithm kInvert;
-  static const Algorithm kDagostini;
+  //static const Algorithm kDagostini;
   static const Algorithm kIDS;
   static const Algorithm kGP;
   static const Algorithm kPoisson;
@@ -135,6 +135,7 @@ protected:
   virtual void SetNameTitleDefault();
   virtual void Unfold() const;
   virtual Bool_t UnfoldWithErrors (RooUnfolding::ErrorTreatment withError, bool getWeights=false) const;
+  virtual void ResetUnfold();
 
   static TMatrixD CutZeros     (const TMatrixD& ereco);
   static Int_t    InvertMatrix (const TMatrixD& mat, TMatrixD& inv, const char* name="matrix", Int_t verbose=0);
