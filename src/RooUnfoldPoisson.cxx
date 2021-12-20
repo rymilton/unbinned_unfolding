@@ -78,17 +78,14 @@ RooUnfoldPoissonT<Hist,Hist2D>::Unfold() const
 
 
   // Minimize the regularized nllh.
-  _min = MinimizeRegLLH();
+  MinimizeRegLLH();
 
-  if (!(_min->Status() == 0) && this->_verbose){
+  if (!(_min_status == 0) && this->_verbose){
     std::cout << "Regularized negative log-likelihood did not converge. Check input and minimization settings." << std::endl;
     return;
   }
 
-
   this->_cache._rec.ResizeTo(this->_nt);
-
-  if (!getVunfolded()) return;
 
   this->_cache._rec = this->_unfolded;
   this->_cache._unfolded= true;
@@ -99,15 +96,13 @@ RooUnfoldPoissonT<Hist,Hist2D>::GetCov() const
 {
 
   // Check convergence and otherwise return.
-  if (!(_min->Status() == 0) && this->_verbose){
-    std::cerr << "Minimizer did not converge. Returned MINUIT status: " << _min->Status();
+  if (!(_min_status == 0) && this->_verbose){
+    std::cerr << "Minimizer did not converge. Returned MINUIT status: " << _min_status;
     return;
   }
 
   // Get covariance.
   this->_cache._cov.ResizeTo (this->_nt, this->_nt);
-
-  if (!getMcovariance()) return;
 
   this->_cache._cov = this->_covariance;
   this->_cache._haveCov= true;
@@ -127,7 +122,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::GetSettings() const
 template<class Hist,class Hist2D> void
 RooUnfoldPoissonT<Hist,Hist2D>::setup() const
 {
-  this->_min = NULL;
+  this->_min_status = 0;
   this->_min_print = 0;
   this->_unfolded.ResizeTo(this->_nt);
   this->_covariance.ResizeTo(this->_nt,this->_nt);
@@ -226,11 +221,11 @@ RooUnfoldPoissonT<Hist,Hist2D>::RegLLH(const double* truth) const
 }
 
 
-template<class Hist,class Hist2D> ROOT::Math::Minimizer*
+template<class Hist,class Hist2D> void
 RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
 {
   ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
-
+ 
   min->SetMaxFunctionCalls(1000000000);
   min->SetTolerance(1);
   min->SetPrintLevel(this->_verbose);
@@ -263,55 +258,25 @@ RooUnfoldPoissonT<Hist,Hist2D>::MinimizeRegLLH() const
 
   // do the minimization
   min->Minimize();
-  
-  delete[] step;
-  delete[] start;
-  return min;
-}
 
-template<class Hist,class Hist2D> Bool_t
-RooUnfoldPoissonT<Hist,Hist2D>::getVunfolded() const
-{
-
-  if (this->_cache._unfolded) return true;
-
-  if (!_min) {
-    std::cerr << "Minimizer is not yet initialized. Unfolded results is not available.";
-    return false;
-  }
+  _min_status = min->Status();
 
   for (int i = 0; i < this->_nt; i++){
-    _unfolded[i] = (_min->X())[i];
+    _unfolded[i] = (min->X())[i];
   }
 
-  if (!_unfolded.NonZeros()) false;
-
-  return true;
-}
-
-template<class Hist,class Hist2D> Bool_t
-RooUnfoldPoissonT<Hist,Hist2D>::getMcovariance() const
-{
-
-  if (this->_cache._haveCov) return true;
-
-  if (!_min) {
-    std::cerr << "Minimizer is not yet initialized. Unfolded results is not available.";
-    return false;
-  }
-  
   for (int i = 0; i < _covariance.GetNrows(); i++){
     for (int j = 0; j < _covariance.GetNcols(); j++){
-      _covariance[i][j] = _min->CovMatrix(i,j)/_RegLLH_factor;
+      _covariance[i][j] = min->CovMatrix(i,j)/_RegLLH_factor;
     }
   }
-  
-  if (!_covariance.NonZeros()) false;
 
-  return true;
+  delete[] step;
+  delete[] start;
+  delete min;
+
+  return;
 }
-
-
 
 template<class Hist,class Hist2D>
 RooUnfoldPoissonT<Hist,Hist2D>::RooUnfoldPoissonT()

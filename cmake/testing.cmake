@@ -14,47 +14,47 @@ file(GLOB test_methods "test/test_methods.py")
 add_test(
 NAME test_methods
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_methods}
+COMMAND python ${test_methods}
 )
 
 file(GLOB test_fakes "test/test_fakes.py")
 add_test(
 NAME test_fakes
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_fakes}
+COMMAND python ${test_fakes}
 )
 
 file(GLOB test_bin_correlation "test/test_bin_correlation.py")
 add_test(
 NAME test_bin_correlation
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_bin_correlation}
+COMMAND python ${test_bin_correlation}
 )
 
 file(GLOB test_uncertainty "test/test_uncertainty.py")
 add_test(
 NAME test_uncertainty
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_uncertainty}
+COMMAND python ${test_uncertainty}
 )
 
 file(GLOB test_overflow "test/test_overflow.py")
 add_test(
 NAME test_overflow
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_overflow}
+COMMAND python ${test_overflow}
 )
 
 file(GLOB test_2D "test/test_2D.py")
 add_test(
 NAME test_2D
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_2D}
+COMMAND python ${test_2D}
 )
 
 file(GLOB test_3D "test/test_3D.py")
 add_test(
 NAME test_3D
 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build
-COMMAND python3 ${test_3D}
+COMMAND python ${test_3D}
 )

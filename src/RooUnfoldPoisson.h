@@ -57,17 +57,14 @@ private:
   Double_t TikhonovReg(const double* truth) const;
   Double_t RegLLH(const double* truth) const;
 
-  ROOT::Math::Minimizer* MinimizeRegLLH() const;
-
-  Bool_t getVunfolded() const;
-  Bool_t getMcovariance() const;
+  void MinimizeRegLLH() const;
 
   void Init();
   void CopyData (const RooUnfoldPoissonT<Hist,Hist2D>& rhs);
 
 protected:
   // instance variables
-  mutable ROOT::Math::Minimizer* _min;
+  mutable Int_t _min_status;
   mutable Bool_t _min_print;
   mutable Double_t _RegLLH_factor;
   mutable double _regparm;
