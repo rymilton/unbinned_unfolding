@@ -1,3 +1,7 @@
+if(${NO_DEFAULT_ROOUNFOLD})
+  return()
+endif()
+
 add_library(tests
         src/generate_test.cxx
         src/response_test.cxx

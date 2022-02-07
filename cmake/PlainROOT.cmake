@@ -23,6 +23,7 @@ if(${ROOT_FOUND})
   ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeaders} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS} -Wno-inconsistent-missing-override)
   
   # register the shared object to include both sources and dictionaries
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RooUnfold_FLAGS}")  
   add_library( RooUnfold SHARED ${RooUnfoldSources}  G__RooUnfold.cxx)
   
   # link everything together at the end
