@@ -85,12 +85,6 @@ test_cmake:
   dependencies:
     - compile_cmake
 
-test_GNUmake:
-  <<: *standalone
-  <<: *GNUtest
-  dependencies:
-    - compile_GNUmake
-
 ############################################         
 ## documentation
 ############################################
