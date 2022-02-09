@@ -28,11 +28,6 @@ stages:
     - apt-get -y install doxygen
   stage: doc
 
-.atlas: &atlas
-  image: atlas/analysisbase:21.2.120
-  before_script:
-    - source /home/atlas/release_setup.sh
-
 .ctest: &ctest  
   stage: test
   script:
@@ -43,28 +38,6 @@ stages:
     when: on_failure
     paths:
       - "*.ref"    
-
-.atlasctest: &atlasctest  
-  stage: test
-  script:
-    - cd build
-    - source ${AnalysisBase_PLATFORM}/setup.sh
-    - TERM=vt100 ctest --output-on-failure
-  artifacts:
-    when: on_failure
-    paths:
-      - "*.ref"    
-
-.atlascmake: &atlascmake    
-  stage: build
-  script:
-    - mkdir build
-    - cd build
-    - cmake ..
-    - make
-  artifacts:
-    paths:
-      - build
 
 .cmake: &cmake    
   stage: build
@@ -105,10 +78,6 @@ stages:
 ## building
 ############################################     
     
-compile_atlas:
-  <<: *atlas
-  <<: *atlascmake
-
 compile_cmake:
   <<: *standalone
   <<: *cmake
@@ -122,12 +91,6 @@ compile_GNUmake:
 ############################################           
 ## testing      
 ############################################
-
-test_atlas:
-  <<: *atlas
-  <<: *atlasctest  
-  dependencies:
-    - compile_atlas    
 
 test_cmake:
   <<: *standalone

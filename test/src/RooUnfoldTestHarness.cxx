@@ -859,7 +859,7 @@ Double_t RooUnfoldTestHarness::Smear (Double_t x, Int_t nt, Double_t lo, Double_
   }
   
   Double_t delta= xsigma <= 0.0 ? bias : gRandom->Gaus (bias, xsigma);     // bias and smear
-  if (verbose>=3) cout << "SMEAR " << x << " " << xsmear << " " << xsigma << endl;
+  if (verbose>3) cout << "SMEAR " << x << " " << xsmear << " " << xsigma << endl;
   return x+delta;
 
 }
