@@ -126,9 +126,9 @@ namespace RooUnfolding {
 
   void add(TMatrixD& target, const TMatrixD& addition);
   TVectorD* resizeVector (const TVectorD& vec, Int_t n);
-  TMatrixD* squareMatrix (const TMatrixD& matrix);
+  TMatrixD* squareMatrix (const TMatrixD& matrix, int n = -1);
   void resizeVector (TVectorD& vec, Int_t n);
-  void squareMatrix (TMatrixD& matrix);
+  void squareMatrix (TMatrixD& matrix, int n = -1);
   bool sanitize(TMatrixD& mat,double t = 1e-9);  
   TMatrixD& ABAT (const TMatrixD& a, const TMatrixD& b, TMatrixD& c);
   TMatrixD& ABAT (const TMatrixD& a, const TVectorD& b, TMatrixD& c);

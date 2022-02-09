@@ -87,9 +87,6 @@ template<class Hist, class Hist2D>
   mutable Double_t _lambdaMmin; // regularize Modification of folding matrix
   mutable Double_t _lambdaS; // regularize background Subtraction
   
-  mutable Hist *_meas1d, *_train1d, *_truth1d;
-  mutable Hist2D *_reshist;
-  
  public:
   ClassDefT (RooUnfoldIdsT, 1)
 };

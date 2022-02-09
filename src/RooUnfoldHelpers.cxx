@@ -53,8 +53,12 @@ namespace RooUnfolding {
   void resizeVector (TVectorD& vec, Int_t n)
   {
 
-    if (n <= vec.GetNrows()){
-      cerr << "Warning: Requested vector size is smaller than or equal to the original vector. The initial vector is maintained.";
+    if (n == vec.GetNrows()){
+      return;
+    }
+
+    if (n < vec.GetNrows()){
+      cerr << "Warning: Requested vector size is smaller than the original vector. The initial vector is maintained.";
       return;
     }
 
@@ -62,16 +66,10 @@ namespace RooUnfolding {
     vec.ResizeTo(n);
   }
 
-  TMatrixD* squareMatrix (const TMatrixD& matrix)
+  TMatrixD* squareMatrix (const TMatrixD& matrix, int nbins)
   {
 
-    Int_t nbins;
-
-    if (matrix.GetNrows() >= matrix.GetNcols()){
-      nbins = matrix.GetNrows();
-    } else {
-      nbins = matrix.GetNcols();
-    }
+    if(nbins < 0) nbins = std::max(matrix.GetNrows(),matrix.GetNcols());
 
     TMatrixD* newmatrix = new TMatrixD(matrix);
 
@@ -80,16 +78,10 @@ namespace RooUnfolding {
     return newmatrix;
   }
 
-  void squareMatrix (TMatrixD& matrix)
+  void squareMatrix (TMatrixD& matrix, int nbins)
   {
 
-    Int_t nbins;
-
-    if (matrix.GetNrows() >= matrix.GetNcols()){
-      nbins = matrix.GetNrows();
-    } else {
-      nbins = matrix.GetNcols();
-    }
+    if(nbins < 0) nbins = std::max(matrix.GetNrows(),matrix.GetNcols());    
     
     matrix.ResizeTo(nbins,nbins);
   }
