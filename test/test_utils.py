@@ -17,6 +17,7 @@ def get_combination(parms, parms_name):
 
 def get_unfold(f):
     unfold = f.Get("unfold")
+    assert unfold
     h_unfolded = unfold.Hunfold()
     #u = ROOT.TVector(h_unfolded.GetNbinsX())
     u = [0]*(h_unfolded.GetNbinsX())
@@ -27,6 +28,7 @@ def get_unfold(f):
 
 def get_unfold_overflow(f):
     unfold = f.Get("unfold")
+    assert unfold    
     h_unfolded = unfold.Hunfold()
     u = [0]*(h_unfolded.GetNbinsX()+2)
     for i in range(h_unfolded.GetNbinsX()+2):
@@ -36,6 +38,7 @@ def get_unfold_overflow(f):
 
 def get_unfold2D(f):
     unfold = f.Get("unfold")
+    assert unfold    
     h_unfolded = unfold.Hunfold()
     #u = ROOT.TVector(h_unfolded.GetNbinsX()*h_unfolded.GetNbinsY())
     u = [0]*(h_unfolded.GetNbinsX()*h_unfolded.GetNbinsY())
@@ -48,6 +51,7 @@ def get_unfold2D(f):
 
 def get_unfold3D(f):
     unfold = f.Get("unfold")
+    assert unfold    
     h_unfolded = unfold.Hunfold()
     #u = ROOT.TVector(h_unfolded.GetNbinsX()*h_unfolded.GetNbinsY()*h_unfolded.GetNbinsZ())
     u = [0]*(h_unfolded.GetNbinsX()*h_unfolded.GetNbinsY()*h_unfolded.GetNbinsZ())
@@ -61,6 +65,7 @@ def get_unfold3D(f):
 
 def get_uncertainty(f):
     unfold = f.Get("unfold")
+    assert unfold    
     h_unfolded = unfold.Hunfold()
     u = ROOT.TVector(h_unfolded.GetNbinsX())
     u = [0]*(h_unfolded.GetNbinsX())
