@@ -1,0 +1,6 @@
+prune *
+graft src/RooUnfold
+include README.md
+include History.md
+
+global-exclude __pycache__ *.py[cod] .*

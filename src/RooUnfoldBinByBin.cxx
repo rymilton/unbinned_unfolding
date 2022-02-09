@@ -14,9 +14,16 @@ True and measured distributions must have the same binning
 
 #include "RooUnfoldResponse.h"
 
+<<<<<<< HEAD
 template<class Hist,class Hist2D> 
 RooUnfoldBinByBinT<Hist,Hist2D>::RooUnfoldBinByBinT (const RooUnfoldBinByBinT<Hist,Hist2D>& rhs)
   : RooUnfoldT<Hist,Hist2D> (rhs)
+=======
+ClassImp (RooUnfoldBinByBin)
+
+RooUnfoldBinByBin::RooUnfoldBinByBin (const RooUnfoldBinByBin& rhs)
+  : RooUnfold (rhs)
+>>>>>>> master
 {
   // Copy constructor.
   this->GetSettings();  
