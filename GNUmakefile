@@ -1,7 +1,4 @@
 #===============================================================================
-# File and Version Information:
-#      $Id$
-#
 # Description:
 #   Makefile for the RooUnfold package
 #

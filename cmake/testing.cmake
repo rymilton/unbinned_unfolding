@@ -5,6 +5,7 @@ add_executable(${Test} ${UnitTest})
 target_link_libraries(${Test} PUBLIC tests gcov)
 endforeach()
 
+file(GLOB test_bayes "test/test_bayes.cxx")
 add_test(Bayes test_bayes)
 #add_test(SVD test_svd)
 #add_test(Invert test_invert)

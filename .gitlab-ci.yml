@@ -61,19 +61,6 @@ stages:
       - libRooUnfold.rootmap
       - RooUnfold/*.py
 
-.GNUtest: &GNUtest          
-  stage: test
-  script:
-    - make python
-    - export PYTHONPATH=$PYTHONPATH:$(pwd)
-    - python -u examples/RooUnfoldExample.py > RooUnfoldExample.ref
-    - diff RooUnfoldExample.ref ref/RooUnfoldExample.py.bayes.ref
-  artifacts:
-    when: on_failure    
-    paths:
-      - "*.ref"        
-
-    
 ############################################
 ## building
 ############################################     
