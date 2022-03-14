@@ -23,7 +23,7 @@ def genrate_ref(combined_parm, field_to_compare, ref_file_name):
 
 def geneate_ref_methods():
     parms = {
-        'method': ['1', '2', '3', '4', '5', '7'],
+        'method': ['1', '2', '3', '4', '5', '6'],
         'verbose': ['3']
     }
     ref_file_name = "../ref/test_methods.ref"
