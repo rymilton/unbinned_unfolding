@@ -49,7 +49,7 @@ def generate_ref_uncertainity():
         'ftrainx': ['7'],
         'doerror':['3'],
         'dosys': ['1'],
-        'ntoys':['50', '500' ,'5000'],
+        'ntoys':['50', '500'],
         'seed':['42'],
         'verbose': ['3']
     }
@@ -66,7 +66,7 @@ def generate_ref_uncertainity():
 
 def generate_ref_fakes():
     parms = {
-        'method': ['1', '2', '3', '4', '5', '7'],
+        'method': ['1', '2', '3', '4', '5', '6'],
         'addfakes': ['1'],
         'verbose': ['3']
     }
