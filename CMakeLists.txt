@@ -14,6 +14,12 @@ set(VERSION_MAJOR   3   CACHE STRING "Project major version number.")
 set(VERSION_MINOR   0   CACHE STRING "Project minor version number.")
 mark_as_advanced(VERSION_MAJOR VERSION_MINOR)
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  option (RooUnfoldTests "enable testing" ON)
+else()
+  option (RooUnfoldTests "enable testing" OFF)
+endif()
+
 find_package( ROOT COMPONENTS Tree Unfold Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser REQUIRED)
 
 set(ROOUNFOLD_SOURCE_DIR src)
@@ -29,7 +35,9 @@ execute_process( COMMAND ln -sf ${RooUnfoldHeaders} -t ${CMAKE_CURRENT_BINARY_DI
 
 include(cmake/PlainROOT.cmake)
 
-include(cmake/testing.cmake)
+if(${RooUnfoldTests})  
+  include(cmake/testing.cmake)
+endif()
 
 include(cmake/doxygen.cmake)
 
