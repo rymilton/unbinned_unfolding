@@ -215,17 +215,12 @@ to choose the optimum value for `k`.
 Building the Library
 ---
 
-Make sure that ROOT is set up correctly: the `$ROOTSYS` environment
-variable should point to the top-level ROOT directory, `$ROOTSYS/bin`
-should be in your `$PATH`, and `$ROOTSYS/lib` should be in your library
-path (`$LD_LIBRARY_PATH` on most Unix systems). In recent versions of
-ROOT (from 5.18), this can be most easily achieved using ROOT's
-`thisroot.(c)sh` setup script. Eg. to use the CERN AFS version 5.28/00a
-on Scientific Linux 4/5 (x32) from a Bourne-type shell:
-
-    . /afs/cern.ch/sw/lcg/app/releases/ROOT/5.28.00a/slc4_ia32_gcc34/root/bin/thisroot.sh
-
-For further details, consult the ROOT "Getting Started" documentation, or your local system administrator.
+RooUnfold uses [ROOT](https://root.cern.ch/). The ROOT web site has [instructions](https://root.cern/install/)
+for installing ROOT on different systems in various ways.
+In particular, ROOT is already installed on [CERN lxplus](https://lxplusdoc.web.cern.ch/). Alternatively, if you have [CVMFS](https://cernvm.cern.ch/fs/), it is available using, eg. for CentOS7:
+```
+source /cvmfs/sft.cern.ch/lcg/views/LCG_100/x86_64-centos7-gcc10-opt/setup.sh
+```
 
 Check out RooUnfold
 
