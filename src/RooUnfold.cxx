@@ -185,7 +185,7 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
     unfold= new RooUnfoldTUnfoldT<Hist,Hist2D> (res,meas);
     break;
 #else
-    cerr << "TUnfold library is not available" << endl;
+    throw std::runtime_error("TUnfold library is not available");
     return 0;
 #endif
     
@@ -208,8 +208,7 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
     break;
 
   default: 
-    cerr << "Unknown RooUnfold method " << Int_t(alg) << endl;
-    return 0;
+    throw std::runtime_error(TString::Format("Unknown RooUnfold method %d",(int)alg).Data());
   }
 
   if (name)  unfold->SetName  (name);
@@ -603,6 +602,9 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   //! set as the measured histogram.
   Hist* asimov = RooUnfolding::asimov1DClone(this->response()->Hmeasured(),this->response()->UseDensityStatus(),vreco2,vrecoerr);
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  if(!toyFactory){
+    throw std::runtime_error(TString::Format("unable to instantiate toy factory with algorithm '%d'",this->GetAlgorithm()).Data());
+  }    
   toyFactory->SetVerbose(0);
 
   if (this->Htruth()){
@@ -1597,6 +1599,9 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   //! set as the measured histogram.
   RooUnfolding::RooFitHist* asimov = RooUnfolding::asimovClone(this->response()->Hmeasured(),this->response()->UseDensityStatus());
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  if(!toyFactory){
+    throw std::runtime_error(TString::Format("unable to instantiate toy factory with algorithm '%d'",this->GetAlgorithm()).Data());
+  }
   TVectorD vbkg_nom(this->response()->Vmeasured().GetNrows());
 
   //! Get the background if its there.
@@ -1814,6 +1819,9 @@ RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vec
   //! set as the measured histogram.
   Hist* asimov = RooUnfolding::asimovClone(this->response()->Hmeasured(),this->response()->UseDensityStatus());
   auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  if(!toyFactory){
+    throw std::runtime_error(TString::Format("unable to instantiate toy factory with algorithm '%d'",this->GetAlgorithm()).Data());
+  }  
   TVectorD vbkg(this->response()->Vmeasured().GetNrows());
 
   //! Get the background if its there.
