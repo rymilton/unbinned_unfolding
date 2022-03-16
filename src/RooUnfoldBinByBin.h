@@ -26,7 +26,8 @@ public:
   RooUnfoldBinByBinT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name=0, const char* title=0);
 
   TVectorD* Impl();
-
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;
+  
 protected:
   virtual void Unfold() const override;
   virtual void GetCov() const override;

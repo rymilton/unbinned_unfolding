@@ -48,6 +48,13 @@ RooUnfoldGPT<Hist,Hist2D>::RooUnfoldGPT(const TString& name, const TString& titl
   Init();
 }
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldGPT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kGP;
+}
+
 template<class Hist, class Hist2D>
 RooUnfoldGPT<Hist,Hist2D>& RooUnfoldGPT<Hist,Hist2D>::operator= (const RooUnfoldGPT<Hist,Hist2D>& rhs)
 {

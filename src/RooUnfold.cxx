@@ -213,7 +213,6 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
 
   if (name)  unfold->SetName  (name);
   if (title) unfold->SetTitle (title);
-  unfold->SetAlgorithm(alg);
   if (regparm != -1e30){
     unfold->SetRegParm(regparm);
   }
@@ -335,18 +334,11 @@ RooUnfoldT<Hist,Hist2D>::CopyData (const RooUnfoldT<Hist,Hist2D>& rhs)
   SetNToys   (rhs.NToys());
 }
 
-template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::SetAlgorithm (RooUnfolding::Algorithm alg)
-{
-  //! set the unfolding algorithm to be used
-  _alg = alg;
-}
-
 template<class Hist,class Hist2D> RooUnfolding::Algorithm
 RooUnfoldT<Hist,Hist2D>::GetAlgorithm () const
 {
   //! return the unfolding algorithm used
-  return _alg;
+  return kNone;
 }
 
 template<class Hist,class Hist2D> void

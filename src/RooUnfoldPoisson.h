@@ -42,7 +42,8 @@ public:
   virtual void SetPrintLevel(Bool_t print = 0);
   virtual void Reset();
   virtual void Print (Option_t* option= "") const;
-
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
+  
 protected:
   void Assign (const RooUnfoldPoissonT<Hist,Hist2D>& rhs); // implementation of assignment operator
   virtual void Unfold() const override ;

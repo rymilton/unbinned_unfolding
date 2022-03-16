@@ -30,6 +30,14 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldSvdT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kSVD;
+}
+
+
 template<class Hist,class Hist2D>
 RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
   : RooUnfoldT<Hist,Hist2D> (rhs)

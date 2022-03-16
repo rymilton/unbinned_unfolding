@@ -51,6 +51,13 @@ RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldResponseT<Hist,His
   Init();
 }
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldBayesT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kBayes;
+}
+  
 template<class Hist,class Hist2D> void
 RooUnfoldBayesT<Hist,Hist2D>::Init()
 {

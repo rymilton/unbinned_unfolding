@@ -36,6 +36,7 @@ public:
   virtual void Reset() override;
   TDecompSVD* Impl();
   virtual Double_t GetRegParm() const;
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;    
 
 protected:
   virtual void Unfold() const override;

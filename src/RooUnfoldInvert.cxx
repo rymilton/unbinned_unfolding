@@ -66,6 +66,13 @@ RooUnfoldInvertT<Hist,Hist2D>::Impl()
   return _svd;
 }
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldInvertT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kInvert;
+}
+
 template<class Hist, class Hist2D> void
 RooUnfoldInvertT<Hist,Hist2D>::Unfold() const
 {

@@ -30,7 +30,7 @@ template<class Hist, class Hist2D>
   // Special constructors
 
   RooUnfoldIdsT(const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist *meas, Int_t niter = 1, const char* name=0, const char* title=0);
-
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
 
   // Method-neutral method SetRegParm just calls SetNIter
   virtual void  SetRegParm (Double_t parm);

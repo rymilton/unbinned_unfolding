@@ -41,6 +41,7 @@ public:
   Int_t GetSmoothing()  const;
   const TMatrixD& UnfoldingMatrix() const;
 
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
   virtual void  SetRegParm (Double_t parm);
   virtual double GetRegParm() const;
   virtual void Reset();

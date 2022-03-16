@@ -26,6 +26,7 @@ public:
   RooUnfoldInvertT& operator= (const RooUnfoldInvertT<Hist,Hist2D>& rhs); // assignment operator
   RooUnfoldInvertT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name=0, const char* title=0);
 
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
   virtual void Reset() override;
   TDecompSVD* Impl();
   

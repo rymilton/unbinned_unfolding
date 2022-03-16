@@ -117,7 +117,7 @@ public:
   Double_t Chi2 (const Hist* hTrue,RooUnfolding::ErrorTreatment DoChi2=RooUnfolding::kCovariance) const;
   virtual void CalculateBias(Int_t ntoys = 50, const Hist* hTrue = 0) const; // Estimate bias by throwing toys.
 
-  RooUnfolding::Algorithm GetAlgorithm() const;
+  virtual RooUnfolding::Algorithm GetAlgorithm() const;
   Double_t GetMinParm() const;
   Double_t GetMaxParm() const;
   Double_t GetStepSizeParm() const;
@@ -143,9 +143,7 @@ protected:
 private:
   void Init();
   void CopyData (const RooUnfoldT<Hist,Hist2D>& rhs);
-  void SetAlgorithm (RooUnfolding::Algorithm alg);
   virtual void ClearCache() const;
-  //RooUnfoldT<Hist,Hist2D>* clone(const RooUnfoldT<Hist,Hist2D>& rhs);
 
 protected:
   // cache 
@@ -208,7 +206,6 @@ protected:
   Hist*    _meas;                            // Measured distribution (not owned)
   Hist*    _bkg;                             // Estimated reconstructed background distribution (not owned)
   Hist*    _truth;                           // Estimated truth distribution. Used in some regularization schemes. (not owned)
-  RooUnfolding::Algorithm _alg;              // The used algorithm.
 
 public:
 

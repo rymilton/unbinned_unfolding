@@ -45,16 +45,15 @@ RooUnfoldIdsT<Hist,Hist2D>::RooUnfoldIdsT(const RooUnfoldResponseT<Hist,Hist2D> 
    Init();
 }
 
-// //______________________________________________________________________________
-// RooUnfoldIds*
-// RooUnfoldIdsT<Hist,Hist2D>::Clone(const char *newname) const
-// {
-//    RooUnfoldIds *unfold = new RooUnfoldIdsT(*this);
-//    if (newname && strlen(newname)) unfold->SetName(newname);
-//    return unfold;
-// }
+//______________________________________________________________________________
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldIdsT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kIDS;
+}
 
-// //______________________________________________________________________________
+//______________________________________________________________________________
 
 template<class Hist,class Hist2D> void
 RooUnfoldIdsT<Hist,Hist2D>::Reset()

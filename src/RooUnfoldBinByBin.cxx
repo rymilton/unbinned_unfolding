@@ -22,6 +22,13 @@ RooUnfoldBinByBinT<Hist,Hist2D>::RooUnfoldBinByBinT (const RooUnfoldBinByBinT<Hi
   this->GetSettings();  
 }
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldBinByBinT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return RooUnfolding::kBinByBin;
+}
+
 template<class Hist,class Hist2D>
 RooUnfoldBinByBinT<Hist,Hist2D>::RooUnfoldBinByBinT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, 
                             const char* name, const char* title)

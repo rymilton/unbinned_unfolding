@@ -17,6 +17,7 @@
 template<class Hist, class Hist2D>
 class RooUnfoldSvdT : public RooUnfoldT<Hist,Hist2D> {
 public:
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;    
   class SVDUnfold {
 
 public:

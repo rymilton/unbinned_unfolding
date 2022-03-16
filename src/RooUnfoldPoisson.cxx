@@ -40,6 +40,13 @@ RooUnfoldPoissonT<Hist,Hist2D>::RooUnfoldPoissonT (const RooUnfoldResponseT<Hist
   Init();
 }
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldPoissonT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kPoisson;
+}
+  
 template<class Hist,class Hist2D> void
 RooUnfoldPoissonT<Hist,Hist2D>::Init()
 {
