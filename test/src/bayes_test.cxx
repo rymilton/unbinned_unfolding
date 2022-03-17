@@ -20,7 +20,7 @@
 
 TVector BuildRooUnfoldBayes(int mode=0)
 {
-    char* filename;
+    const char* filename=0;
     if (mode==0)
         filename = "response.root";
     else if (mode==1)
@@ -41,7 +41,7 @@ void WriteRooUnfoldBayes(int mode=0)
 {
     TVector u = BuildRooUnfoldBayes(mode);
     std::ofstream ref;
-    char* filename;
+    const char* filename=0;
     if (mode==0)
         filename = "../ref/bayes.ref";
     else if (mode==1)

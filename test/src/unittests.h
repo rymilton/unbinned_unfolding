@@ -11,5 +11,5 @@ RooUnfoldResponse BuildRooUnfoldResponse(std::string);
 TVector BuildRooUnfoldBayes(int);
 void WriteRooUnfoldBayes(int);
 int TestBayes(int);
-char *test_bayes();
+const char *test_bayes();
 #endif

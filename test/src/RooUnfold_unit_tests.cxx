@@ -36,13 +36,13 @@ int TestBayes(int mode=0){
     return -1;
 }
 
-char *run_bayes(){
+const char *run_bayes(){
     mu_assert(TestBayes(0)==1, "binwise test of Bayes failed");
     mu_assert(TestBayes(1)==1, "binwise test of variable binning in Bayes failed");
     return NULL;
 }
 
-char *test_bayes(){
+const char *test_bayes(){
     RooUnfoldGenerate();
     RooUnfoldGenerateVariable();    
     mu_suite_start();
