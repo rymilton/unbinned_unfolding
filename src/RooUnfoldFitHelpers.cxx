@@ -503,11 +503,11 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   RooFitHist::RooFitHist(const RooFitHist* h) : _func(h->_func), _obs(h->_obs) {
     for(auto obs:_obs) if(!obs) obs->GetName();
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obs) : _func(f), _obs(obs) {
+  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obsvec) : _func(f), _obs(obsvec) {
     for(auto obs:_obs) if(!obs) obs->GetName();
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obs) : _func(f) {
-    _obs.push_back(obs);
+  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obsarg) : _func(f) {
+    _obs.push_back(obsarg);
     for(auto obs:_obs) if(!obs) obs->GetName();
   }
   RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obs1, RooAbsArg* obs2) : _func(f) { 

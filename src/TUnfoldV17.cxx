@@ -4536,8 +4536,8 @@ Double_t TUnfoldV17::UndersmoothTau(Double_t tau, Double_t epsilon, Int_t max_it
 
       fixed = 1;
       fXHat = fXHatPrev;
-      TVectorD computedCoverage = ComputeCoverage(fXHat, tau);
-      coverages[1] = computedCoverage.Min();
+      TVectorD computedCoveragePrev = ComputeCoverage(fXHat, tau);
+      coverages[1] = computedCoveragePrev.Min();
     }
     tau = tau * scaling;
     Info("UndersmoothTau", "Decreasing tau to %lf", tau);

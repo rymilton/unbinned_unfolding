@@ -167,15 +167,15 @@ RooUnfoldErrors::CreatePlotsWithChi2()
     
     int odd_ch=0;
     for (int k=0; k<this->toys;k++){  
-        TVectorD unfold, err;
-        Double_t chi2= this->unfold->RunToy(unfold,err);
+        TVectorD unfolded, err;
+        Double_t chi2= unfold->RunToy(unfolded,err);
         for (int i=0; i<ntx; i++) {    
-            graph_vector[i]->Fill(unfold[i]);
+            graph_vector[i]->Fill(unfolded[i]);
             h_err->Fill(h_err->GetBinCenter(i+1),err[i]);
         } 
         if (hTrue){
             hchi2->Fill(chi2);
-            if (fabs(chi2)>=maxchi2 && this->unfold->verbose()>=1){
+            if (fabs(chi2)>=maxchi2 && unfold->verbose()>=1){
                 cerr<<"Large |chi^2| value: "<< chi2 << endl;
                 odd_ch++;
             }

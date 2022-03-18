@@ -97,7 +97,7 @@ endif
 endif
 
 # add more warnings to the C++ compiler output
-### CXXFLAGS     += -Wall -Wpedantic -Wshadow
+CXXFLAGS     += -Wall -Wshadow
 
 ifeq ($(PLATFORM),macosx)
 # Remove stupid shared library option on MacOSX. The option doesn't work (and we don't
