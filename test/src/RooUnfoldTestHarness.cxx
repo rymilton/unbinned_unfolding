@@ -155,7 +155,7 @@ Int_t RooUnfoldTestHarness::Run()
                            hParmChi2, hParmErr, hParmRes, hParmRms };
   for (size_t i= 0; i<sizeof(objs)/sizeof(objs[0]); i++) {
     if (objs[i]) {
-      std::cout << objs[i]->GetName() << std::endl;
+      if (verbose >= 2) std::cout << "Write object '" << objs[i]->GetName() << "'" << std::endl;
       f.WriteObject (objs[i], objs[i]->GetName());
     }
   }
