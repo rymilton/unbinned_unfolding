@@ -298,9 +298,9 @@ TUnfoldSysV17::TUnfoldSysV17
     for (Int_t ibiny = 0; ibiny <= GetNy()+1; ibiny++) {
       Double_t dz;
       if (histmap == kHistMapOutputHoriz) {
-	(*matrix_A)[ibinx][ibiny];
+	      dz = (*matrix_A)[ibinx][ibiny];
       } else {
-	(*matrix_A)[ibiny][ibinx];
+	      dz = (*matrix_A)[ibiny][ibinx];
       }
       Double_t normerr_sq=dz*dz/sum_sq;
       // quadratic sum of all errors from all bins,

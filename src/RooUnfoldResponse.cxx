@@ -141,8 +141,8 @@ private:
         }
       }
       if (_verbose) cout << " " << fv;
-      for (Int_t bin=0, m=_res->GetNbinsMeasured(); bin<m; bin++) {
-        _fvals[bin] += fv * (*_res)(bin,i);
+      for (Int_t ibin=0, m=_res->GetNbinsMeasured(); ibin<m; ibin++) {
+        _fvals[ibin] += fv * (*_res)(ibin,i);
       }
     }
     if (_verbose) cout << endl;

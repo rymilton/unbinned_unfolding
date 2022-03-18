@@ -11,7 +11,7 @@
 #define mu_assert(test, message) if (!(test)) {\
     log_err(message); return message; }
 #define mu_run_test(test) debug("\n-----%s", " " #test); \
-  message = test(); if (message) return message; 15
+  message = test(); if (message) return message;
 
 #define RUN_TESTS(name) int main(int argc, char *argv[]) {	\
     argc = 1;							\
