@@ -104,6 +104,11 @@ namespace RooUnfolding {
     return h->GetBin(i,j,k);
   }  
 
+  // explicit instantiation
+  template int bin<TH1>(const TH1* h, Int_t i, Bool_t overflow);
+  template int bin<TH1>(const TH1* h, int i, int j, Bool_t overflow);
+  template int bin<TH1>(const TH1* h, int i, int j, int k, Bool_t overflow);
+
   template<class Hist> double binCenter(const Hist*h, int i, RooUnfolding::Dimension d){
     const TAxis* ax = getAxis(h,d);
     return ax->GetBinCenter(i);

@@ -96,8 +96,10 @@ CXXFLAGS     += -O2
 endif
 endif
 
+# remove warnings that haven't been fixed yet
+CXXFLAGS     += -Wno-unused-variable -Wno-reorder -Wno-bool-compare -Wno-sign-compare -Wno-maybe-uninitialized
 # add more warnings to the C++ compiler output
-CXXFLAGS     += -Wall -Wpedantic -Wshadow
+### CXXFLAGS     += -Wall -Wpedantic -Wshadow
 
 ifeq ($(PLATFORM),macosx)
 # Remove stupid shared library option on MacOSX. The option doesn't work (and we don't
@@ -126,6 +128,11 @@ else
 _             = @
 endif
 
+ifneq ($(ROOTCLING),)
+# remove warnings that haven't been fixed yet
+ROOTCLING    +=  -Wno-inconsistent-missing-override
+endif
+
 ifeq ($(MAKE_RESTARTS),)
 $(info Use ROOT $(shell $(RC) --version) for $(ARCH) from $(shell $(RC) --prefix))
 endif
@@ -140,6 +147,8 @@ LIBDIR        = $(CURDIR)/
 SHLIBDIR      = $(CURDIR)/
 EXEDIR        =
 EXESRC        = $(CURDIR)/examples/
+# TESTSRC       = $(CURDIR)/test/src/
+# TESTS         = RooUnfoldTest RooUnfoldTest2D RooUnfoldTest3D
 HTMLDOC       = htmldoc
 OBJDIR        = $(WORKDIR)obj/
 DEPDIR        = $(WORKDIR)dep/
@@ -190,7 +199,7 @@ else
 # Note that if the ROOT shared libraries were linked against them
 # (configure --enable-explicitlink ?), as is done in the CERN AFS versions,
 # then these are not required. But they do no harm.
-ROOFITLIBS   += -lRooFit -lRooFitCore $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),Thread Minuit Foam MathMore Html)))
+ROOFITLIBS   += -lRooFit -lRooFitCore -lHistFactory $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),Thread Minuit Foam MathMore Html)))
 endif
 
 # === Internal configuration ===================================================
@@ -199,7 +208,7 @@ MAIN          = $(filter-out $(EXCLUDE),$(notdir $(wildcard $(EXESRC)*.cxx)))
 MAINEXE       = $(addprefix $(EXEDIR),$(patsubst %.cxx,%$(ExeSuf),$(MAIN)))
 LINKDEF       = $(INCDIR)$(PACKAGE)_LinkDef.h
 LINKDEFMAP    = $(WORKDIR)$(PACKAGE)Map_LinkDef
-HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)*.h)) $(LINKDEF)
+HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)*.h $(INCDIR)*.tpp)) $(LINKDEF)
 CINTFILE      = $(WORKDIR)$(PACKAGE)Dict.cxx
 ifneq ($(ROOTCLING),)
 CLINGDICT     = $(SHLIBDIR)$(PACKAGE)Dict_rdict.pcm
@@ -363,6 +372,7 @@ help        :
 
 # Rule to make ROOTCINT output file
 ifeq ($(ROOTCLING),)
+SHLIBEXTRA=$(ROOTMAP)
 $(CINTFILE) : $(HLIST)
 	@mkdir -p $(WORKDIR)
 	@mkdir -p $(OBJDIR)
@@ -375,7 +385,8 @@ $(ROOTMAP) : $(SHLIBFILE) $(LINKDEF)
 	$(_)$(CXX) -E -D__MAKECINT__ -D__CINT__ -o $(LINKDEFMAP).h $(CPPFLAGS) $(INCLUDES) $(ROOTINCLUDES) $(LINKDEFMAP).cxx
 	$(_)$(RLIBMAP) -o $@ -l $< -d $(ROOTLIBFILES) -c $(LINKDEFMAP).h
 else
-$(CINTFILE) $(CLINGDICT) $(ROOTMAP) : $(HLIST)
+SHLIBEXTRA=
+$(CINTFILE) : $(HLIST)
 	@mkdir -p $(WORKDIR)
 	@mkdir -p $(OBJDIR)
 	@echo "Generating CLING dictionary files $(CINTFILE), $(CLINGDICT), and $(ROOTMAP)"
@@ -408,7 +419,7 @@ $(SHLIBFILE) : $(OLIST) $(CINTOBJ)
 depend: $(DLIST)
 include: depend
 lib: $(LIBFILE)
-shlib: $(SHLIBFILE) $(ROOTMAP) $(CLINGDICT)
+shlib: $(SHLIBFILE) $(SHLIBEXTRA)
 exe: $(MAINEXE)
 bin: shlib exe
 
@@ -434,6 +445,8 @@ clean : cleanbin
 	rm -f $(LIBFILE)
 	rm -f $(SHLIBFILE) $(ROOTMAP) $(LINKDEFMAP).cxx $(LINKDEFMAP).h
 	rm -f $(STATICLIBFILE)
+	rm -f $(LIBDIR)$(PACKAGE)/__init__.py
+	rm -fd $(LIBDIR)$(PACKAGE) $(OBJDIR) $(DEPDIR) $(WORKDIR) $(CURDIR)/build
 
 cleanbin :
 	rm -f $(addprefix $(OBJDIR),$(patsubst %.cxx,%.$(ObjSuf),$(MAIN)))
@@ -452,11 +465,11 @@ $(HTMLDOC)/index.html : $(SHLIBFILE)
 
 html : $(HTMLDOC)/index.html
 
-python : RooUnfold/__init__.py
+python : $(LIBDIR)/$(PACKAGE)/__init__.py
 
-$(PACKAGE)/%.py: python/%.py
-	@mkdir -p $(PACKAGE)
-	@ln -sf $^ $@ 
+$(LIBDIR)/$(PACKAGE)/%.py: $(LIBDIR)/python/%.py
+	@mkdir -p $(LIBDIR)/$(PACKAGE)
+	@ln -nsf $^ $@
 
 .PHONY : include depend shlib lib exe bin default clean cleanbin html help python
 
