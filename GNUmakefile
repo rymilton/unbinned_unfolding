@@ -146,9 +146,9 @@ WORKDIR       = $(CURDIR)/build/$(ARCH)/
 LIBDIR        = $(CURDIR)/
 SHLIBDIR      = $(CURDIR)/
 EXEDIR        =
-EXESRC        = $(CURDIR)/examples/
-# TESTSRC       = $(CURDIR)/test/src/
-# TESTS         = RooUnfoldTest RooUnfoldTest2D RooUnfoldTest3D
+EXESRC1       = $(CURDIR)/examples/
+EXESRC2       = $(CURDIR)/test/src/
+EXESRC        = $(EXESRC1)RooUnfoldExample.cxx $(EXESRC2)RooUnfoldTest.cxx $(EXESRC2)RooUnfoldTest2D.cxx $(EXESRC2)RooUnfoldTest3D.cxx
 HTMLDOC       = htmldoc
 OBJDIR        = $(WORKDIR)obj/
 DEPDIR        = $(WORKDIR)dep/
@@ -204,7 +204,7 @@ endif
 
 # === Internal configuration ===================================================
 
-MAIN          = $(filter-out $(EXCLUDE),$(notdir $(wildcard $(EXESRC)*.cxx)))
+MAIN          = $(notdir $(EXESRC))
 MAINEXE       = $(addprefix $(EXEDIR),$(patsubst %.cxx,%$(ExeSuf),$(MAIN)))
 LINKDEF       = $(INCDIR)$(PACKAGE)_LinkDef.h
 LINKDEFMAP    = $(WORKDIR)$(PACKAGE)Map_LinkDef
@@ -264,7 +264,7 @@ HDEP          = $(HLIST)
 else
 
 # List of all dependency files to make
-DLIST         = $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST) $(filter-out $(EXCLUDE),$(notdir $(wildcard $(EXESRC)*.cxx))))))
+DLIST         = $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST) $(MAIN))))
 
 # If possible, limit ROOTLIBFILES to libraries that we actually use.
 DLISTLIB      = $(wildcard $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST)))))
@@ -308,7 +308,16 @@ $(DEPDIR)%.d : $(SRCDIR)%.cxx
 	 | sed 's,\($(notdir $*)\.$(ObjSuf)\) *:,$(OBJDIR)\1 $@ :,g' > $@; \
 	 [ -s $@ ] || rm -f $@
 
-$(DEPDIR)%.d : $(EXESRC)%.cxx
+$(DEPDIR)%.d : $(EXESRC1)%.cxx
+	@echo "Making $@"
+	@mkdir -p $(DEPDIR)
+	@rm -f $@
+	$(_)set -e; \
+	 $(CXX) $(MFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $< \
+	 | sed 's,\($(notdir $*)\.$(ObjSuf)\) *:,$(OBJDIR)\1 $@ :,g' > $@; \
+	 [ -s $@ ] || rm -f $@
+
+$(DEPDIR)%.d : $(EXESRC2)%.cxx
 	@echo "Making $@"
 	@mkdir -p $(DEPDIR)
 	@rm -f $@
@@ -336,7 +345,12 @@ $(OBJDIR)%.$(ObjSuf) : $(SRCDIR)%.for $(FDEP)
 	$(_)$(FC) $(FFFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Implicit rule to compile main program
-$(OBJDIR)%.$(ObjSuf) : $(EXESRC)%.cxx $(HLIST)
+$(OBJDIR)%.$(ObjSuf) : $(EXESRC1)%.cxx $(HLIST)
+	@echo "Compiling example program $<"
+	@mkdir -p $(OBJDIR)
+	$(_)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
+
+$(OBJDIR)%.$(ObjSuf) : $(EXESRC2)%.cxx $(HLIST)
 	@echo "Compiling example program $<"
 	@mkdir -p $(OBJDIR)
 	$(_)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
