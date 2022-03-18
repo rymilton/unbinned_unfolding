@@ -721,12 +721,12 @@ RooUnfoldGPT<Hist,Hist2D>::GibbsKernel(const std::vector<Double_t>& params, cons
 
 
 template class RooUnfoldGPT<TH1,TH2>;
-ClassImp (RooUnfoldGP);
+ClassImp (RooUnfoldGP)
 
 #ifndef NOROOFIT
 template class RooUnfoldGPT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>;
 typedef RooUnfoldGPT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldGP;
-ClassImp (RooFitUnfoldGP);
+ClassImp (RooFitUnfoldGP)
 #endif
 
 

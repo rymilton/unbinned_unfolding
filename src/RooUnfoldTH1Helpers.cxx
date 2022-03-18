@@ -223,7 +223,7 @@ namespace RooUnfolding {
     return m;
   }
   template<> void h2m  (const TH2* h, TMatrixD& m, bool overflow, bool correctDensity) { h2mNorm (h,m,(const TH1*)NULL,overflow,correctDensity); }
-  template<> void h2me  (const TH2* h, TMatrixD& m, bool overflow, bool correctDensity){ h2meNorm(h,m,(const TH1*)NULL,overflow,correctDensity); };  
+  template<> void h2me  (const TH2* h, TMatrixD& m, bool overflow, bool correctDensity){ h2meNorm(h,m,(const TH1*)NULL,overflow,correctDensity); }
 
   template<> TMatrixD h2m<TH2>  (const TH2* h,bool overflow, bool correctDensity){
     // Returns Matrix of values of bins in a 2D input histogram

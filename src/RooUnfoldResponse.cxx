@@ -1259,7 +1259,7 @@ Long64_t RooUnfoldResponse::FakeEntries() const
   return _fak ? entries(_fak) : 0.0;
 }
 
-ClassImp (RooUnfoldResponse);
+ClassImp (RooUnfoldResponse)
 
 
 #ifndef NOROOFIT
@@ -1483,6 +1483,6 @@ RooUnfolding::RooFitHist* RooFitUnfoldResponse::makeHist(RooDataHist* object){
   return new RooUnfolding::RooFitHist(object,v);
 }
 
-ClassImp (RooFitUnfoldResponse);
+ClassImp (RooFitUnfoldResponse)
 
 #endif
