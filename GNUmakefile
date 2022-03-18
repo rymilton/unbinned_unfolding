@@ -458,7 +458,7 @@ clean : cleanbin
 	rm -f $(SHLIBFILE) $(ROOTMAP) $(LINKDEFMAP).cxx $(LINKDEFMAP).h
 	rm -f $(STATICLIBFILE)
 	rm -f $(LIBDIR)$(PACKAGE)/__init__.py
-	rm -fd $(LIBDIR)$(PACKAGE) $(OBJDIR) $(DEPDIR) $(WORKDIR) $(CURDIR)/build
+	rm -fd $(LIBDIR)$(PACKAGE) $(OBJDIR) $(DEPDIR) $(WORKDIR)
 
 cleanbin :
 	rm -f $(addprefix $(OBJDIR),$(patsubst %.cxx,%.$(ObjSuf),$(MAIN)))

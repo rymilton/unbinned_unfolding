@@ -1576,6 +1576,7 @@ namespace {
     }
   };
 }
+#endif
 
 
 
@@ -1584,6 +1585,7 @@ RooUnfoldT<TH1,TH2>::RunRooFitToys(int ntoys, std::vector<TVectorD>& vx, std::ve
   this->RunToys(ntoys, vx, vxe, chi2);
 }
 
+#ifndef NOROOFIT
 template<> void
 RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const {
     
@@ -1793,6 +1795,7 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::RunRooFitToys(int
   delete asimov;
   delete toyFactory;
 }
+#endif
 
 template<class Hist, class Hist2D> void
 RooUnfoldT<Hist, Hist2D>::RunToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const
@@ -1963,6 +1966,7 @@ RooUnfoldT<Hist,Hist2D>::GetSampleCov(std::vector<TVectorD>& munfolded) const
 }
 
 
+#ifndef NOROOFIT
 template class RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>;
 typedef RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooUnfoldT_RooFitHist;
 ClassImp (RooUnfoldT_RooFitHist)
