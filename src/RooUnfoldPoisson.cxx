@@ -32,7 +32,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::RooUnfoldPoissonT (const RooUnfoldPoissonT<Hist,
 template<class Hist,class Hist2D>
 RooUnfoldPoissonT<Hist,Hist2D>::RooUnfoldPoissonT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Double_t regparm,
                                 const char* name, const char* title)
-  : _regparm(regparm), RooUnfoldT<Hist,Hist2D> (res, meas, name, title)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _regparm(regparm)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -197,7 +197,7 @@ RooUnfoldPoissonT<Hist,Hist2D>::TikhonovReg(const double* truth) const
 {
 
   Double_t second_der_sum = 0;
-  Double_t first_der_sum = 0;
+  // Double_t first_der_sum = 0;
 
   Int_t i_start = this->_overflow;
 
@@ -326,7 +326,7 @@ void  RooUnfoldPoissonT<Hist,Hist2D>::SetRegParm (Double_t parm)
 }
 
 template<class Hist,class Hist2D>
-void  RooUnfoldPoissonT<Hist,Hist2D>::SetPrintLevel (Bool_t print)
+void  RooUnfoldPoissonT<Hist,Hist2D>::SetPrintLevel (Int_t print)
 {
   if (print > 2 || print < -2){
     std::cerr << "Please pass a suitable print level: Quiet=-1, Normal=0, Verbose=1";

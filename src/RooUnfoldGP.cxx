@@ -151,8 +151,8 @@ template<class Hist, class Hist2D> void
 RooUnfoldGPT<Hist,Hist2D>::SetBinCenters() const
 {
 
-  Double_t delta_truBins;
-  Double_t delta_obsBins;
+  Double_t delta_truBins = 0.0;
+  Double_t delta_obsBins = 0.0;
 
   if (_kernel == 1){
     delta_truBins = 1 / (Double_t)(this->_nt - 2);
@@ -165,7 +165,7 @@ RooUnfoldGPT<Hist,Hist2D>::SetBinCenters() const
     Double_t obsmax = ::max(this->_res->Hmeasured(),RooUnfolding::X);
 
     delta_truBins = fabs(trumax - trumin) / (Double_t)(this->_nt);
-    delta_obsBins = fabs(trumax - trumin) / (Double_t)(this->_nm);
+    delta_obsBins = fabs(obsmax - obsmin) / (Double_t)(this->_nm);
   }
    
   Double_t truBin_0 = - delta_truBins/2.0;
@@ -502,9 +502,9 @@ RooUnfoldGPT<Hist,Hist2D>::MinimizeMLH() const
 
   min->SetFunction(f);
  
-  for (int param = 0; param < _specialcache._kernel_init.size(); param++){
+  for (size_t param = 0; param < _specialcache._kernel_init.size(); param++){
     TString name;
-    name.Form("%d",param);
+    name.Form("%zu",param);
     min->SetVariable(param,name.Data(),_specialcache._kernel_init.at(param), _specialcache._kernel_step.at(param));
   }
 
@@ -517,7 +517,7 @@ RooUnfoldGPT<Hist,Hist2D>::MinimizeMLH() const
   
   if (this->_verbose >= 2) std::cout << "Marginal likelihood minimization converged." << std::endl;
     
-  for (int i = 0; i < _specialcache._kernel_init.size(); i++){
+  for (size_t i = 0; i < _specialcache._kernel_init.size(); i++){
     if (this->_verbose >= 2) std::cout << "Parameter " << i << ": " << xs[i] << std::endl;
     _specialcache._opt_params.push_back(xs[i]);
   }

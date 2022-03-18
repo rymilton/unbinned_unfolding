@@ -378,7 +378,7 @@ namespace RooUnfolding {
     double v = 1;
     std::vector<int> ibins = {0,0,0};
     binXYZ(h,bin,ibins[0],ibins[1],ibins[2]);
-    for(int d=0; d<h->dim(); ++d){
+    for(size_t d=0; d<h->dim(); ++d){
       v *= ::binWidth(h->obs(d),ibins[d]);
     }
     return v;
@@ -570,8 +570,6 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     int offset = !includeUnderflowOverflow;
 
     // Transfer contents
-    Int_t xmin(0),ymin(0),zmin(0) ;
-    
     for (int ix=0 ; ix < ::nBins(xvar) ; ix++) {
       ::setBin(xvar,ix) ;
       if (yvar) {
@@ -667,7 +665,6 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     RooAbsArg* zvar = obs.at(2);
 
     // Transfer contents
-    Int_t xmin(0),ymin(0),zmin(0) ;
     Int_t ix(0),iy(0),iz(0) ;
     for (ix=0 ; ix < ::nBins(xvar) ; ix++) {
       ::setBin(xvar,ix) ;
@@ -1180,8 +1177,6 @@ RooUnfolding::RooFitHist* RooUnfolding::RooFitHist::asimovClone(bool correctDens
   RooDataHist* dh = new RooDataHist(name,this->title(),args);
   
   // Transfer contents
-  Int_t xmin(0),ymin(0),zmin(0) ;
-  
   for (int ix=0 ; ix < ::nBins(xvar) ; ix++) {
     ::setBin(xvar,ix) ;
     if (yvar) {
@@ -1224,11 +1219,8 @@ RooUnfolding::RooFitHist* RooUnfolding::RooFitHist::asimov1DClone(bool correctDe
   RooDataHist* dh = new RooDataHist(name,this->title(),args);
   
   // Transfer contents
-  Int_t xmin(0),ymin(0),zmin(0) ;
-  
   for (int ix=0 ; ix < ::nBins(xvar) ; ix++) {
     ::setBin(xvar,ix) ;
-    double volume = ::useIf(dh->binVolume(),correctDensity);
     dh->add(args,val(ix),err(ix));
   }
   

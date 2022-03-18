@@ -96,8 +96,6 @@ CXXFLAGS     += -O2
 endif
 endif
 
-# remove warnings that haven't been fixed yet
-CXXFLAGS     += -Wno-unused-variable -Wno-reorder -Wno-bool-compare -Wno-sign-compare -Wno-maybe-uninitialized
 # add more warnings to the C++ compiler output
 ### CXXFLAGS     += -Wall -Wpedantic -Wshadow
 

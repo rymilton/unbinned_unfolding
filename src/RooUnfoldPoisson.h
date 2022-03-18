@@ -39,7 +39,7 @@ public:
   virtual double GetRegParm() const;
   virtual void SetMinimizerStart(const Hist* truth);
   virtual void SetMinimizerStart(TVectorD truth);
-  virtual void SetPrintLevel(Bool_t print = 0);
+  virtual void SetPrintLevel(Int_t print = 0);
   virtual void Reset();
   virtual void Print (Option_t* option= "") const;
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
@@ -66,7 +66,7 @@ private:
 protected:
   // instance variables
   mutable Int_t _min_status;
-  mutable Bool_t _min_print;
+  mutable Int_t _min_print;
   mutable Double_t _RegLLH_factor;
   mutable double _regparm;
   mutable TMatrixD _response;

@@ -43,7 +43,7 @@ RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldBayesT<Hist,Hist2D
 template<class Hist,class Hist2D>
 RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,Int_t niter, Bool_t smoothit, Bool_t handleFakes,
                                 const char* name, const char* title)
-  : _niter(niter), _smoothit(smoothit), _handleFakes(handleFakes), RooUnfoldT<Hist,Hist2D> (res, meas, name, title)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter), _smoothit(smoothit), _handleFakes(handleFakes)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.

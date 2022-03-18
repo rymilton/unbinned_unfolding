@@ -209,8 +209,8 @@ RooUnfoldResponseT<Hist,Hist2D>::Cache::Cache() :
   _eRes(0),   
   _mResNorm(0),
   _eResNorm(0),
-  _vEff(0),
-  _vPur(0)  
+  _vPur(0),
+  _vEff(0)
 {
   //! default constructor
 }
@@ -432,9 +432,10 @@ template<class Hist, class Hist2D>
 RooUnfoldResponseT<Hist,Hist2D>::RooUnfoldResponseT(const RooUnfoldResponseT<Hist,Hist2D>& rhs) : 
   TNamed(rhs.GetName(),rhs.GetTitle()),
   _mes(clone(rhs._mes)),
-  _tru_m(clone(rhs._tru_m)),
+  _mestru(clone(rhs._mestru)),
   _fak(clone(rhs._fak)),      
   _tru(clone(rhs._tru)),
+  _tru_m(clone(rhs._tru_m)),
   _res(clone(rhs._res)),
   _overflow(rhs._overflow),
   _density(rhs._density)
@@ -447,8 +448,6 @@ template<class Hist, class Hist2D>
 RooUnfoldResponseT<Hist,Hist2D>::RooUnfoldResponseT(const char* name, const char* title, Hist2D* response, Hist* truth, Hist* reco, bool overflow,bool density) :
   TNamed(name,title),
   _mes(reco),
-  _tru_m(0),
-  _fak(0),
   _tru(truth),
   _res(response),
   _overflow(overflow),
