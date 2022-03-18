@@ -152,7 +152,7 @@ public:
   virtual RooAbsArg::CacheMode canNodeBeCached() const override;
   virtual void setCacheAndTrackHints(RooArgSet &) override;
   
-  virtual Bool_t redirectServersHook(const RooAbsCollection& newServerList, Bool_t mustReplaceAll, Bool_t nameChange, Bool_t isRecursive);
+  virtual Bool_t redirectServersHook(const RooAbsCollection& newServerList, Bool_t mustReplaceAll, Bool_t nameChange, Bool_t isRecursive) override;
 
   RooArgList* makeParameterList() const;
   bool isDensity() const;
@@ -163,7 +163,7 @@ public:
   RooUnfoldFunc(const RooUnfoldFunc& other);
   RooUnfoldFunc(const RooUnfoldFunc* other);    
   virtual ~RooUnfoldFunc();
-  ClassDef(RooUnfoldFunc,1)
+  ClassDefOverride(RooUnfoldFunc,1)
 };
 
 #endif

@@ -24,7 +24,7 @@ if(${ROOT_FOUND})
   else()
     include("${ROOTSYS}/cmake/RootMacros.cmake")
   endif()
-  ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeaders} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS} -Wno-inconsistent-missing-override)
+  ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeaders} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS})
   
   # register the shared object to include both sources and dictionaries
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RooUnfold_FLAGS}")  

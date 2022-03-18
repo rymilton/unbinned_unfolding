@@ -126,11 +126,6 @@ else
 _             = @
 endif
 
-ifneq ($(ROOTCLING),)
-# remove warnings that haven't been fixed yet
-ROOTCLING    +=  -Wno-inconsistent-missing-override
-endif
-
 ifeq ($(MAKE_RESTARTS),)
 $(info Use ROOT $(shell $(RC) --version) for $(ARCH) from $(shell $(RC) --prefix))
 endif

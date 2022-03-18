@@ -66,7 +66,7 @@ namespace RooUnfolding {
     RooAbsReal* _func;
     std::vector<RooAbsArg*> _obs;
     std::vector<RooRealVar*> _gamma;
-    ClassDef(RooFitHist,1)
+    ClassDefOverride(RooFitHist,1)
   };
 
   template<> struct Variable<RooFitHist> {
