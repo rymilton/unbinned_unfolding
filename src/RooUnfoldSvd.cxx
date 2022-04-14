@@ -122,51 +122,11 @@ RooUnfoldSvdT<Hist,Hist2D>::Impl()
 
 template<class Hist,class Hist2D> void RooUnfoldSvdT<Hist,Hist2D>::PrepareHistograms() const{
   //! fill all the histogram members
+  this->_meas->Print();
   this->_meas1d = this->_meas;
   this->_train1d= this->_res->Hmeasured();
   this->_truth1d= this->_res->Htruth();
   this->_reshist= this->_res->Hresponse();
-}
-
-namespace{
-  TH1* histNoOverflow(const TH1* hist, bool overflow){
-    return createHist<TH1>(h2v(hist,overflow),h2ve(hist,overflow),name(hist),title(hist),vars(hist),overflow);
-  }
-  void subtract(TH1* hist, const TVectorD& vec, double fac){
-    for (Int_t i= 1; i<=hist->GetNbinsX()+1; i++){
-      hist->SetBinContent (i, hist->GetBinContent(i)-(fac*vec[i-1]));
-    }
-  }
-}
-template<> void RooUnfoldSvdT<TH1,TH2>::PrepareHistograms() const {
-  //! fill all the histogram members
-  TH1* meas1d = ::histNoOverflow (this->_meas,             this->_overflow);
-  TH1* train1d= ::histNoOverflow (this->_res->Hmeasured(), this->_overflow);
-  TH1* truth1d= ::histNoOverflow (this->_res->Htruth(),    this->_overflow);
-  TH2* reshist= this->_res->HresponseNoOverflow();
-  RooUnfolding::resize (meas1d,  this->_nm);
-  RooUnfolding::resize (train1d, this->_nm);
-  RooUnfolding::resize (truth1d, this->_nt);
-  RooUnfolding::resize (reshist, this->_nm, this->_nt);
-
-  // Subtract fakes from measured distribution
-  if (this->_res->HasFakes()) {
-    TVectorD fakes(this->_res->Vfakes());
-    Double_t fac= this->_res->Vmeasured().Sum();
-    if (fac!=0.0) fac=  this->Vmeasured().Sum() / fac;
-    if (this->_verbose>=1) std::cout << "Subtract " << fac*fakes.Sum() << " fakes from measured distribution" << std::endl;
-    ::subtract(meas1d,fakes,fac);
-  }
-
-  delete this->_meas1d  ;
-  delete this->_train1d ;
-  delete this->_truth1d ;
-  delete this->_reshist ;
-  
-  this->_meas1d  = meas1d  ;
-  this->_train1d = train1d;
-  this->_truth1d = truth1d;
-  this->_reshist = reshist ;
 }
 
 template<class Hist,class Hist2D> void

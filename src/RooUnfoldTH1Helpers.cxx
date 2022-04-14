@@ -10,6 +10,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "THashList.h"
 
 namespace RooUnfolding { 
   template<class Hist> int dim(const Hist* hist){
@@ -591,11 +592,76 @@ template bool RooUnfolding::empty<TH3>(const TH3*);
   
 
 namespace RooUnfolding {
+  bool hasBinLabels(const TAxis* a){
+    // return true if this axis has bin labels
+    if (!a) return false;
+    THashList* labels = a->GetLabels();
+    return labels && labels->GetSize()>0;
+  }
+  
+
+  bool hasBinLabels(const TH1* h){
+    // return true if this histogram has bin labels on any axis
+    int dim = RooUnfolding::dim(h);
+    bool retval = hasBinLabels(h->GetXaxis());
+    if(dim > 1) retval = retval && hasBinLabels(h->GetYaxis());
+    if(dim > 2) retval = retval && hasBinLabels(h->GetZaxis());
+    return retval;
+  }
+  
+  TH1* unrollHistogram(const TH2* input, bool firstX, bool includeUnderflowOverflow){
+    // unroll a two-dimensional histogram, concatenating the slices to a single one-dimensional histogram
+    const bool binlabels = hasBinLabels(input);
+    if(!includeUnderflowOverflow && binlabels){
+      return NULL;
+    }
+    const size_t nx = input->GetXaxis()->GetNbins()+2*includeUnderflowOverflow;
+    const size_t ny = input->GetYaxis()->GetNbins()+2*includeUnderflowOverflow;
+    const bool extra = includeUnderflowOverflow;
+    TH1* hist = new TH1F(input->GetName(),input->GetTitle(),nx*ny,0,1);
+    hist->SetDirectory(NULL);
+    for(size_t j=0; j<ny; ++j){
+      for(size_t i=0; i<nx; ++i){
+	size_t newidx;
+	if(firstX) newidx = 1 + j*nx + i;
+	else       newidx = 1 + i*ny + j;
+	size_t bin = input->GetBin(i+!extra,j+!extra);
+	hist->SetBinContent(newidx,input->GetBinContent(bin));
+	
+	TString labelX,labelY;
+	if(i==0 && extra){
+	  labelX = TString::Format("%s<%g",input->GetXaxis()->GetTitle(),input->GetXaxis()->GetBinLowEdge(1));
+	} else if(i+1==nx && extra){
+	  labelX = TString::Format("%s>%g",input->GetXaxis()->GetTitle(),input->GetXaxis()->GetBinLowEdge(nx));
+	} else if(binlabels){
+	  labelX = input->GetXaxis()->GetBinLabel(i+!extra);
+	} else {
+	  labelX = TString::Format("%s=%g",input->GetXaxis()->GetTitle(),input->GetXaxis()->GetBinCenter(i+!extra));
+	}
+	
+	if(j==0 && extra){
+	  labelY = TString::Format("%s<%g",input->GetYaxis()->GetTitle(),input->GetYaxis()->GetBinLowEdge(1));
+	} else if(j+1==ny && extra){
+	  labelY = TString::Format("%s>%g",input->GetYaxis()->GetTitle(),input->GetYaxis()->GetBinLowEdge(ny));
+	} else if(binlabels){
+	  labelY = input->GetYaxis()->GetBinLabel(j+!extra);
+	} else {
+	  labelY = TString::Format("%s=%g",input->GetYaxis()->GetTitle(),input->GetYaxis()->GetBinCenter(j+!extra));
+	}
+	// std::cout << "i=" << i << "/" << nx << ", j=" << j << "/" << ny << " = " << bin << "/" << ntot << " => " << newidx << "/" << hist->GetXaxis()->GetNbins() << std::endl;
+	hist->GetXaxis()->SetBinLabel(newidx,labelX+", "+labelY);
+      }
+    }
+    return hist;
+  }
+  
+  
   TH1* resize (TH1* h, Int_t nx, Int_t ny, Int_t nz){
     // Resize a histogram with a different number of bins.
     // Contents and errors are copied to the same bin numbers (the overflow bin
     // is copied to the new overflow bin) in the new histogram.
     // If the new histogram is larger than the old, the extra bins are zeroed.
+    if(!h) return NULL;
     Int_t mx= h->GetNbinsX(), my= h->GetNbinsY(), mz= h->GetNbinsZ();
     Int_t nd= h->GetDimension();
     if (nx<0 || nd<1) nx= mx;
@@ -621,7 +687,7 @@ namespace RooUnfolding {
     }
 
     if (mod) {
-      h->SetBinsLength();  // Just copies array, which isn't right for overflows or 2D/3D
+      h->SetBinsLength(-1);  // Just copies array, which isn't right for overflows or 2D/3D
       Int_t s= h->GetSumw2N();
       Int_t ox= mx+1, oy= my+1, oz= mz+1;  // old overflow bin
       Int_t px= nx+1, py= ny+1, pz= nz+1;  // new overflow bin
