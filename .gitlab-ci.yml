@@ -4,7 +4,6 @@
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  PYTHONUNBUFFERED: 1
   
 stages:
   - build
@@ -16,20 +15,18 @@ stages:
   stage: doc
   image: blang/latex:ubuntu
 
-.doxygen: &doxygen
-  stage: doc
-  image: rootproject/root
+.standalone: &standalone    
+  image: rootproject/root:6.22.00-ubuntu20.04
   before_script:
     - apt-get update
-    - apt-get install -y doxygen texlive-font-utils
+    - apt-get -y install python
 
-.atlas: &atlas
-  image: atlas/analysisbase:21.2.64
+.doxygen: &doxygen
+  <<: *standalone
   before_script:
-    - source /home/atlas/release_setup.sh
-
-.standalone: &standalone    
-  image: rootproject/root
+    - apt-get update
+    - apt-get -y install doxygen
+  stage: doc
 
 .ctest: &ctest  
   stage: test
@@ -41,33 +38,6 @@ stages:
     when: on_failure
     paths:
       - "*.ref"    
-
-.atlasctest: &atlasctest  
-  stage: test
-  script:
-    - cd build
-    - source ${AnalysisBase_PLATFORM}/setup.sh
-    - TERM=vt100 ctest --output-on-failure
-  artifacts:
-    when: on_failure
-    paths:
-      - "*.ref"    
-
-.atlascmake: &atlascmake    
-  stage: build
-  script:
-    - mkdir source 
-    - mkdir source/RooUnfold 
-    - ls | grep -v source | xargs -i mv {} source/RooUnfold/
-    - mv source/RooUnfold/CMakeLists_forAtlasCI.txt source/CMakeLists.txt
-    - mkdir build
-    - cd build
-    - cmake ../source
-    - make
-  artifacts:
-    paths:
-      - build
-      - source
 
 .cmake: &cmake    
   stage: build
@@ -83,39 +53,18 @@ stages:
 .GNUmake: &GNUmake    
   stage: build
   script:
-    make -j1
+    make -j1 NOROOFIT=1
   artifacts:
     paths:
       - libRooUnfold.so
       - RooUnfoldDict_rdict.pcm
       - libRooUnfold.rootmap
+      - RooUnfold/*.py
 
-.GNUtest: &GNUtest          
-  stage: test
-  script:
-    - python -u examples/RooUnfoldExample.py > RooUnfoldExample.ref
-    - diff RooUnfoldExample.ref ref/RooUnfoldExample.py.bayes.ref
-  artifacts:
-    when: on_failure    
-    paths:
-      - "*.ref"        
-
-.dAgostini: &dAgostini
-  <<: *standalone
-  before_script:
-    - apt-get update
-    - apt-get install wget
-    - export FC=gfortran
-    - bash get_dagos_bayes.sh
-    
 ############################################
 ## building
 ############################################     
     
-compile_atlas:
-  <<: *atlas
-  <<: *atlascmake
-
 compile_cmake:
   <<: *standalone
   <<: *cmake
@@ -124,45 +73,17 @@ compile_GNUmake:
   <<: *standalone
   <<: *GNUmake  
 
-compile_cmake_dAgostini:
-  <<: *dAgostini
-  <<: *cmake
-  
-compile_GNUmake_dAgostini:
-  <<: *dAgostini
-  <<: *GNUmake  
 
 
 ############################################           
 ## testing      
 ############################################
 
-test_atlas:
-  <<: *atlas
-  <<: *atlasctest  
-  dependencies:
-    - compile_atlas    
-
 test_cmake:
   <<: *standalone
   <<: *ctest  
   dependencies:
     - compile_cmake
-
-test_GNUmake:
-  <<: *standalone
-  <<: *GNUtest
-  dependencies:
-    - compile_GNUmake
-
-test_pip_install:
-  stage: test
-  image:
-    name: atlasamglab/stats-base:root6.22.00-python3.8
-    entrypoint: [""]
-  script:
-    - pip install .
-    - python -c "import RooUnfold; assert RooUnfold.__name__ == 'RooUnfold'"
 
 ############################################         
 ## documentation
@@ -173,28 +94,12 @@ doxygen:
   artifacts:
     paths:
       - build/doxygen
+  dependencies: []      
   script:
-    - mkdir -p build
+    - mkdir build
     - cd build
     - cmake ..
     - make doxygen
-
-document_help:
-  <<: *standalone
-  stage: doc
-  dependencies:
-    - compile_cmake
-  before_script:
-    - source build/setup.sh
-  script:
-    - set +e
-    - ./build/RooUnfoldTest   -h | awk '/^Usage:/,0{print $0"\r"}' > RooUnfoldTest.txt 
-    - ./build/RooUnfoldTest2D -h | awk '/^Usage:/,0{print $0"\r"}' > RooUnfoldTest2D.txt 
-    - ./build/RooUnfoldTest3D -h | awk '/^Usage:/,0{print $0"\r"}' > RooUnfoldTest3D.txt 
-    - set -e
-  artifacts:
-    paths:
-      - RooUnfoldTest*.txt
 
 doc_bayes_errors:
   <<: *latex
@@ -239,7 +144,6 @@ pages:
   - mkdir -p public
   - mv build/doxygen/html/* public
   - mv doc/*/*.pdf public
-  - mv RooUnfoldTest*.txt public
   - deploy-dfs
 
   before_script: []
@@ -249,7 +153,6 @@ pages:
 
   dependencies:
     - doxygen
-    - document_help
     - doc_bayes_errors
     - doc_phystat2011
     - doc_unfolding2010

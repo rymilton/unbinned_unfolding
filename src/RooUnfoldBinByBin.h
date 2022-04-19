@@ -1,83 +1,57 @@
 //=====================================================================-*-C++-*-
-// File and Version Information:
-//      $Id$
-//
-// Description:
-//      Unfolding class using the bin by bin method of conversion factors.
-//
-// Authors: Richard Claridge <richard.claridge@stfc.ac.uk> & Tim Adye <T.J.Adye@rl.ac.uk>
-//
+//! \class  RooUnfoldBinByBinT
+//! \brief  Unfolding class using the bin by bin method of conversion factors.
+//! \author Richard Claridge <richard.claridge@stfc.ac.uk> & Tim Adye <T.J.Adye@rl.ac.uk>
 //==============================================================================
 
 #ifndef ROOUNFOLDBINBYBIN_H_
 #define ROOUNFOLDBINBYBIN_H_
 
 #include "RooUnfold.h"
+#include "RooUnfoldResponse.h"
 #include "TVectorD.h"
 
-class RooUnfoldResponse;
-class TH1;
-class TH1D;
-class TH2D;
+#include "RooUnfoldFitHelpers.h"
 
-class RooUnfoldBinByBin : public RooUnfold {
+template<class Hist, class Hist2D>
+class RooUnfoldBinByBinT : public RooUnfoldT<Hist,Hist2D> {
 
 public:
-  RooUnfoldBinByBin(); // default constructor
-  RooUnfoldBinByBin (const char*    name, const char*    title); // named constructor
-  RooUnfoldBinByBin (const TString& name, const TString& title); // named constructor
-  RooUnfoldBinByBin (const RooUnfoldBinByBin& rhs); // copy constructor
-  virtual ~RooUnfoldBinByBin(); // destructor
-  RooUnfoldBinByBin& operator= (const RooUnfoldBinByBin& rhs); // assignment operator
-  virtual RooUnfoldBinByBin* Clone (const char* newname= 0) const;
-  RooUnfoldBinByBin (const RooUnfoldResponse* res, const TH1* meas, const char* name=0, const char* title=0);
+  RooUnfoldBinByBinT(); // default constructor
+  RooUnfoldBinByBinT (const char*    name, const char*    title); // named constructor
+  RooUnfoldBinByBinT (const TString& name, const TString& title); // named constructor
+  RooUnfoldBinByBinT (const RooUnfoldBinByBinT<Hist,Hist2D>& rhs); // copy constructor
+  virtual ~RooUnfoldBinByBinT(); // destructor
+  RooUnfoldBinByBinT<Hist,Hist2D>& operator= (const RooUnfoldBinByBinT<Hist,Hist2D>& rhs); // assignment operator
+  RooUnfoldBinByBinT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name=0, const char* title=0);
 
   TVectorD* Impl();
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;
+  
+protected:
+  virtual void Unfold() const override;
+  virtual void GetCov() const override;
 
 protected:
-  virtual void Unfold();
-  virtual void GetCov();
-  virtual void GetSettings();
-
-protected:
-  // instance variables
-  TVectorD _factors;
+  // cache
+  class Cache {
+  public:
+    TVectorD _factors;
+  };
+  mutable Cache _specialcache;  //!
 
 public:
-  ClassDef (RooUnfoldBinByBin, 1)  // Bin-by-bin unfolding
+  ClassDefT (RooUnfoldBinByBinT, 1)  // Bin-by-bin unfolding
 };
 
+//! \class RooUnfoldBinByBin 
+//! \brief specialization of RooUnfoldBinByBinT for TH1/TH2 objects
+typedef RooUnfoldBinByBinT<TH1,TH2> RooUnfoldBinByBin;
+#ifndef NOROOFIT
+//! \class RooFitUnfoldBinByBin
+//! \brief specialization of RooUnfoldBinByBinT for RooAbsReal objects
+typedef RooUnfoldBinByBinT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldBinByBin;
+#endif
 
-inline
-RooUnfoldBinByBin::RooUnfoldBinByBin()
-  : RooUnfold()
-{
-  // Default constructor. Use Setup() to prepare for unfolding.
-  GetSettings();
-}
-
-inline
-RooUnfoldBinByBin::RooUnfoldBinByBin (const char* name, const char* title)
-  : RooUnfold(name,title)
-{
-  // Basic named constructor. Use Setup() to prepare for unfolding.
-  GetSettings();
-}
-
-inline
-RooUnfoldBinByBin::RooUnfoldBinByBin (const TString& name, const TString& title)
-  : RooUnfold(name,title)
-{
-  // Basic named constructor. Use Setup() to prepare for unfolding.
-  GetSettings();
-}
-
-inline
-RooUnfoldBinByBin& RooUnfoldBinByBin::operator= (const RooUnfoldBinByBin& rhs)
-{
-  // Assignment operator for copying RooUnfoldBinByBin settings.
-  Assign(rhs);
-  return *this;
-}
 
 #endif /*ROOUNFOLDBINBYBIN_H_*/

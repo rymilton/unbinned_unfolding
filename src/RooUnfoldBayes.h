@@ -1,186 +1,108 @@
 //=====================================================================-*-C++-*-
-// File and Version Information:
-//      $Id$
-//
-// Description:
-//      Bayesian unfolding. Just an interface to RooUnfoldBayesImpl.
-//
-// Author: Tim Adye <T.J.Adye@rl.ac.uk>
-//
+//! \class RooUnfoldBayesT
+//! \brief Bayesian unfolding. Just an interface to RooUnfoldBayesImpl.
+//! \author Tim Adye <T.J.Adye@rl.ac.uk>
 //==============================================================================
 
 #ifndef ROOUNFOLDBAYES_HH
 #define ROOUNFOLDBAYES_HH
 
 #include "RooUnfold.h"
+#include "RooUnfoldResponse.h"
 
 #include "TVectorD.h"
 #include "TMatrixD.h"
 
 class TH1;
 class TH2;
-class RooUnfoldResponse;
 
-class RooUnfoldBayes : public RooUnfold {
+template<class Hist, class Hist2D>
+class RooUnfoldBayesT : public RooUnfoldT<Hist,Hist2D> {
 
 public:
 
   // Standard methods
 
-  RooUnfoldBayes(); // default constructor
-  RooUnfoldBayes (const char*    name, const char*    title); // named constructor
-  RooUnfoldBayes (const TString& name, const TString& title); // named constructor
-  RooUnfoldBayes (const RooUnfoldBayes& rhs); // copy constructor
-  RooUnfoldBayes& operator= (const RooUnfoldBayes& rhs); // assignment operator
-  virtual RooUnfoldBayes* Clone (const char* newname= 0) const;
+  RooUnfoldBayesT(); // default constructor
+  RooUnfoldBayesT (const char*    name, const char*    title); // named constructor
+  RooUnfoldBayesT (const TString& name, const TString& title); // named constructor
+  RooUnfoldBayesT (const RooUnfoldBayesT<Hist,Hist2D>& rhs); // copy constructor
+  RooUnfoldBayesT& operator= (const RooUnfoldBayesT<Hist,Hist2D>& rhs); // assignment operator
 
   // Special constructors
 
-  RooUnfoldBayes (const RooUnfoldResponse* res, const TH1* meas, Int_t niter= 4, Bool_t smoothit= false,
-                  const char* name= 0, const char* title= 0);
+  RooUnfoldBayesT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter= 4, Bool_t smoothit= false,
+		   Bool_t handleFakes= false, const char* name= 0, const char* title= 0);
 
   void SetIterations (Int_t niter= 4);
   void SetSmoothing  (Bool_t smoothit= false);
+  void HandleFakes (Bool_t handleFakes);
   Int_t GetIterations() const;
   Int_t GetSmoothing()  const;
   const TMatrixD& UnfoldingMatrix() const;
 
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
   virtual void  SetRegParm (Double_t parm);
-  virtual Double_t GetRegParm() const;
+  virtual double GetRegParm() const;
   virtual void Reset();
   virtual void Print (Option_t* option= "") const;
 
-  static TMatrixD& H2M (const TH2* h, TMatrixD& m, Bool_t overflow);
-
 protected:
-  void Assign (const RooUnfoldBayes& rhs); // implementation of assignment operator
-  virtual void Unfold();
-  virtual void GetCov();
-  virtual void GetSettings();
+  void Assign (const RooUnfoldBayesT<Hist,Hist2D>& rhs); // implementation of assignment operator
+  virtual void Unfold() const override ;
+  virtual void GetCov() const override ;
+  virtual void GetSettings() const override;
 
-  void setup();
-  void unfold();
-  void getCovariance();
+  void setup() const;
+  void unfold() const;
+  void getCovariance() const;
 
   void smooth(TVectorD& PbarCi) const;
-  Double_t getChi2(const TVectorD& prob1,
+  double getChi2(const TVectorD& prob1,
                    const TVectorD& prob2,
-                   Double_t nevents) const;
+                   double nevents) const;
 
 private:
   void Init();
-  void CopyData (const RooUnfoldBayes& rhs);
+  void CopyData (const RooUnfoldBayesT<Hist,Hist2D>& rhs);
 
 protected:
   // instance variables
-  Int_t _niter;
-  Int_t _smoothit;
+  mutable int _niter;
+  mutable int _smoothit;
+  mutable int _handleFakes;
 
-  Int_t _nc;              // number of causes  (same as _nt)
-  Int_t _ne;              // number of effects (same as _nm)
-  Double_t _N0C;          // number of events in prior
-  Double_t _nbartrue;     // best estimate of number of true events
+  mutable int _nc;              // number of causes  (same as _nt)
+  mutable int _ne;              // number of effects (same as _nm)
+  mutable double _N0C;          // number of events in prior
+  mutable double _nbartrue;     // best estimate of number of true events
 
-  TVectorD _nEstj;        // Number of measured events from Effect E_j
-  TVectorD _nCi;          // Number of true events from cause C_i
-  TVectorD _nbarCi;       // Estimated number of true events from cause C_i
-  TVectorD _efficiencyCi; // efficiency for detecting cause C_i
-  TVectorD _P0C;          // prior before last iteration
-  TVectorD _UjInv;        // 1 / (folded prior) from last iteration
+  mutable TVectorD _nEstj;        // Number of measured events from Effect E_j
+  mutable TVectorD _nCi;          // Number of true events from cause C_i
+  mutable TVectorD _nbarCi;       // Estimated number of true events from cause C_i
+  mutable TVectorD _efficiencyCi; // efficiency for detecting cause C_i
+  mutable TVectorD _P0C;          // prior before last iteration
+  mutable TVectorD _UjInv;        // 1 / (folded prior) from last iteration
 
-  TMatrixD _Nji;          // mapping of causes to effects
-  TMatrixD _Mij;          // unfolding matrix
-  TMatrixD _Vij;          // covariance matrix
-  TMatrixD _VnEstij;      // covariance matrix of effects
-  TMatrixD _dnCidnEj;     // measurement error propagation matrix
-  TMatrixD _dnCidPjk;     // response error propagation matrix (stack j,k into each column)
+  mutable TMatrixD _Nji;          // mapping of causes to effects
+  mutable TMatrixD _Mij;          // unfolding matrix
+  mutable TMatrixD _Vij;          // covariance matrix
+  mutable TMatrixD _VnEstij;      // covariance matrix of effects
+  mutable TMatrixD _dnCidnEj;     // measurement error propagation matrix
+  mutable TMatrixD _dnCidPjk;     // response error propagation matrix (stack j,k into each column)
 
 public:
-  ClassDef (RooUnfoldBayes, 1) // Bayesian Unfolding
+  ClassDefT (RooUnfoldBayesT, 1) // Bayesian Unfolding
 };
 
-// Inline method definitions
 
-inline
-RooUnfoldBayes::RooUnfoldBayes()
-  : RooUnfold()
-{
-  // Default constructor. Use Setup() to prepare for unfolding.
-  Init();
-}
-
-inline
-RooUnfoldBayes::RooUnfoldBayes (const char* name, const char* title)
-  : RooUnfold(name,title)
-{
-  // Basic named constructor. Use Setup() to prepare for unfolding.
-  Init();
-}
-
-inline
-RooUnfoldBayes::RooUnfoldBayes (const TString& name, const TString& title)
-  : RooUnfold(name,title)
-{
-  // Basic named constructor. Use Setup() to prepare for unfolding.
-  Init();
-}
-
-inline
-RooUnfoldBayes& RooUnfoldBayes::operator= (const RooUnfoldBayes& rhs)
-{
-  // Assignment operator for copying RooUnfoldBayes settings.
-  Assign(rhs);
-  return *this;
-}
-
-
-inline
-void RooUnfoldBayes::SetIterations (Int_t niter)
-{
-  // Set regularisation parameter (number of iterations)
-  _niter= niter;
-}
-
-inline
-void RooUnfoldBayes::SetSmoothing (Bool_t smoothit)
-{
-  // Enable smoothing
-  _smoothit= smoothit;
-}
-
-inline
-Int_t RooUnfoldBayes::GetIterations() const
-{
-  // Return regularisation parameter (number of iterations)
-  return _niter;
-}
-
-inline
-Int_t RooUnfoldBayes::GetSmoothing()  const
-{
-  // Return smoothing setting
-  return _smoothit;
-}
-
-inline
-const TMatrixD& RooUnfoldBayes::UnfoldingMatrix() const
-{
-  // Access unfolding matrix (Mij)
-  return _Mij;
-}
-
-inline
-void  RooUnfoldBayes::SetRegParm (Double_t parm)
-{
-  // Set regularisation parameter (number of iterations)
-  SetIterations(Int_t(parm+0.5));
-}
-
-inline
-Double_t RooUnfoldBayes::GetRegParm() const
-{
-  // Return regularisation parameter (number of iterations)
-  return GetIterations();
-}
+//! \class RooUnfoldBayes 
+//! \brief specialization of RooUnfoldBayesT for TH1/TH2 objects
+typedef RooUnfoldBayesT<TH1,TH2> RooUnfoldBayes;
+#ifndef NOROOFIT
+//! \class RooFitUnfoldBayes
+//! \brief specialization of RooUnfoldBayesT for RooAbsReal objects
+typedef RooUnfoldBayesT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldBayes;
+#endif
 
 #endif

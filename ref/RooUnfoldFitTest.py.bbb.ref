@@ -1,0 +1,504 @@
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset truth_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset response_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset measured_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset sigbkg_reco_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset bkg_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooUnfoldFunc::unfold
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::truth_histfunc
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::truth_staterrors_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_0
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_2
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_7
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_8
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_9
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_10
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_11
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_12
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_13
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_14
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_15
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_16
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_17
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_18
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_19
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_20
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_21
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_22
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_23
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_24
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_25
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_26
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_27
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_28
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_29
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_30
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_31
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_32
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_33
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_34
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_35
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_36
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_37
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_38
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_truth_39
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::obs_truth
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::truth_histfunc_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::response_histfunc
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::response_staterrors_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_const
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_45
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_46
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_47
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_86
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_87
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_88
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_127
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_128
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_129
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_130
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_168
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_169
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_170
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_171
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_209
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_210
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_211
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_212
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_249
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_250
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_251
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_252
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_291
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_292
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_293
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_331
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_332
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_333
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_334
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_372
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_373
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_374
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_375
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_414
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_415
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_416
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_417
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_454
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_455
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_456
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_457
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_458
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_495
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_496
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_497
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_498
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_499
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_536
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_537
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_538
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_539
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_540
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_577
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_578
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_579
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_580
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_581
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_618
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_619
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_620
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_621
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_622
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_659
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_660
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_661
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_662
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_663
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_700
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_701
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_702
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_703
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_704
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_741
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_742
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_743
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_744
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_745
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_782
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_783
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_784
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_785
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_786
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_823
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_824
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_825
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_826
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_864
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_865
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_866
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_867
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_868
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_906
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_907
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_908
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_946
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_947
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_948
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_949
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_950
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_988
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_989
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_990
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1028
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1029
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1030
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1031
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1069
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1070
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1071
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1072
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1111
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1112
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1113
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1152
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1153
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1154
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1193
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1194
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1195
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1196
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1234
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1235
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1236
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1274
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1275
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1276
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1277
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1316
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1317
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1318
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1357
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1358
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1359
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1398
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1399
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1438
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_response_1439
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::obs_reco
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::response_histfunc_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::measured_histfunc
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::measured_staterrors_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_0
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_2
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_7
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_8
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_9
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_10
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_11
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_12
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_13
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_14
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_15
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_16
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_17
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_18
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_19
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_20
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_21
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_22
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_23
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_24
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_25
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_26
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_27
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_28
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_29
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_30
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_31
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_32
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_33
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_34
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_35
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_36
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_37
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_38
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_measured_39
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::measured_histfunc_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooAddition::unfold_data_minus_bkg
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[sigbkg_reco_histfunc_x_cA]
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::sigbkg_reco_histfunc
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::sigbkg_reco_staterrors_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_0
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_2
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_7
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_8
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_9
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_10
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_11
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_12
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_13
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_14
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_15
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_16
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_17
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_18
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_19
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_20
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_21
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_22
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_23
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_24
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_25
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_26
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_27
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_28
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_29
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_30
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_31
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_32
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_33
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_34
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_35
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_36
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_37
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_38
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sigbkg_reco_39
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::sigbkg_reco_histfunc_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooConstVar::cA
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[bkg_histfunc_x_cB]
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::bkg_histfunc
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::bkg_staterrors_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_0
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_2
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_7
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_8
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_9
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_10
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_11
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_12
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_13
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_14
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_15
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_16
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_17
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_18
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_19
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_20
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_21
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_22
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_23
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_24
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_25
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_26
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_27
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_28
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_29
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_30
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_31
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_32
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_33
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_34
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_35
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_36
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_37
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_38
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_bkg_39
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::bkg_histfunc_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooConstVar::cB
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing dataset sig_theory_hist
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooProduct::sig_theory
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooHistFunc::sig_theory_hist_Values
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing ParamHistFunc::sig_theory_hist_Values_mcstat
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_0
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_1
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_2
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_3
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_4
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_5
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_6
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_7
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_8
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_9
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_10
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_11
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_12
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_13
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_14
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_15
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_16
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_17
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_18
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_19
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_20
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_21
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_22
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_23
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_24
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_25
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_26
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_27
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_28
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_29
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_30
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_31
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_32
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_33
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_34
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_35
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_36
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_37
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_38
+[#1] INFO:ObjectHandling -- RooWorkspace::import(workspace) importing RooRealVar::gamma_stat_sig_theory_hist_39
+===============================================================================
+         Train    Train     Test     Test Unfolded  Error on     Diff     Pull
+  Bin    Truth Measured    Truth    Input   Output Unfolding
+===============================================================================
+    1      194      144      186      210    282.9      19.5     96.9      5.0
+    2      225      182      227      276    341.2      20.5    114.2      5.6
+    3      235      188      237      276    345.0      20.8    108.0      5.2
+    4      229      246      251      322    299.7      16.7     48.7      2.9
+    5      305      283      300      414    446.2      21.9    146.2      6.7
+    6      377      373      306      285    288.1      17.1    -17.9     -1.1
+    7      419      430      377      450    438.5      20.7     61.5      3.0
+    8      402      549      456      762    558.0      20.2    102.0      5.0
+    9      513      737      536      628    437.1      17.4    -98.9     -5.7
+   10      627     1015      578     1076    664.7      20.3     86.7      4.3
+   11      745     1441      772     1517    784.3      20.1     12.3      0.6
+   12      886     2096      903     2108    891.1      19.4    -11.9     -0.6
+   13     1054     3104     1081     3076   1044.5      18.8    -36.5     -1.9
+   14     1367     4776     1385     4687   1341.5      19.6    -43.5     -2.2
+   15     1815     6679     1860     6855   1862.8      22.5      2.8      0.1
+   16     2516     8243     2515     7998   2441.2      27.3    -73.8     -2.7
+   17     3454     7563     3514     7499   3424.8      39.5    -89.2     -2.3
+   18     4960     5721     5081     5609   4862.9      64.9   -218.1     -3.4
+   19     7570     3983     7416     3984   7571.9     120.0    155.9      1.3
+   20    10519     2794    10557     2754  10368.4     197.6   -188.6     -1.0
+   21    12706     1983    12711     2132  13660.7     295.9    949.7      3.2
+   22    11278     1459    11118     1512  11687.7     300.6    569.7      1.9
+   23     8180     1193     8113     1103   7562.9     227.7   -550.1     -2.4
+   24     5426      922     5493     1006   5920.3     186.7    427.3      2.3
+   25     3851      769     3727      629   3149.9     125.6   -577.1     -4.6
+   26     2571      648     2712      580   2301.2      95.6   -410.8     -4.3
+   27     1924      560     1974      444   1525.5      72.4   -448.5     -6.2
+   28     1448      433     1479      408   1364.4      67.5   -114.6     -1.7
+   29     1223      414     1164      308    909.9      51.8   -254.1     -4.9
+   30      907      366      898      464   1149.9      53.4    251.9      4.7
+   31      765      307      727      298    742.6      43.0     15.6      0.4
+   32      667      291      637      255    584.5      36.6    -52.5     -1.4
+   33      529      268      534      217    428.3      29.1   -105.7     -3.6
+   34      418      219      475      221    421.8      28.4    -53.2     -1.9
+   35      422      208      401      170    344.9      26.5    -56.1     -2.1
+   36      307      194      358      195    308.6      22.1    -49.4     -2.2
+   37      323      197      309      253    414.8      26.1    105.8      4.1
+   38      265      166      263       53     84.6      11.6   -178.4    -15.3
+   39      237      139      247       68    115.9      14.1   -131.1     -9.3
+   40      225      147      198      110    168.4      16.1    -29.6     -1.8
+===============================================================================
+         92084    61430    92076    61212  91541.5     370.9   -534.5     -1.4
+===============================================================================
+Bin-by-bin Chi^2/NDF=780.024/40
+
+RooWorkspace(workspace) workspace contents
+
+variables
+---------
+(gamma_stat_bkg_0,gamma_stat_bkg_1,gamma_stat_bkg_10,gamma_stat_bkg_11,gamma_stat_bkg_12,gamma_stat_bkg_13,gamma_stat_bkg_14,gamma_stat_bkg_15,gamma_stat_bkg_16,gamma_stat_bkg_17,gamma_stat_bkg_18,gamma_stat_bkg_19,gamma_stat_bkg_2,gamma_stat_bkg_20,gamma_stat_bkg_21,gamma_stat_bkg_22,gamma_stat_bkg_23,gamma_stat_bkg_24,gamma_stat_bkg_25,gamma_stat_bkg_26,gamma_stat_bkg_27,gamma_stat_bkg_28,gamma_stat_bkg_29,gamma_stat_bkg_3,gamma_stat_bkg_30,gamma_stat_bkg_31,gamma_stat_bkg_32,gamma_stat_bkg_33,gamma_stat_bkg_34,gamma_stat_bkg_35,gamma_stat_bkg_36,gamma_stat_bkg_37,gamma_stat_bkg_38,gamma_stat_bkg_39,gamma_stat_bkg_4,gamma_stat_bkg_5,gamma_stat_bkg_6,gamma_stat_bkg_7,gamma_stat_bkg_8,gamma_stat_bkg_9,gamma_stat_const,gamma_stat_measured_0,gamma_stat_measured_1,gamma_stat_measured_10,gamma_stat_measured_11,gamma_stat_measured_12,gamma_stat_measured_13,gamma_stat_measured_14,gamma_stat_measured_15,gamma_stat_measured_16,gamma_stat_measured_17,gamma_stat_measured_18,gamma_stat_measured_19,gamma_stat_measured_2,gamma_stat_measured_20,gamma_stat_measured_21,gamma_stat_measured_22,gamma_stat_measured_23,gamma_stat_measured_24,gamma_stat_measured_25,gamma_stat_measured_26,gamma_stat_measured_27,gamma_stat_measured_28,gamma_stat_measured_29,gamma_stat_measured_3,gamma_stat_measured_30,gamma_stat_measured_31,gamma_stat_measured_32,gamma_stat_measured_33,gamma_stat_measured_34,gamma_stat_measured_35,gamma_stat_measured_36,gamma_stat_measured_37,gamma_stat_measured_38,gamma_stat_measured_39,gamma_stat_measured_4,gamma_stat_measured_5,gamma_stat_measured_6,gamma_stat_measured_7,gamma_stat_measured_8,gamma_stat_measured_9,gamma_stat_response_1028,gamma_stat_response_1029,gamma_stat_response_1030,gamma_stat_response_1031,gamma_stat_response_1069,gamma_stat_response_1070,gamma_stat_response_1071,gamma_stat_response_1072,gamma_stat_response_1111,gamma_stat_response_1112,gamma_stat_response_1113,gamma_stat_response_1152,gamma_stat_response_1153,gamma_stat_response_1154,gamma_stat_response_1193,gamma_stat_response_1194,gamma_stat_response_1195,gamma_stat_response_1196,gamma_stat_response_1234,gamma_stat_response_1235,gamma_stat_response_1236,gamma_stat_response_127,gamma_stat_response_1274,gamma_stat_response_1275,gamma_stat_response_1276,gamma_stat_response_1277,gamma_stat_response_128,gamma_stat_response_129,gamma_stat_response_130,gamma_stat_response_1316,gamma_stat_response_1317,gamma_stat_response_1318,gamma_stat_response_1357,gamma_stat_response_1358,gamma_stat_response_1359,gamma_stat_response_1398,gamma_stat_response_1399,gamma_stat_response_1438,gamma_stat_response_1439,gamma_stat_response_168,gamma_stat_response_169,gamma_stat_response_170,gamma_stat_response_171,gamma_stat_response_209,gamma_stat_response_210,gamma_stat_response_211,gamma_stat_response_212,gamma_stat_response_249,gamma_stat_response_250,gamma_stat_response_251,gamma_stat_response_252,gamma_stat_response_291,gamma_stat_response_292,gamma_stat_response_293,gamma_stat_response_3,gamma_stat_response_331,gamma_stat_response_332,gamma_stat_response_333,gamma_stat_response_334,gamma_stat_response_372,gamma_stat_response_373,gamma_stat_response_374,gamma_stat_response_375,gamma_stat_response_4,gamma_stat_response_414,gamma_stat_response_415,gamma_stat_response_416,gamma_stat_response_417,gamma_stat_response_45,gamma_stat_response_454,gamma_stat_response_455,gamma_stat_response_456,gamma_stat_response_457,gamma_stat_response_458,gamma_stat_response_46,gamma_stat_response_47,gamma_stat_response_495,gamma_stat_response_496,gamma_stat_response_497,gamma_stat_response_498,gamma_stat_response_499,gamma_stat_response_5,gamma_stat_response_536,gamma_stat_response_537,gamma_stat_response_538,gamma_stat_response_539,gamma_stat_response_540,gamma_stat_response_577,gamma_stat_response_578,gamma_stat_response_579,gamma_stat_response_580,gamma_stat_response_581,gamma_stat_response_6,gamma_stat_response_618,gamma_stat_response_619,gamma_stat_response_620,gamma_stat_response_621,gamma_stat_response_622,gamma_stat_response_659,gamma_stat_response_660,gamma_stat_response_661,gamma_stat_response_662,gamma_stat_response_663,gamma_stat_response_700,gamma_stat_response_701,gamma_stat_response_702,gamma_stat_response_703,gamma_stat_response_704,gamma_stat_response_741,gamma_stat_response_742,gamma_stat_response_743,gamma_stat_response_744,gamma_stat_response_745,gamma_stat_response_782,gamma_stat_response_783,gamma_stat_response_784,gamma_stat_response_785,gamma_stat_response_786,gamma_stat_response_823,gamma_stat_response_824,gamma_stat_response_825,gamma_stat_response_826,gamma_stat_response_86,gamma_stat_response_864,gamma_stat_response_865,gamma_stat_response_866,gamma_stat_response_867,gamma_stat_response_868,gamma_stat_response_87,gamma_stat_response_88,gamma_stat_response_906,gamma_stat_response_907,gamma_stat_response_908,gamma_stat_response_946,gamma_stat_response_947,gamma_stat_response_948,gamma_stat_response_949,gamma_stat_response_950,gamma_stat_response_988,gamma_stat_response_989,gamma_stat_response_990,gamma_stat_sig_theory_hist_0,gamma_stat_sig_theory_hist_1,gamma_stat_sig_theory_hist_10,gamma_stat_sig_theory_hist_11,gamma_stat_sig_theory_hist_12,gamma_stat_sig_theory_hist_13,gamma_stat_sig_theory_hist_14,gamma_stat_sig_theory_hist_15,gamma_stat_sig_theory_hist_16,gamma_stat_sig_theory_hist_17,gamma_stat_sig_theory_hist_18,gamma_stat_sig_theory_hist_19,gamma_stat_sig_theory_hist_2,gamma_stat_sig_theory_hist_20,gamma_stat_sig_theory_hist_21,gamma_stat_sig_theory_hist_22,gamma_stat_sig_theory_hist_23,gamma_stat_sig_theory_hist_24,gamma_stat_sig_theory_hist_25,gamma_stat_sig_theory_hist_26,gamma_stat_sig_theory_hist_27,gamma_stat_sig_theory_hist_28,gamma_stat_sig_theory_hist_29,gamma_stat_sig_theory_hist_3,gamma_stat_sig_theory_hist_30,gamma_stat_sig_theory_hist_31,gamma_stat_sig_theory_hist_32,gamma_stat_sig_theory_hist_33,gamma_stat_sig_theory_hist_34,gamma_stat_sig_theory_hist_35,gamma_stat_sig_theory_hist_36,gamma_stat_sig_theory_hist_37,gamma_stat_sig_theory_hist_38,gamma_stat_sig_theory_hist_39,gamma_stat_sig_theory_hist_4,gamma_stat_sig_theory_hist_5,gamma_stat_sig_theory_hist_6,gamma_stat_sig_theory_hist_7,gamma_stat_sig_theory_hist_8,gamma_stat_sig_theory_hist_9,gamma_stat_sigbkg_reco_0,gamma_stat_sigbkg_reco_1,gamma_stat_sigbkg_reco_10,gamma_stat_sigbkg_reco_11,gamma_stat_sigbkg_reco_12,gamma_stat_sigbkg_reco_13,gamma_stat_sigbkg_reco_14,gamma_stat_sigbkg_reco_15,gamma_stat_sigbkg_reco_16,gamma_stat_sigbkg_reco_17,gamma_stat_sigbkg_reco_18,gamma_stat_sigbkg_reco_19,gamma_stat_sigbkg_reco_2,gamma_stat_sigbkg_reco_20,gamma_stat_sigbkg_reco_21,gamma_stat_sigbkg_reco_22,gamma_stat_sigbkg_reco_23,gamma_stat_sigbkg_reco_24,gamma_stat_sigbkg_reco_25,gamma_stat_sigbkg_reco_26,gamma_stat_sigbkg_reco_27,gamma_stat_sigbkg_reco_28,gamma_stat_sigbkg_reco_29,gamma_stat_sigbkg_reco_3,gamma_stat_sigbkg_reco_30,gamma_stat_sigbkg_reco_31,gamma_stat_sigbkg_reco_32,gamma_stat_sigbkg_reco_33,gamma_stat_sigbkg_reco_34,gamma_stat_sigbkg_reco_35,gamma_stat_sigbkg_reco_36,gamma_stat_sigbkg_reco_37,gamma_stat_sigbkg_reco_38,gamma_stat_sigbkg_reco_39,gamma_stat_sigbkg_reco_4,gamma_stat_sigbkg_reco_5,gamma_stat_sigbkg_reco_6,gamma_stat_sigbkg_reco_7,gamma_stat_sigbkg_reco_8,gamma_stat_sigbkg_reco_9,gamma_stat_truth_0,gamma_stat_truth_1,gamma_stat_truth_10,gamma_stat_truth_11,gamma_stat_truth_12,gamma_stat_truth_13,gamma_stat_truth_14,gamma_stat_truth_15,gamma_stat_truth_16,gamma_stat_truth_17,gamma_stat_truth_18,gamma_stat_truth_19,gamma_stat_truth_2,gamma_stat_truth_20,gamma_stat_truth_21,gamma_stat_truth_22,gamma_stat_truth_23,gamma_stat_truth_24,gamma_stat_truth_25,gamma_stat_truth_26,gamma_stat_truth_27,gamma_stat_truth_28,gamma_stat_truth_29,gamma_stat_truth_3,gamma_stat_truth_30,gamma_stat_truth_31,gamma_stat_truth_32,gamma_stat_truth_33,gamma_stat_truth_34,gamma_stat_truth_35,gamma_stat_truth_36,gamma_stat_truth_37,gamma_stat_truth_38,gamma_stat_truth_39,gamma_stat_truth_4,gamma_stat_truth_5,gamma_stat_truth_6,gamma_stat_truth_7,gamma_stat_truth_8,gamma_stat_truth_9,obs_reco,obs_truth)
+
+functions
+--------
+RooProduct::sig_theory[ sig_theory_hist_Values * sig_theory_hist_Values_mcstat ] = 198
+  RooHistFunc::sig_theory_hist_Values[ depList=(obs_truth) ] = 198
+  ParamHistFunc::sig_theory_hist_Values_mcstat[ ] = 1
+RooUnfoldFunc::unfold = 168.367
+  RooProduct::truth_histfunc[ truth_staterrors_mcstat * truth_histfunc_hist ] = 225
+    ParamHistFunc::truth_staterrors_mcstat[ ] = 1
+    RooHistFunc::truth_histfunc_hist[ depList=(obs_truth) ] = 225
+  RooProduct::response_histfunc[ response_staterrors_mcstat * response_histfunc_hist ] = 0
+    ParamHistFunc::response_staterrors_mcstat[ ] = 1
+    RooHistFunc::response_histfunc_hist[ depList=(obs_reco,obs_truth) ] = 0
+  RooProduct::measured_histfunc[ measured_staterrors_mcstat * measured_histfunc_hist ] = 147
+    ParamHistFunc::measured_staterrors_mcstat[ ] = 1
+    RooHistFunc::measured_histfunc_hist[ depList=(obs_reco) ] = 147
+  RooAddition::unfold_data_minus_bkg[ sigbkg_reco_histfunc_minus_bkg_histfunc_[sigbkg_reco_histfunc_x_cA] + sigbkg_reco_histfunc_minus_bkg_histfunc_[bkg_histfunc_x_cB] ] = 110
+    RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[sigbkg_reco_histfunc_x_cA][ sigbkg_reco_histfunc * cA ] = 2640
+      RooProduct::sigbkg_reco_histfunc[ sigbkg_reco_staterrors_mcstat * sigbkg_reco_histfunc_hist ] = 2640
+        ParamHistFunc::sigbkg_reco_staterrors_mcstat[ ] = 1
+        RooHistFunc::sigbkg_reco_histfunc_hist[ depList=(obs_reco) ] = 2640
+    RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[bkg_histfunc_x_cB][ bkg_histfunc * cB ] = -2530
+      RooProduct::bkg_histfunc[ bkg_staterrors_mcstat * bkg_histfunc_hist ] = 2530
+        ParamHistFunc::bkg_staterrors_mcstat[ ] = 1
+        RooHistFunc::bkg_histfunc_hist[ depList=(obs_reco) ] = 2530
+
+embedded datasets (in pdfs and functions)
+-----------------------------------------
+RooDataHist::truth_hist(obs_truth)
+RooDataHist::response_hist(obs_reco,obs_truth)
+RooDataHist::measured_hist(obs_reco)
+RooDataHist::sigbkg_reco_hist(obs_reco)
+RooDataHist::bkg_hist(obs_reco)
+RooDataHist::sig_theory_hist(obs_truth)
+
+
+RooWorkspace(workspace) workspace contents
+
+variables
+---------
+(gamma_stat_bkg_0,gamma_stat_bkg_1,gamma_stat_bkg_10,gamma_stat_bkg_11,gamma_stat_bkg_12,gamma_stat_bkg_13,gamma_stat_bkg_14,gamma_stat_bkg_15,gamma_stat_bkg_16,gamma_stat_bkg_17,gamma_stat_bkg_18,gamma_stat_bkg_19,gamma_stat_bkg_2,gamma_stat_bkg_20,gamma_stat_bkg_21,gamma_stat_bkg_22,gamma_stat_bkg_23,gamma_stat_bkg_24,gamma_stat_bkg_25,gamma_stat_bkg_26,gamma_stat_bkg_27,gamma_stat_bkg_28,gamma_stat_bkg_29,gamma_stat_bkg_3,gamma_stat_bkg_30,gamma_stat_bkg_31,gamma_stat_bkg_32,gamma_stat_bkg_33,gamma_stat_bkg_34,gamma_stat_bkg_35,gamma_stat_bkg_36,gamma_stat_bkg_37,gamma_stat_bkg_38,gamma_stat_bkg_39,gamma_stat_bkg_4,gamma_stat_bkg_5,gamma_stat_bkg_6,gamma_stat_bkg_7,gamma_stat_bkg_8,gamma_stat_bkg_9,gamma_stat_const,gamma_stat_measured_0,gamma_stat_measured_1,gamma_stat_measured_10,gamma_stat_measured_11,gamma_stat_measured_12,gamma_stat_measured_13,gamma_stat_measured_14,gamma_stat_measured_15,gamma_stat_measured_16,gamma_stat_measured_17,gamma_stat_measured_18,gamma_stat_measured_19,gamma_stat_measured_2,gamma_stat_measured_20,gamma_stat_measured_21,gamma_stat_measured_22,gamma_stat_measured_23,gamma_stat_measured_24,gamma_stat_measured_25,gamma_stat_measured_26,gamma_stat_measured_27,gamma_stat_measured_28,gamma_stat_measured_29,gamma_stat_measured_3,gamma_stat_measured_30,gamma_stat_measured_31,gamma_stat_measured_32,gamma_stat_measured_33,gamma_stat_measured_34,gamma_stat_measured_35,gamma_stat_measured_36,gamma_stat_measured_37,gamma_stat_measured_38,gamma_stat_measured_39,gamma_stat_measured_4,gamma_stat_measured_5,gamma_stat_measured_6,gamma_stat_measured_7,gamma_stat_measured_8,gamma_stat_measured_9,gamma_stat_response_1028,gamma_stat_response_1029,gamma_stat_response_1030,gamma_stat_response_1031,gamma_stat_response_1069,gamma_stat_response_1070,gamma_stat_response_1071,gamma_stat_response_1072,gamma_stat_response_1111,gamma_stat_response_1112,gamma_stat_response_1113,gamma_stat_response_1152,gamma_stat_response_1153,gamma_stat_response_1154,gamma_stat_response_1193,gamma_stat_response_1194,gamma_stat_response_1195,gamma_stat_response_1196,gamma_stat_response_1234,gamma_stat_response_1235,gamma_stat_response_1236,gamma_stat_response_127,gamma_stat_response_1274,gamma_stat_response_1275,gamma_stat_response_1276,gamma_stat_response_1277,gamma_stat_response_128,gamma_stat_response_129,gamma_stat_response_130,gamma_stat_response_1316,gamma_stat_response_1317,gamma_stat_response_1318,gamma_stat_response_1357,gamma_stat_response_1358,gamma_stat_response_1359,gamma_stat_response_1398,gamma_stat_response_1399,gamma_stat_response_1438,gamma_stat_response_1439,gamma_stat_response_168,gamma_stat_response_169,gamma_stat_response_170,gamma_stat_response_171,gamma_stat_response_209,gamma_stat_response_210,gamma_stat_response_211,gamma_stat_response_212,gamma_stat_response_249,gamma_stat_response_250,gamma_stat_response_251,gamma_stat_response_252,gamma_stat_response_291,gamma_stat_response_292,gamma_stat_response_293,gamma_stat_response_3,gamma_stat_response_331,gamma_stat_response_332,gamma_stat_response_333,gamma_stat_response_334,gamma_stat_response_372,gamma_stat_response_373,gamma_stat_response_374,gamma_stat_response_375,gamma_stat_response_4,gamma_stat_response_414,gamma_stat_response_415,gamma_stat_response_416,gamma_stat_response_417,gamma_stat_response_45,gamma_stat_response_454,gamma_stat_response_455,gamma_stat_response_456,gamma_stat_response_457,gamma_stat_response_458,gamma_stat_response_46,gamma_stat_response_47,gamma_stat_response_495,gamma_stat_response_496,gamma_stat_response_497,gamma_stat_response_498,gamma_stat_response_499,gamma_stat_response_5,gamma_stat_response_536,gamma_stat_response_537,gamma_stat_response_538,gamma_stat_response_539,gamma_stat_response_540,gamma_stat_response_577,gamma_stat_response_578,gamma_stat_response_579,gamma_stat_response_580,gamma_stat_response_581,gamma_stat_response_6,gamma_stat_response_618,gamma_stat_response_619,gamma_stat_response_620,gamma_stat_response_621,gamma_stat_response_622,gamma_stat_response_659,gamma_stat_response_660,gamma_stat_response_661,gamma_stat_response_662,gamma_stat_response_663,gamma_stat_response_700,gamma_stat_response_701,gamma_stat_response_702,gamma_stat_response_703,gamma_stat_response_704,gamma_stat_response_741,gamma_stat_response_742,gamma_stat_response_743,gamma_stat_response_744,gamma_stat_response_745,gamma_stat_response_782,gamma_stat_response_783,gamma_stat_response_784,gamma_stat_response_785,gamma_stat_response_786,gamma_stat_response_823,gamma_stat_response_824,gamma_stat_response_825,gamma_stat_response_826,gamma_stat_response_86,gamma_stat_response_864,gamma_stat_response_865,gamma_stat_response_866,gamma_stat_response_867,gamma_stat_response_868,gamma_stat_response_87,gamma_stat_response_88,gamma_stat_response_906,gamma_stat_response_907,gamma_stat_response_908,gamma_stat_response_946,gamma_stat_response_947,gamma_stat_response_948,gamma_stat_response_949,gamma_stat_response_950,gamma_stat_response_988,gamma_stat_response_989,gamma_stat_response_990,gamma_stat_sig_theory_hist_0,gamma_stat_sig_theory_hist_1,gamma_stat_sig_theory_hist_10,gamma_stat_sig_theory_hist_11,gamma_stat_sig_theory_hist_12,gamma_stat_sig_theory_hist_13,gamma_stat_sig_theory_hist_14,gamma_stat_sig_theory_hist_15,gamma_stat_sig_theory_hist_16,gamma_stat_sig_theory_hist_17,gamma_stat_sig_theory_hist_18,gamma_stat_sig_theory_hist_19,gamma_stat_sig_theory_hist_2,gamma_stat_sig_theory_hist_20,gamma_stat_sig_theory_hist_21,gamma_stat_sig_theory_hist_22,gamma_stat_sig_theory_hist_23,gamma_stat_sig_theory_hist_24,gamma_stat_sig_theory_hist_25,gamma_stat_sig_theory_hist_26,gamma_stat_sig_theory_hist_27,gamma_stat_sig_theory_hist_28,gamma_stat_sig_theory_hist_29,gamma_stat_sig_theory_hist_3,gamma_stat_sig_theory_hist_30,gamma_stat_sig_theory_hist_31,gamma_stat_sig_theory_hist_32,gamma_stat_sig_theory_hist_33,gamma_stat_sig_theory_hist_34,gamma_stat_sig_theory_hist_35,gamma_stat_sig_theory_hist_36,gamma_stat_sig_theory_hist_37,gamma_stat_sig_theory_hist_38,gamma_stat_sig_theory_hist_39,gamma_stat_sig_theory_hist_4,gamma_stat_sig_theory_hist_5,gamma_stat_sig_theory_hist_6,gamma_stat_sig_theory_hist_7,gamma_stat_sig_theory_hist_8,gamma_stat_sig_theory_hist_9,gamma_stat_sigbkg_reco_0,gamma_stat_sigbkg_reco_1,gamma_stat_sigbkg_reco_10,gamma_stat_sigbkg_reco_11,gamma_stat_sigbkg_reco_12,gamma_stat_sigbkg_reco_13,gamma_stat_sigbkg_reco_14,gamma_stat_sigbkg_reco_15,gamma_stat_sigbkg_reco_16,gamma_stat_sigbkg_reco_17,gamma_stat_sigbkg_reco_18,gamma_stat_sigbkg_reco_19,gamma_stat_sigbkg_reco_2,gamma_stat_sigbkg_reco_20,gamma_stat_sigbkg_reco_21,gamma_stat_sigbkg_reco_22,gamma_stat_sigbkg_reco_23,gamma_stat_sigbkg_reco_24,gamma_stat_sigbkg_reco_25,gamma_stat_sigbkg_reco_26,gamma_stat_sigbkg_reco_27,gamma_stat_sigbkg_reco_28,gamma_stat_sigbkg_reco_29,gamma_stat_sigbkg_reco_3,gamma_stat_sigbkg_reco_30,gamma_stat_sigbkg_reco_31,gamma_stat_sigbkg_reco_32,gamma_stat_sigbkg_reco_33,gamma_stat_sigbkg_reco_34,gamma_stat_sigbkg_reco_35,gamma_stat_sigbkg_reco_36,gamma_stat_sigbkg_reco_37,gamma_stat_sigbkg_reco_38,gamma_stat_sigbkg_reco_39,gamma_stat_sigbkg_reco_4,gamma_stat_sigbkg_reco_5,gamma_stat_sigbkg_reco_6,gamma_stat_sigbkg_reco_7,gamma_stat_sigbkg_reco_8,gamma_stat_sigbkg_reco_9,gamma_stat_truth_0,gamma_stat_truth_1,gamma_stat_truth_10,gamma_stat_truth_11,gamma_stat_truth_12,gamma_stat_truth_13,gamma_stat_truth_14,gamma_stat_truth_15,gamma_stat_truth_16,gamma_stat_truth_17,gamma_stat_truth_18,gamma_stat_truth_19,gamma_stat_truth_2,gamma_stat_truth_20,gamma_stat_truth_21,gamma_stat_truth_22,gamma_stat_truth_23,gamma_stat_truth_24,gamma_stat_truth_25,gamma_stat_truth_26,gamma_stat_truth_27,gamma_stat_truth_28,gamma_stat_truth_29,gamma_stat_truth_3,gamma_stat_truth_30,gamma_stat_truth_31,gamma_stat_truth_32,gamma_stat_truth_33,gamma_stat_truth_34,gamma_stat_truth_35,gamma_stat_truth_36,gamma_stat_truth_37,gamma_stat_truth_38,gamma_stat_truth_39,gamma_stat_truth_4,gamma_stat_truth_5,gamma_stat_truth_6,gamma_stat_truth_7,gamma_stat_truth_8,gamma_stat_truth_9,obs_reco,obs_truth)
+
+functions
+--------
+RooProduct::sig_theory[ sig_theory_hist_Values * sig_theory_hist_Values_mcstat ] = 198
+  RooHistFunc::sig_theory_hist_Values[ depList=(obs_truth) ] = 198
+  ParamHistFunc::sig_theory_hist_Values_mcstat[ ] = 1
+RooUnfoldFunc::unfold = 168.367
+  RooProduct::truth_histfunc[ truth_staterrors_mcstat * truth_histfunc_hist ] = 225
+    ParamHistFunc::truth_staterrors_mcstat[ ] = 1
+    RooHistFunc::truth_histfunc_hist[ depList=(obs_truth) ] = 225
+  RooProduct::response_histfunc[ response_staterrors_mcstat * response_histfunc_hist ] = 0
+    ParamHistFunc::response_staterrors_mcstat[ ] = 1
+    RooHistFunc::response_histfunc_hist[ depList=(obs_reco,obs_truth) ] = 0
+  RooProduct::measured_histfunc[ measured_staterrors_mcstat * measured_histfunc_hist ] = 147
+    ParamHistFunc::measured_staterrors_mcstat[ ] = 1
+    RooHistFunc::measured_histfunc_hist[ depList=(obs_reco) ] = 147
+  RooAddition::unfold_data_minus_bkg[ sigbkg_reco_histfunc_minus_bkg_histfunc_[sigbkg_reco_histfunc_x_cA] + sigbkg_reco_histfunc_minus_bkg_histfunc_[bkg_histfunc_x_cB] ] = 110
+    RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[sigbkg_reco_histfunc_x_cA][ sigbkg_reco_histfunc * cA ] = 2640
+      RooProduct::sigbkg_reco_histfunc[ sigbkg_reco_staterrors_mcstat * sigbkg_reco_histfunc_hist ] = 2640
+        ParamHistFunc::sigbkg_reco_staterrors_mcstat[ ] = 1
+        RooHistFunc::sigbkg_reco_histfunc_hist[ depList=(obs_reco) ] = 2640
+    RooProduct::sigbkg_reco_histfunc_minus_bkg_histfunc_[bkg_histfunc_x_cB][ bkg_histfunc * cB ] = -2530
+      RooProduct::bkg_histfunc[ bkg_staterrors_mcstat * bkg_histfunc_hist ] = 2530
+        ParamHistFunc::bkg_staterrors_mcstat[ ] = 1
+        RooHistFunc::bkg_histfunc_hist[ depList=(obs_reco) ] = 2530
+
+embedded datasets (in pdfs and functions)
+-----------------------------------------
+RooDataHist::truth_hist(obs_truth)
+RooDataHist::response_hist(obs_reco,obs_truth)
+RooDataHist::measured_hist(obs_reco)
+RooDataHist::sigbkg_reco_hist(obs_reco)
+RooDataHist::bkg_hist(obs_reco)
+RooDataHist::sig_theory_hist(obs_truth)
+

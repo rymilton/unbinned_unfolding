@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # ==============================================================================
+#  File and Version Information:
+#       $Id$
 #
-#  Simple example usage of the RooUnfold package using toy MC.
+#  Description:
+#       Simple example usage of the RooUnfold package using toy MC.
+#
 #  Author: Tim Adye <T.J.Adye@rl.ac.uk>
 #
 # ==============================================================================
@@ -10,13 +14,14 @@ import sys
 method = "bayes"
 if len(sys.argv) > 1: method = sys.argv[1]
 
+from ROOT import gRandom, TH1, TH1D, TCanvas, cout
 import ROOT
-from ROOT import gRandom, TH1, TH1D, TCanvas
 
 try:
-  cout= ROOT.std.cout   # This seems to work better in ROOT 6.22
-except:
-  cout= ROOT.cout
+  import RooUnfold
+except ImportError:
+  # somehow the python module was not found, let's try loading the library by hand
+  ROOT.gSystem.Load("libRooUnfold.so")
 
 # ==============================================================================
 #  Gaussian smearing, systematic translation, and variable inefficiency
@@ -32,8 +37,6 @@ def smear(xt):
 # ==============================================================================
 #  Example Unfolding
 # ==============================================================================
-
-ROOT.gROOT.SetBatch(True)
 
 response= ROOT.RooUnfoldResponse (40, -10.0, 10.0);
 
@@ -55,25 +58,27 @@ for i in range(10000):
   hTrue.Fill(xt);
   if x!=None: hMeas.Fill(x);
 
-if   method == "bayes":
-  unfold= ROOT.RooUnfoldBayes   (response, hMeas, 4);    #  OR
-elif method == "svd":
-  unfold= ROOT.RooUnfoldSvd     (response, hMeas, 20);   #  OR
-elif method == "tunfold":
-  unfold= ROOT.RooUnfoldTUnfold (response, hMeas);       #  OR
-elif method == "ids":
-  unfold= ROOT.RooUnfoldIds     (response, hMeas, 3);    #  OR
-else:
-  print ("Unknown method:",method)
-  sys.exit(1)
 
-hReco= unfold.Hreco();
+if method == "bayes":
+  unfold= ROOT.RooUnfoldBayes     (response, hMeas, 4);    #  OR
+elif method == "svd":
+  unfold= ROOT.RooUnfoldSvd     (response, hMeas, 20);     #  OR
+elif method == "bbb":
+  unfold= ROOT.RooUnfoldBinByBin     (response, hMeas);     #  OR  
+elif method == "inv":
+  unfold= ROOT.RooUnfoldInvert     (response, hMeas);     #  OR  
+elif method == "root":
+  unfold= ROOT.RooUnfoldTUnfold (response, hMeas);         #  OR
+elif method == "ids":
+  unfold= ROOT.RooUnfoldIds     (response, hMeas, 3);      #  OR
+
+hUnfold= unfold.Hunfold();
 
 unfold.PrintTable (cout, hTrue);
 
 canvas = ROOT.TCanvas("RooUnfold",method)
 
-hReco.Draw();
+hUnfold.Draw();
 hMeas.Draw("SAME");
 hTrue.SetLineColor(8);
 hTrue.Draw("SAME");

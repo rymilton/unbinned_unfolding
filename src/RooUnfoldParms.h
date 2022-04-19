@@ -16,19 +16,18 @@
 #include "RooUnfold.h"
 
 class TH1;
-class RooUnfold;
 class TProfile;
 
 class RooUnfoldParms : public TNamed {
     public:
-    RooUnfoldParms(const RooUnfold* unfold_in=0,RooUnfold::ErrorTreatment err=RooUnfold::kCovariance,const TH1* truth=0);
+    RooUnfoldParms(const RooUnfold* unfold_in=0,RooUnfolding::ErrorTreatment err=RooUnfolding::kCovariance,const TH1* truth=0);
     virtual ~RooUnfoldParms();
     TProfile* GetChi2();
     TProfile* GetRMSError();
     TProfile* GetMeanResiduals();
     TH1* GetRMSResiduals();
     const RooUnfold* unfold; // Input object from RooUnfold
-    RooUnfold::ErrorTreatment doerror; // Set error calculation method
+    RooUnfolding::ErrorTreatment doerror; // Set error calculation method
     const TH1* hTrue; // Truth Distribution
     void SetMinParm(double min);
     void SetMaxParm(double max);

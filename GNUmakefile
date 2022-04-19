@@ -1,7 +1,4 @@
 #===============================================================================
-# File and Version Information:
-#      $Id$
-#
 # Description:
 #   Makefile for the RooUnfold package
 #
@@ -22,7 +19,6 @@
 #     To used the shared library: export LD_LIBRARY_PATH="$PWD:$LD_LIBRARY_PATH"
 #   - Add ROOTBUILD=debug for debug version.
 #   - Add VERBOSE=1 to show commands as they are executed.
-#   - Add HAVE_TSVDUNFOLD=0 to disable local version of TSVDUnfold and use version in ROOT.
 #
 # Build targets:
 #   help    - give brief help
@@ -32,6 +28,7 @@
 #   bin     - make lib and example programs
 #   commands- show commands to make each type of target
 #   html    - make documentation in htmldoc subdirectory
+#   python  - make python package
 #   cleanbin- delete test binaries and objects
 #   clean   - delete all intermediate and final build objects
 #   FILE    - if FILE.cxx (or FILE.cc or FILE.C) exists, builds executable FILE
@@ -100,7 +97,7 @@ endif
 endif
 
 # add more warnings to the C++ compiler output
-CXXFLAGS     += -Wall -Wpedantic -Wshadow
+CXXFLAGS     += -Wall -Wshadow
 
 ifeq ($(PLATFORM),macosx)
 # Remove stupid shared library option on MacOSX. The option doesn't work (and we don't
@@ -142,7 +139,9 @@ WORKDIR       = $(CURDIR)/build/$(ARCH)/
 LIBDIR        = $(CURDIR)/
 SHLIBDIR      = $(CURDIR)/
 EXEDIR        =
-EXESRC        = $(CURDIR)/examples/
+EXESRC1       = $(CURDIR)/examples/
+EXESRC2       = $(CURDIR)/test/src/
+EXESRC        = $(EXESRC1)RooUnfoldExample.cxx $(EXESRC2)RooUnfoldTest.cxx $(EXESRC2)RooUnfoldTest2D.cxx $(EXESRC2)RooUnfoldTest3D.cxx
 HTMLDOC       = htmldoc
 OBJDIR        = $(WORKDIR)obj/
 DEPDIR        = $(WORKDIR)dep/
@@ -175,45 +174,9 @@ endif
 ROOTLIBS     += $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),Unfold)))
 endif
 
-# RooUnfoldDagostini is an interface to D'Agostini's implementation
-# of his algorithm: http://www.roma1.infn.it/~dagos/bayes_distr.txt .
-# To use this, put it in src/bayes.for and src/bayes_c.for.
-ifeq ($(HAVE_DAGOSTINI),)
-ifneq ($(wildcard $(SRCDIR)/bayes.for),)
-HAVE_DAGOSTINI = 1
-endif
-endif
-
-ifeq ($(HAVE_DAGOSTINI),1)
-EXTRASRC     += bayes.for
-FDEP          = $(SRCDIR)bayes_c.for
-CPPFLAGS     += -DHAVE_DAGOSTINI
-else
-EXCLUDE      += RooUnfoldDagostini.cxx RooUnfoldDagostini.h
-endif
-
-# TSVDUnfold is included in ROOT 5.28/00 and later, but we need changes yet to be added to ROOT.
-# So, use our own copy.
-ifeq ($(HAVE_TSVDUNFOLD),)
-###ifeq ($(wildcard $(ROOTINCDIR)/TSVDUnfold.h),)
-HAVE_TSVDUNFOLD = 1
-###else
-###ifneq ($(shell $(RC) --version | grep '^5\.28'),)
-###HAVE_TSVDUNFOLD = 1
-###endif
-###endif
-endif
-
-ifeq ($(HAVE_TSVDUNFOLD),1)
-CPPFLAGS     += -DHAVE_TSVDUNFOLD=1
-else
-CPPFLAGS     += -DHAVE_TSVDUNFOLD=0
-EXCLUDE      += TSVDUnfold.cxx TSVDUnfold_local.h
-endif
-
 # RooFit is included in ROOT if ROOT was compiled with --enable-roofit.
 # We only use it for better-normalised test distributions in RooUnfoldTest
-# (uses examples/RooUnfoldTestPdfRooFit.icc instead of examples/RooUnfoldTestPdf.icc).
+# (uses examples/RooUnfoldTestPdfRooFit.cxx instead of examples/RooUnfoldTestPdf.cxx).
 ifeq ($(NOROOFIT),)
 ifneq ($(shell $(RC) --has-roofit),yes)
 $(warning This version of ROOT does not support RooFit. We will build the test programs without it.)
@@ -224,22 +187,21 @@ endif
 ifneq ($(NOROOFIT),)
 CPPFLAGS     += -DNOROOFIT
 else
-ROOFITLIBS   += -lRooFit
 # Different versions of ROOT require different libraries with RooFit, so
 # include all the ones that exist.
 # Note that if the ROOT shared libraries were linked against them
 # (configure --enable-explicitlink ?), as is done in the CERN AFS versions,
 # then these are not required. But they do no harm.
-ROOFITLIBS   += $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),RooFitCore Thread Minuit Foam MathMore Html)))
+ROOFITLIBS   += -lRooFit -lRooFitCore -lHistFactory $(patsubst $(ROOTLIBDIR)/lib%.$(DllSuf),-l%,$(wildcard $(patsubst %,$(ROOTLIBDIR)/lib%.$(DllSuf),Thread Minuit Foam MathMore Html)))
 endif
 
 # === Internal configuration ===================================================
 
-MAIN          = $(filter-out $(EXCLUDE),$(notdir $(wildcard $(EXESRC)*.cxx)))
+MAIN          = $(notdir $(EXESRC))
 MAINEXE       = $(addprefix $(EXEDIR),$(patsubst %.cxx,%$(ExeSuf),$(MAIN)))
 LINKDEF       = $(INCDIR)$(PACKAGE)_LinkDef.h
 LINKDEFMAP    = $(WORKDIR)$(PACKAGE)Map_LinkDef
-HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)*.h)) $(LINKDEF)
+HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)*.h $(INCDIR)*.tpp)) $(LINKDEF)
 CINTFILE      = $(WORKDIR)$(PACKAGE)Dict.cxx
 ifneq ($(ROOTCLING),)
 CLINGDICT     = $(SHLIBDIR)$(PACKAGE)Dict_rdict.pcm
@@ -295,7 +257,7 @@ HDEP          = $(HLIST)
 else
 
 # List of all dependency files to make
-DLIST         = $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST) $(filter-out $(EXCLUDE),$(notdir $(wildcard $(EXESRC)*.cxx))))))
+DLIST         = $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST) $(MAIN))))
 
 # If possible, limit ROOTLIBFILES to libraries that we actually use.
 DLISTLIB      = $(wildcard $(addprefix $(DEPDIR),$(patsubst %.cxx,%.d,$(filter %.cxx,$(SRCLIST)))))
@@ -339,7 +301,16 @@ $(DEPDIR)%.d : $(SRCDIR)%.cxx
 	 | sed 's,\($(notdir $*)\.$(ObjSuf)\) *:,$(OBJDIR)\1 $@ :,g' > $@; \
 	 [ -s $@ ] || rm -f $@
 
-$(DEPDIR)%.d : $(EXESRC)%.cxx
+$(DEPDIR)%.d : $(EXESRC1)%.cxx
+	@echo "Making $@"
+	@mkdir -p $(DEPDIR)
+	@rm -f $@
+	$(_)set -e; \
+	 $(CXX) $(MFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(INCLUDES) $< \
+	 | sed 's,\($(notdir $*)\.$(ObjSuf)\) *:,$(OBJDIR)\1 $@ :,g' > $@; \
+	 [ -s $@ ] || rm -f $@
+
+$(DEPDIR)%.d : $(EXESRC2)%.cxx
 	@echo "Making $@"
 	@mkdir -p $(DEPDIR)
 	@rm -f $@
@@ -367,7 +338,12 @@ $(OBJDIR)%.$(ObjSuf) : $(SRCDIR)%.for $(FDEP)
 	$(_)$(FC) $(FFFLAGS) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Implicit rule to compile main program
-$(OBJDIR)%.$(ObjSuf) : $(EXESRC)%.cxx $(HLIST)
+$(OBJDIR)%.$(ObjSuf) : $(EXESRC1)%.cxx $(HLIST)
+	@echo "Compiling example program $<"
+	@mkdir -p $(OBJDIR)
+	$(_)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
+
+$(OBJDIR)%.$(ObjSuf) : $(EXESRC2)%.cxx $(HLIST)
 	@echo "Compiling example program $<"
 	@mkdir -p $(OBJDIR)
 	$(_)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
@@ -395,14 +371,15 @@ $(EXEDIR)%$(ExeSuf) : $(OBJDIR)%.$(ObjSuf) $(LINKLIB)
 
 # === Explicit rules ===========================================================
 
-default : shlib
+default : shlib python
 
 help        :
 	@echo "Usage: $(MAKE) [TARGET] [ROOTBUILD=debug] [VERBOSE=1] [NOROOFIT=1] [SHARED=1]"
-	@echo "Some TARGETs are: 'bin', 'html', 'clean', and 'commands'"
+	@echo "Some TARGETs are: 'bin', 'html', 'clean', 'python', and 'commands'"
 
 # Rule to make ROOTCINT output file
 ifeq ($(ROOTCLING),)
+SHLIBEXTRA=$(ROOTMAP)
 $(CINTFILE) : $(HLIST)
 	@mkdir -p $(WORKDIR)
 	@mkdir -p $(OBJDIR)
@@ -415,7 +392,8 @@ $(ROOTMAP) : $(SHLIBFILE) $(LINKDEF)
 	$(_)$(CXX) -E -D__MAKECINT__ -D__CINT__ -o $(LINKDEFMAP).h $(CPPFLAGS) $(INCLUDES) $(ROOTINCLUDES) $(LINKDEFMAP).cxx
 	$(_)$(RLIBMAP) -o $@ -l $< -d $(ROOTLIBFILES) -c $(LINKDEFMAP).h
 else
-$(CINTFILE) $(CLINGDICT) $(ROOTMAP) : $(HLIST)
+SHLIBEXTRA=
+$(CINTFILE) : $(HLIST)
 	@mkdir -p $(WORKDIR)
 	@mkdir -p $(OBJDIR)
 	@echo "Generating CLING dictionary files $(CINTFILE), $(CLINGDICT), and $(ROOTMAP)"
@@ -442,13 +420,13 @@ $(SHLIBFILE) : $(OLIST) $(CINTOBJ)
 	@echo "Making $@"
 	@mkdir -p $(SHLIBDIR)
 	@rm -f $@
-	$(_)$(LD) $(SOFLAGS) $(LDFLAGS) $^ $(OutPutOpt)$@ $(ROOTLIBS) $(GCCLIBS)
+	$(_)$(LD) $(SOFLAGS) $(ROOFITLIBS) $(LDFLAGS) $^ $(OutPutOpt)$@ $(ROOTLIBS) $(GCCLIBS)
 
 # Useful build targets
 depend: $(DLIST)
 include: depend
 lib: $(LIBFILE)
-shlib: $(SHLIBFILE) $(ROOTMAP) $(CLINGDICT)
+shlib: $(SHLIBFILE) $(SHLIBEXTRA)
 exe: $(MAINEXE)
 bin: shlib exe
 
@@ -474,6 +452,8 @@ clean : cleanbin
 	rm -f $(LIBFILE)
 	rm -f $(SHLIBFILE) $(ROOTMAP) $(LINKDEFMAP).cxx $(LINKDEFMAP).h
 	rm -f $(STATICLIBFILE)
+	rm -f $(LIBDIR)$(PACKAGE)/__init__.py
+	rm -fd $(LIBDIR)$(PACKAGE) $(OBJDIR) $(DEPDIR) $(WORKDIR)
 
 cleanbin :
 	rm -f $(addprefix $(OBJDIR),$(patsubst %.cxx,%.$(ObjSuf),$(MAIN)))
@@ -492,7 +472,13 @@ $(HTMLDOC)/index.html : $(SHLIBFILE)
 
 html : $(HTMLDOC)/index.html
 
-.PHONY : include depend shlib lib exe bin default clean cleanbin html help
+python : $(LIBDIR)/$(PACKAGE)/__init__.py
+
+$(LIBDIR)/$(PACKAGE)/%.py: $(LIBDIR)/python/%.py
+	@mkdir -p $(LIBDIR)/$(PACKAGE)
+	@ln -nsf $^ $@
+
+.PHONY : include depend shlib lib exe bin default clean cleanbin html help python
 
 ifneq ($(GOALS),)
 ifneq ($(DLIST),)

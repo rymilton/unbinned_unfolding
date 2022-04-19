@@ -1,24 +1,8 @@
-//=====================================================================-*-C++-*-
-// File and Version Information:
-//      $Id$
-//
-// Description:
-//      Unfolding class using inversion of the response matrix. This does not produce
-//      good results and is designed to illustrate the need for more sophisticated
-//      unfolding techniques
-//
-// Authors: Richard Claridge <richard.claridge@stfc.ac.uk> & Tim Adye <T.J.Adye@rl.ac.uk>
-//
-//==============================================================================
-
-//____________________________________________________________
-/*! \class RooUnfoldInvert
-    \brief The simplest method of unfolding works by simply inverting the response matrix.
+/* \class RooUnfoldInvertT
+<p>The simplest method of unfolding works by simply inverting the response matrix.</p> 
 <p>This is not accurate for small matrices and produces inaccurate unfolded distributions.</p>
 <p>The inversion method is included largely to illustrate the necessity of a more effective method of unfolding</p>
 */
-
-/////////////////////////////////////////////////////////////
 
 #include "RooUnfoldInvert.h"
 
@@ -31,142 +15,179 @@
 #include "TDecompSVD.h"
 
 #include "RooUnfoldResponse.h"
+#include "RooUnfoldHelpers.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
+using namespace RooUnfolding;
 
-ClassImp (RooUnfoldInvert)
-
-RooUnfoldInvert::RooUnfoldInvert (const RooUnfoldInvert& rhs)
-  : RooUnfold (rhs)
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::RooUnfoldInvertT(const RooUnfoldInvertT<Hist,Hist2D>& rhs)
+  : RooUnfoldT<Hist,Hist2D> (rhs)
 {
-  //! Copy constructor.
+  // Copy constructor.
   Init();
 }
 
-RooUnfoldInvert::RooUnfoldInvert (const RooUnfoldResponse* res, const TH1* meas,
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::RooUnfoldInvertT(const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas,
                                   const char* name, const char* title)
-  : RooUnfold (res, meas, name, title)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title)
 {
-  //! Constructor with response matrix object and measured unfolding input histogram.
+  // Constructor with response matrix object and measured unfolding input histogram.
   Init();
 }
 
-RooUnfoldInvert*
-RooUnfoldInvert::Clone (const char* newname) const
-{
-  RooUnfoldInvert* unfold= new RooUnfoldInvert(*this);
-  if (newname && strlen(newname)) unfold->SetName(newname);
-  return unfold;
-}
-
-
-RooUnfoldInvert::~RooUnfoldInvert()
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::~RooUnfoldInvertT()
 {
   delete _svd;
   delete _resinv;
 }
 
-void
-RooUnfoldInvert::Init()
+template<class Hist, class Hist2D> void
+RooUnfoldInvertT<Hist,Hist2D>::Init()
 {
   _svd= 0;
   _resinv= 0;
-  GetSettings();
+  this->GetSettings();
 }
 
-void
-RooUnfoldInvert::Reset()
+template<class Hist, class Hist2D> void
+RooUnfoldInvertT<Hist,Hist2D>::Reset()
 {
   delete _svd;
   delete _resinv;
   Init();
-  RooUnfold::Reset();
+  RooUnfoldT<Hist,Hist2D>::Reset();
 }
 
-TDecompSVD*
-RooUnfoldInvert::Impl()
+template<class Hist, class Hist2D> TDecompSVD*
+RooUnfoldInvertT<Hist,Hist2D>::Impl()
 {
   return _svd;
 }
 
-void
-RooUnfoldInvert::Unfold()
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldInvertT<Hist,Hist2D>::GetAlgorithm () const
 {
-  if (_nt>_nm) {
-    TMatrixD resT (TMatrixD::kTransposed, _res->Mresponse());
+  //! return the unfolding algorithm used
+  return kInvert;
+}
+
+template<class Hist, class Hist2D> void
+RooUnfoldInvertT<Hist,Hist2D>::Unfold() const
+{
+  TMatrixD res(this->_res->Mresponse(true));
+  if (this->_nt>this->_nm) {
+    TMatrixD resT (TMatrixD::kTransposed, res);
     _svd= new TDecompSVD (resT);
     delete _resinv; _resinv= 0;
   } else
-    _svd= new TDecompSVD (_res->Mresponse());
-  if (_svd->Condition()<0){
-    cerr <<"Warning: response matrix bad condition= "<<_svd->Condition()<<endl;
-  }
+    _svd= new TDecompSVD (res);
+  double c = _svd->Condition();
+  if (c<0) std::cout << "WARNING: Response matrix is ill-conditioned. TDecompSVD condition number = " << c << std::endl;
 
-  _rec.ResizeTo(_nm);
-  _rec= Vmeasured();
+  this->_cache._rec.ResizeTo(this->_nm);
+  this->_cache._rec= this->Vmeasured();
 
-  if (_res->FakeEntries()) {
-    TVectorD fakes= _res->Vfakes();
-    Double_t fac= _res->Vmeasured().Sum();
-    if (fac!=0.0) fac=  Vmeasured().Sum() / fac;
-    if (_verbose>=1) cout << "Subtract " << fac*fakes.Sum() << " fakes from measured distribution" << endl;
+  if (this->_res->HasFakes()) {
+    TVectorD fakes= this->_res->Vfakes();
+    Double_t fac= this->_res->Vmeasured().Sum();
+    if (fac!=0.0) fac=  this->Vmeasured().Sum() / fac;
+    if (this->_verbose>=1) std::cout << "Subtract " << fac*fakes.Sum() << " fakes from measured distribution" << std::endl;
     fakes *= fac;
-    _rec -= fakes;
+    this->_cache._rec -= fakes;
   }
 
   Bool_t ok;
-  if (_nt>_nm) {
+  if (this->_nt>this->_nm) {
     ok= InvertResponse();
-    if (ok) _rec *= *_resinv;
+    if (ok) this->_cache._rec *= *_resinv;
   } else
-    ok= _svd->Solve (_rec);
+    ok= _svd->Solve (this->_cache._rec);
 
-  _rec.ResizeTo(_nt);
+  this->_cache._rec.ResizeTo(this->_nt);
   if (!ok) {
-    cerr << "Response matrix Solve failed" << endl;
+    std::cerr << "Response matrix Solve failed" << std::endl;
     return;
   }
 
-  _unfolded= true;
-  _haveCov=  false;
+  this->_cache._unfolded= true;
+  this->_cache._haveCov=  false;
 }
 
-void
-RooUnfoldInvert::GetCov()
+template<class Hist, class Hist2D> void
+RooUnfoldInvertT<Hist,Hist2D>::GetCov() const
 {
-    if (!InvertResponse()) return;
-    _cov.ResizeTo(_nt,_nt);
-    ABAT (*_resinv, GetMeasuredCov(), _cov);
-    _haveCov= true;
+  //! Get covariance matrix
+  if (!InvertResponse()) return;
+  this->_cache._cov.ResizeTo(this->_nt,this->_nt);
+  ABAT (*_resinv, this->GetMeasuredCov(), this->_cache._cov);
+  this->_cache._haveCov= true;
 }
 
-Bool_t
-RooUnfoldInvert::InvertResponse()
+template<class Hist, class Hist2D> Bool_t
+RooUnfoldInvertT<Hist,Hist2D>::InvertResponse() const
 {
     if (!_svd)   return false;
     if (_resinv) return true;
-    if (_nt>_nm) _resinv= new TMatrixD(_nm,_nt);
-    else         _resinv= new TMatrixD(_nt,_nm);
+    if (this->_nt>this->_nm) _resinv= new TMatrixD(this->_nm,this->_nt);
+    else         _resinv= new TMatrixD(this->_nt,this->_nm);
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5,13,4)  /* TDecompSVD::Invert() didn't have ok status before 5.13/04. */
     Bool_t ok;
     *_resinv=_svd->Invert(ok);
     if (!ok) {
-      cerr << "response matrix inversion failed" << endl;
+      std::cerr << "response matrix inversion failed" << std::endl;
       return false;
     }
 #else
     *_resinv=_svd->Invert();
 #endif
-    if (_nt>_nm) _resinv->T();
+    if (this->_nt>this->_nm) _resinv->T();
     return true;
 }
 
-void
-RooUnfoldInvert::GetSettings(){
-    _minparm=0;
-    _maxparm=0;
-    _stepsizeparm=0;
-    _defaultparm=0;
+// Inline method definitions
+
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::RooUnfoldInvertT()
+  : RooUnfoldT<Hist,Hist2D>()
+{
+  // Default constructor. Use Setup() to prepare for unfolding.
+  Init();
 }
+
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::RooUnfoldInvertT(const char* name, const char* title)
+  : RooUnfoldT<Hist,Hist2D>(name,title)
+{
+  // Basic named constructor. Use Setup() to prepare for unfolding.
+  Init();
+}
+
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>::RooUnfoldInvertT(const TString& name, const TString& title)
+  : RooUnfoldT<Hist,Hist2D>(name,title)
+{
+  // Basic named constructor. Use Setup() to prepare for unfolding.
+  Init();
+}
+
+template<class Hist, class Hist2D>
+RooUnfoldInvertT<Hist,Hist2D>& RooUnfoldInvertT<Hist,Hist2D>::operator= (const RooUnfoldInvertT<Hist,Hist2D>& rhs)
+{
+  // Assignment operator for copying RooUnfoldInvertTsettings.
+  this->Assign(rhs);
+  return *this;
+}
+
+template class RooUnfoldInvertT<TH1,TH2>;
+ClassImp (RooUnfoldInvert)
+
+#ifndef NOROOFIT
+template class RooUnfoldInvertT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>;
+typedef RooUnfoldInvertT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldInvert;
+ClassImp (RooFitUnfoldInvert)
+#endif
+
+
+

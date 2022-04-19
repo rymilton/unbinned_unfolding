@@ -15,8 +15,9 @@
 #include "TNamed.h"
 
 class TH1;
-class RooUnfold;
 class TNtuple;
+
+#include "RooUnfold.h"
 
 class RooUnfoldErrors : public TNamed {
 

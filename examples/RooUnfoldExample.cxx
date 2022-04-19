@@ -79,12 +79,12 @@ void RooUnfoldExample()
 //RooUnfoldTUnfold unfold (&response, hMeas);       // OR
 //RooUnfoldIds     unfold (&response, hMeas, 1);
 
-  TH1D* hReco= (TH1D*) unfold.Hreco();
+  TH1D* hUnfold= (TH1D*) unfold.Hunfold();
 
   TCanvas* c1= new TCanvas("canvas","canvas");
 
   unfold.PrintTable (cout, hTrue);
-  hReco->Draw();
+  hUnfold->Draw();
   hMeas->Draw("SAME");
   hTrue->SetLineColor(8);
   hTrue->Draw("SAME");

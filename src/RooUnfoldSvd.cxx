@@ -1,24 +1,10 @@
-//=====================================================================-*-C++-*-
-// File and Version Information:
-//      $Id$
-//
-// Description:
-//      SVD unfolding. Just an interface to TSVDUnfold.
-//
-// Author: Tim Adye <T.J.Adye@rl.ac.uk>
-//
-//==============================================================================
-
-//____________________________________________________________
-/*! \class RooUnfoldSvd
-   \brief Links to TSVDUnfold class which unfolds using Singular Value Decomposition (SVD).</p>
-<p>Regularisation parameter defines the level at which values are deemed to be due to statistical fluctuations and are cut out. (Default= number of bins/2)
-<p>Returns errors as a full matrix of covariances
-<p>Can only handle 1 dimensional distributions
-<p>Can account for both smearing and biasing
- */
-
-/////////////////////////////////////////////////////////////
+/*! \class RooUnfoldSvdT
+Links to TSVDUnfold class which unfolds using Singular Value Decomposition (SVD).
+Regularisation parameter defines the level at which values are deemed to be due to statistical fluctuations and are cut out. (Default= number of bins/2)
+Returns errors as a full matrix of covariances
+Can only handle 1 dimensional distributions
+Can account for both smearing and biasing
+*/
 
 #include "RooUnfoldSvd.h"
 
@@ -33,248 +19,272 @@
 #include "TVectorD.h"
 #include "TMatrixD.h"
 
+#include "RooUnfoldHelpers.h"
 #include "RooUnfoldResponse.h"
+#include "RooUnfoldTH1Helpers.h"
+#include "RooUnfoldFitHelpers.h"
 
-#if (defined(HAVE_TSVDUNFOLD) && !HAVE_TSVDUNFOLD) && ROOT_VERSION_CODE < ROOT_VERSION(5,34,0)
-#define TSVDUNFOLD_LEAK 1
-#endif
+using namespace RooUnfolding;
 
 using std::cout;
 using std::cerr;
 using std::endl;
 
-ClassImp (RooUnfoldSvd)
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldSvdT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kSVD;
+}
 
-RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldSvd& rhs)
-  : RooUnfold (rhs)
+
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
+  : RooUnfoldT<Hist,Hist2D> (rhs)
 {
   //! Copy constructor.
   Init();
   CopyData (rhs);
 }
 
-RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldResponse* res, const TH1* meas, Int_t kreg,
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t kreg,
                             const char* name, const char* title)
-  : RooUnfold (res, meas, name, title), _kreg(kreg ? kreg : res->GetNbinsTruth()/2)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _kreg(kreg ? kreg : res->GetNbinsTruth()/2)
 {
   //! Constructor with response matrix object and measured unfolding input histogram.
   //! The regularisation parameter is kreg.
   Init();
 }
 
-RooUnfoldSvd::RooUnfoldSvd (const RooUnfoldResponse* res, const TH1* meas, Int_t kreg, Int_t ntoyssvd,
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t kreg, Int_t ntoyssvd,
                             const char* name, const char* title)
-  : RooUnfold (res, meas, name, title), _kreg(kreg ? kreg : res->GetNbinsTruth()/2)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _kreg(kreg ? kreg : res->GetNbinsTruth()/2)
 {
   //! Constructor with old ntoyssvd argument. No longer required.
   Init();
-  _NToys = ntoyssvd;
+  this->_NToys = ntoyssvd;
 }
 
-RooUnfoldSvd*
-RooUnfoldSvd::Clone (const char* newname) const
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::Reset()
 {
-  RooUnfoldSvd* unfold= new RooUnfoldSvd(*this);
-  if (newname && strlen(newname)) unfold->SetName(newname);
-  return unfold;
-}
-
-void
-RooUnfoldSvd::Reset()
-{
+  // destroy and re-initialize this object
   Destroy();
   Init();
-  RooUnfold::Reset();
+  RooUnfoldT<Hist,Hist2D>::Reset();
 }
 
-void
-RooUnfoldSvd::Destroy()
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::Destroy()
 {
-  delete _svd;
-  delete _meas1d;
-#ifdef TSVDUNFOLD_LEAK
-  delete _meascov;
-#endif
-  delete _train1d;
-  delete _truth1d;
-  delete _reshist;
+  //! delete all members of this object
+  delete this->_svd;
+  delete this->_meas1d;
+  delete this->_train1d;
+  delete this->_truth1d;
+  delete this->_reshist;
 }
 
-void
-RooUnfoldSvd::Init()
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::Init()
 {
-  _svd= 0;
-  _meas1d= _train1d= _truth1d= 0;
-  _reshist= _meascov= 0;
+  //! initialize this object with zero values
+  this->_svd= 0;
+  this->_meas1d= this->_train1d= this->_truth1d= 0;
+  this->_reshist= this->_meascov= 0;
   GetSettings();
 }
 
-void
-RooUnfoldSvd::Assign (const RooUnfoldSvd& rhs)
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::Assign (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
 {
-  RooUnfold::Assign (rhs);
+  //! assign data from another instance
+  RooUnfoldT<Hist,Hist2D>::Assign (rhs);
   CopyData (rhs);
 }
 
-void
-RooUnfoldSvd::CopyData (const RooUnfoldSvd& rhs)
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::CopyData (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
 {
-  _kreg= rhs._kreg;
+  //! copy data from another instance
+  this->_kreg= rhs._kreg;
 }
 
-TSVDUnfold*
-RooUnfoldSvd::Impl()
+template<class Hist,class Hist2D> typename RooUnfoldSvdT<Hist,Hist2D>::SVDUnfold*
+RooUnfoldSvdT<Hist,Hist2D>::Impl()
 {
-  return _svd;
+  //! retrieve the SVDUnfold object
+  return this->_svd;
 }
 
-void
-RooUnfoldSvd::Unfold()
+
+template<class Hist,class Hist2D> void RooUnfoldSvdT<Hist,Hist2D>::PrepareHistograms() const{
+  //! fill all the histogram members
+  this->_meas1d = this->_meas;
+  this->_train1d= this->_res->Hmeasured();
+  this->_truth1d= this->_res->Htruth();
+  this->_reshist= this->_res->Hresponse();
+}
+
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::Unfold() const
 {
-  if (_res->GetDimensionTruth() != 1 || _res->GetDimensionMeasured() != 1) {
-    cerr << "RooUnfoldSvd may not work very well for multi-dimensional distributions" << endl;
+  //! perform the unfolding
+  if (this->_res->GetDimensionTruth() != 1 || this->_res->GetDimensionMeasured() != 1) {
+    std::cerr << "RooUnfoldSvdT may not work very well for multi-dimensional distributions" << std::endl;
   }
-  if (_kreg < 0) {
-    cerr << "RooUnfoldSvd invalid kreg: " << _kreg << endl;
+  if (this->_kreg < 0) {
+    std::cerr << "RooUnfoldSvdT invalid kreg: " << this->_kreg << std::endl;
+    return;
+  }
+ 
+  if (this->_kreg > this->_nm) {
+    std::cerr << "RooUnfoldSvdT invalid kreg=" << this->_kreg << " with " << this->_nm << " bins" << std::endl;
     return;
   }
 
-  _nb= _nm > _nt ? _nm : _nt;
+  this->PrepareHistograms();
 
-  if (_kreg > _nb) {
-    cerr << "RooUnfoldSvd invalid kreg=" << _kreg << " with " << _nb << " bins" << endl;
-    return;
+  if (this->_verbose>=1) std::cout << "SVD init " << nBins(this->_reshist,X) << " x " << nBins(this->_reshist,Y) << " bins, kreg=" << this->_kreg << std::endl;
+  if(!this->_meas1d) throw std::runtime_error("no meas1d given!");
+  if(!this->_train1d) throw std::runtime_error("no train1d given!");
+  if(!this->_truth1d) throw std::runtime_error("no truth1d given!");
+  if(!this->_reshist) throw std::runtime_error("no reshist given!");
+  
+  this->_svd= new SVDUnfold (this->Vmeasured(), this->GetMeasuredCov(), this->_res->Vmeasured(), this->_res->Vtruth(), this->_res->Mresponse(false), this->_res->Eresponse(false));
+
+  this->_cache._rec.ResizeTo (this->_nt);
+  this->_cache._rec = this->_svd->UnfoldV (this->_kreg);
+
+  if (this->_verbose>=2) {
+    printTable (std::cout, h2v(this->_truth1d), h2v(this->_train1d), h2v(this->_meas1d), this->_cache._rec);
+    TMatrixD resmat(h2m(this->_reshist));
+    printMatrix(resmat,"SVDUnfold response matrix");
   }
 
-  Bool_t oldstat= TH1::AddDirectoryStatus();
-  TH1::AddDirectory (kFALSE);
-  _meas1d=  HistNoOverflow (_meas,             _overflow);
-  _train1d= HistNoOverflow (_res->Hmeasured(), _overflow);
-  _truth1d= HistNoOverflow (_res->Htruth(),    _overflow);
-  _reshist= _res->HresponseNoOverflow();
-  Resize (_meas1d,  _nb);
-  Resize (_train1d, _nb);
-  Resize (_truth1d, _nb);
-  Resize (_reshist, _nb, _nb);
-
-  // Subtract fakes from measured distribution
-  if (_res->FakeEntries()) {
-    TVectorD fakes= _res->Vfakes();
-    Double_t fac= _res->Vmeasured().Sum();
-    if (fac!=0.0) fac=  Vmeasured().Sum() / fac;
-    if (_verbose>=1) cout << "Subtract " << fac*fakes.Sum() << " fakes from measured distribution" << endl;
-    for (Int_t i= 1; i<=_nm; i++)
-      _meas1d->SetBinContent (i, _meas1d->GetBinContent(i)-(fac*fakes[i-1]));
-  }
-
-  _meascov= new TH2D ("meascov", "meascov", _nb, 0.0, 1.0, _nb, 0.0, 1.0);
-  const TMatrixD& cov= GetMeasuredCov();
-  for (Int_t i= 0; i<_nm; i++)
-    for (Int_t j= 0; j<_nm; j++)
-      _meascov->SetBinContent (i+1, j+1, cov(i,j));
-
-  if (_verbose>=1) cout << "SVD init " << _reshist->GetNbinsX() << " x " << _reshist->GetNbinsY()
-                        << " bins, kreg=" << _kreg << endl;
-  _svd= new TSVDUnfold (_meas1d, _meascov, _train1d, _truth1d, _reshist);
-
-  TH1D* rechist= _svd->Unfold (_kreg);
-
-  _rec.ResizeTo (_nt);
-  for (Int_t i= 0; i<_nt; i++) {
-    _rec[i]= rechist->GetBinContent(i+1);
-  }
-
-  if (_verbose>=2) {
-    PrintTable (cout, _truth1d, _train1d, 0, _meas1d, rechist, _nb, _nb, kFALSE, kErrors);
-    TMatrixD* resmat= RooUnfoldResponse::H2M (_reshist, _nb, _nb);
-    RooUnfoldResponse::PrintMatrix(*resmat,"TSVDUnfold response matrix");
-    delete resmat;
-  }
-
-  delete rechist;
-  TH1::AddDirectory (oldstat);
-
-  _unfolded= true;
-  _haveCov=  false;
+  this->_cache._unfolded= true;
+  this->_cache._haveCov=  false;
 }
 
-void
-RooUnfoldSvd::GetCov()
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::GetCov() const
 {
-  if (!_svd) return;
-  Bool_t oldstat= TH1::AddDirectoryStatus();
-  TH1::AddDirectory (kFALSE);
-
-  TH2D *unfoldedCov= 0, *adetCov= 0;
+  //! Get covariance matrix
+  if (!this->_svd) return;
+  this->_cache._cov.ResizeTo(this->_nt,this->_nt);
   //Get the covariance matrix for statistical uncertainties on the measured distribution
-  if (_dosys!=2) unfoldedCov= _svd->GetXtau();
+  if (this->_dosys!=2) this->_cache._cov = this->_svd->GetXtau();
   //Get the covariance matrix for statistical uncertainties on the response matrix
   //Uses Poisson or Gaussian-distributed toys, depending on response matrix histogram's Sumw2 setting.
-  if (_dosys)        adetCov= _svd->GetAdetCovMatrix (_NToys);
 
-  _cov.ResizeTo (_nt, _nt);
-  for (Int_t i= 0; i<_nt; i++) {
-    for (Int_t j= 0; j<_nt; j++) {
-      Double_t v  = 0;
-      if (unfoldedCov) v  = unfoldedCov->GetBinContent(i+1,j+1);
-      if (adetCov)     v += adetCov    ->GetBinContent(i+1,j+1);
-      _cov(i,j)= v;
-    }
-  }
-
-  delete adetCov;
-#ifdef TSVDUNFOLD_LEAK
-  delete unfoldedCov;
-#endif
-  TH1::AddDirectory (oldstat);
-
-  _haveCov= true;
+  // Disabled for now. The new error handling should include the statistical uncertainties on the response
+  // matrix.
+  // if (this->_dosys){
+  //   add(this->_cache._cov,this->_svd->GetAdetCovMatrix (this->_NToys));
+  // }
+  this->_cache._haveCov= true;
 }
 
-void RooUnfoldSvd::GetWgt()
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::GetWgt() const
 {
   //! Get weight matrix
-  if (_dosys) RooUnfold::GetWgt();   // can't add sys errors to weight, so calculate weight from covariance
-  if (!_svd) return;
-  Bool_t oldstat= TH1::AddDirectoryStatus();
-  TH1::AddDirectory (kFALSE);
+  if (this->_dosys) RooUnfoldT<Hist,Hist2D>::GetWgt();   // can't add sys errors to weight, so calculate weight from covariance
+  if (!this->_svd) return;
+
+  this->_cache._wgt.ResizeTo(this->_nt, this->_nt);
 
   //Get the covariance matrix for statistical uncertainties on the measured distribution
-  TH2D* unfoldedWgt= _svd->GetXinv();
-
-  _wgt.ResizeTo (_nt, _nt);
-  for (Int_t i= 0; i<_nt; i++) {
-    for (Int_t j= 0; j<_nt; j++) {
-      _wgt(i,j)= unfoldedWgt->GetBinContent(i+1,j+1);
-    }
-  }
-
-#ifdef TSVDUNFOLD_LEAK
-  delete unfoldedWgt;
-#endif
-  TH1::AddDirectory (oldstat);
-
-  _haveWgt= true;
+  this->_cache._wgt = this->_svd->GetXinv();
+  
+  this->_cache._haveWgt= true;
 }
 
-void RooUnfoldSvd::GetSettings(){
-    _minparm=0;
-    _maxparm= _meas ? _meas->GetNbinsX() : 0;
-    _stepsizeparm=1;
-    _defaultparm=_maxparm/2;
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::GetSettings() const {
+    this->_cache._minparm=0;
+    this->_cache._maxparm= this->_meas ? nBins(this->_meas,X) : 0;
+    this->_cache._stepsizeparm=1;
+    this->_cache._defaultparm=this->_cache._maxparm/2;
 }
 
-void RooUnfoldSvd::Streamer (TBuffer &R__b)
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT()
+  : RooUnfoldT<Hist,Hist2D>()
 {
-  //! Stream an object of class RooUnfoldSvd.
-  if (R__b.IsReading()) {
-    // Don't add our histograms to the currect directory.
-    // We own them and we don't want them to disappear when the file is closed.
-    Bool_t oldstat= TH1::AddDirectoryStatus();
-    TH1::AddDirectory (kFALSE);
-    RooUnfoldSvd::Class()->ReadBuffer  (R__b, this);
-    TH1::AddDirectory (oldstat);
-  } else {
-    RooUnfoldSvd::Class()->WriteBuffer (R__b, this);
-  }
+  //! Default constructor. Use Setup() to prepare for unfolding.
+  Init();
 }
+
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const char* name, const char* title)
+  : RooUnfoldT<Hist,Hist2D>(name,title)
+{
+  //! Basic named constructor. Use Setup() to prepare for unfolding.
+  Init();
+}
+
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::RooUnfoldSvdT (const TString& name, const TString& title)
+  : RooUnfoldT<Hist,Hist2D>(name,title)
+{
+  //! Basic named constructor. Use Setup() to prepare for unfolding.
+  Init();
+}
+
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>& RooUnfoldSvdT<Hist,Hist2D>::operator= (const RooUnfoldSvdT<Hist,Hist2D>& rhs)
+{
+  //! Assignment operator for copying RooUnfoldSvdT settings.
+  Assign(rhs);
+  return *this;
+}
+
+template<class Hist,class Hist2D>
+RooUnfoldSvdT<Hist,Hist2D>::~RooUnfoldSvdT()
+{
+  Destroy();
+}
+
+
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::SetKterm (Int_t kreg)
+{
+  //! Set regularisation parameter
+  this->_kreg= kreg;
+  this->ResetUnfold();
+}
+
+
+template<class Hist,class Hist2D> Int_t
+RooUnfoldSvdT<Hist,Hist2D>::GetKterm() const
+{
+  //! Return regularisation parameter
+  return this->_kreg;
+}
+
+template<class Hist,class Hist2D> void
+RooUnfoldSvdT<Hist,Hist2D>::SetRegParm (Double_t parm)
+{
+  //! Set regularisation parameter
+  SetKterm(Int_t(parm+0.5));
+}
+
+template<class Hist,class Hist2D> Double_t
+RooUnfoldSvdT<Hist,Hist2D>::GetRegParm() const
+{
+  //! Return regularisation parameter
+  return GetKterm();
+}
+
+template class RooUnfoldSvdT<TH1,TH2>;
+ClassImp (RooUnfoldSvd)
+
+#ifndef NOROOFIT
+typedef RooUnfoldSvdT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldSvd;
+template class RooUnfoldSvdT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>;
+ClassImp (RooFitUnfoldSvd)
+#endif
+
