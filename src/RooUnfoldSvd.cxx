@@ -122,7 +122,6 @@ RooUnfoldSvdT<Hist,Hist2D>::Impl()
 
 template<class Hist,class Hist2D> void RooUnfoldSvdT<Hist,Hist2D>::PrepareHistograms() const{
   //! fill all the histogram members
-  this->_meas->Print();
   this->_meas1d = this->_meas;
   this->_train1d= this->_res->Hmeasured();
   this->_truth1d= this->_res->Htruth();
