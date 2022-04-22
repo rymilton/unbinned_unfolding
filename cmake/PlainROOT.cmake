@@ -73,6 +73,20 @@ if(${ROOT_FOUND})
       COMMAND ln -sf ${pyfile} ${CMAKE_CURRENT_BINARY_DIR}/RooUnfold
       )
   endforeach()
+
+  install( DIRECTORY RooUnfold DESTINATION include FILES_MATCHING
+        COMPONENT headers
+        PATTERN "*.h"
+        )
+
+  install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap
+        ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold_rdict.pcm
+        DESTINATION lib
+        COMPONENT libraries)
+
+  install(TARGETS RooUnfold
+        LIBRARY DESTINATION lib
+        COMPONENT libraries)
   
   
 endif()
