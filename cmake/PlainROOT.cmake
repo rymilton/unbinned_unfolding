@@ -47,10 +47,10 @@ if(${ROOT_FOUND})
     "${PROJECT_BINARY_DIR}/RooUnfoldConfig.cmake" @ONLY)
   
   # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
-  install(FILES
-    "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
-    "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
-    DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+  #install(FILES
+  #  "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
+  #  "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
+   # DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
 
   if(${RooUnfoldTests})    
     include(CTest)
@@ -74,10 +74,8 @@ if(${ROOT_FOUND})
       )
   endforeach()
 
-  install( DIRECTORY RooUnfold DESTINATION include FILES_MATCHING
-        COMPONENT headers
-        PATTERN "*.h"
-        )
+  install( FILES ${RooUnfoldHeaders} DESTINATION include/RooUnfold/
+        COMPONENT headers)
 
   install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap
         ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold_rdict.pcm
