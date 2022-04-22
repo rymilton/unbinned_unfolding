@@ -59,7 +59,7 @@ if(${ROOT_FOUND})
     foreach(ExecSource ${RooUnfoldExecSources})
       get_filename_component(ExecName ${ExecSource} NAME_WE)    
       add_executable( ${ExecName} ${ExecSource} )
-      target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES} gcov)
+      target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES})
     endforeach()
     
     add_subdirectory(test)
