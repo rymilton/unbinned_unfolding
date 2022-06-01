@@ -1,7 +1,8 @@
-file(GLOB RooUnfoldLinkDef RELATIVE ${CMAKE_SOURCE_DIR}/src ${ROOUNFOLD_HEADER_DIR}/*_LinkDef.h)
+file(GLOB RooUnfoldLinkDef RELATIVE ${CMAKE_SOURCE_DIR} ${ROOUNFOLD_HEADER_DIR}/*_LinkDef.h)
 file(GLOB RooUnfoldSources RELATIVE ${CMAKE_SOURCE_DIR} ${ROOUNFOLD_SOURCE_DIR}/*.cxx)
 file(GLOB RooUnfoldHeaders RELATIVE ${CMAKE_SOURCE_DIR}/src ${ROOUNFOLD_HEADER_DIR}/*.h src/*.tpp)
-list(REMOVE_ITEM RooUnfoldHeaders ${RooUnfoldLinkDef})
+file(GLOB RooUnfoldLinkDef2 RELATIVE ${CMAKE_SOURCE_DIR}/src ${ROOUNFOLD_HEADER_DIR}/*_LinkDef.h)
+list(REMOVE_ITEM RooUnfoldHeaders ${RooUnfoldLinkDef2})
 
 file(GLOB RooUnfoldExecSources test/src/RooUnfoldTest.cxx test/src/RooUnfoldTest2D.cxx test/src/RooUnfoldTest3D.cxx)
 file(GLOB RooUnfoldUnitTests test/*.cxx)
