@@ -79,10 +79,11 @@ public:
   virtual const Hist* Hmeasured() const;
   virtual Hist* Hmeasured();
   virtual const Hist* Htruth() const;
-  virtual Hist* Htruth();
+  virtual Hist* Htruth(); 
   virtual const Hist* Hbkg() const;
   virtual Hist* Hbkg();
   virtual Hist* Hunfold (RooUnfolding::ErrorTreatment withError=RooUnfolding::kErrors);
+  DEPRECATED("Hreco is considered ambigious and should no longer be used, please use Hunfold instead") virtual Hist* Hreco   () { return Hunfold(RooUnfolding::kErrors); }  
 
   const    TVectorD& Vmeasured() const;   // Measured distribution as a TVectorD
   const    TVectorD& Emeasured() const;   // Measured distribution errors as a TVectorD
