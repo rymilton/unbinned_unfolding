@@ -42,10 +42,10 @@ public:
   const TMatrixD& UnfoldingMatrix() const;
 
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
-  virtual void  SetRegParm (Double_t parm);
-  virtual double GetRegParm() const;
-  virtual void Reset();
-  virtual void Print (Option_t* option= "") const;
+  virtual void  SetRegParm (Double_t parm) override;
+  virtual double GetRegParm() const override;
+  virtual void Reset() override;
+  virtual void Print (Option_t* option= "") const override;
 
 protected:
   void Assign (const RooUnfoldBayesT<Hist,Hist2D>& rhs); // implementation of assignment operator
@@ -92,7 +92,7 @@ protected:
   mutable TMatrixD _dnCidPjk;     // response error propagation matrix (stack j,k into each column)
 
 public:
-  ClassDefT (RooUnfoldBayesT, 1) // Bayesian Unfolding
+  ClassDefOverride (RooUnfoldBayesT, 1) // Bayesian Unfolding
 };
 
 
