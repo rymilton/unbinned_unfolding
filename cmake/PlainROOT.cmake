@@ -45,12 +45,14 @@ if(${ROOT_FOUND})
   set(CONF_LIBRARIES    RooUnfold)
   configure_file(RooUnfoldConfig.cmake.in
     "${PROJECT_BINARY_DIR}/RooUnfoldConfig.cmake" @ONLY)
-  
-  # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
-  # install(FILES
-  #   "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
-  #   "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
-  #   DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+
+  if(${RooUnfoldGenerateCMakeConfig})
+    # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
+    install(FILES
+      "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
+      "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
+      DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+  endif()
 
   if(${RooUnfoldTests})    
     include(CTest)
