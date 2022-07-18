@@ -59,7 +59,7 @@ or, if different binning is required,
 
     RooUnfoldResponse response (hist_measured, hist_truth);
 
-In that last case, hist_measured and hist_truth are used to specify
+In that last case, `hist_measured` and `hist_truth` are used to specify
 the dimensions of the distributions (the histogram contents are not
 used here), eg. for 2D or 3D distributions or non-uniform binning.
 
@@ -78,12 +78,10 @@ pre-existing `TH2D` 2-dimensional histogram (with truth and measured
 distribution `TH1D` histograms for normalisation).
 
 This response object can be passed directly to the unfolding object,
-or written to a ROOT file for use at a later stage (search for
-`examples/RooUnfoldTest.cxx`'s stage parameter for an example of how to
-do this).
+or written to a ROOT file for lateruse.
 
-To do the unfolding (either to try different regularisation
-parameters, for testing, or for real data), create a RooUnfold object
+To perform the unfolding (either to try different regularisation
+parameters, for testing, or for real data), create a `RooUnfold` object
 and pass it the test / measured distribution (as a histogram) and the
 response object.
 
@@ -97,10 +95,10 @@ or
 
     RooUnfoldBinByBin unfold (&response, hist_measured);
 
-hist_measured is a pointer to a `TH1D` (or `TH2D` for the 2D case)
+Here, `hist_measured* is a pointer to a `TH1D` (or `TH2D` for the 2D case)
 histogram of the measured distribution (it should have the same
 binning as the response matrix). The classes `RooUnfoldBayes`,
-`RooUnfoldSvd`, and `RooUnfoldBinByBin` all inherit from `RooUnfold`
+`RooUnfoldSvd`, `RooUnfoldBinByBin`, etc. all inherit from `RooUnfold`
 and implement the different algorithms. The integer `iterations` (for
 `RooUnfoldBayes`) or `kterm` (`RooUnfoldSvd`) is the regularisation
 parameter. (Note that `RooUnfoldSvd`'s `kterm` parameter is also known
@@ -108,9 +106,9 @@ as `tau` in the code. That usage is incompatible with the literature,
 so we adopt `k` here.)
 
 The reconstructed truth distribution (with errors) can be obtained
-with the Hreco() method.
+with the `Hunfold()` method.
 
-    TH1D* hist_reco= (TH1D*) unfold.Hreco();
+    TH1D* hist_unfold= (TH1D*) unfold.Hunfold();
 
 The result can also be obtained as as a `TVectorD` with full
 `TMatrixD` covariance matrix.
@@ -196,10 +194,9 @@ You can also use python
   
 The example programs can also be run from the shell command line.
 
-    make bin
     ./RooUnfoldTest
 
-and the output appears in RooUnfoldTest.ps.
+and the output appears in `RooUnfoldTest.pdf`.
 
 You can specify parameters for `RooUnfoldTest` (either as an argument to
 the routine, or as parameters to the program), eg.
@@ -242,34 +239,6 @@ as well as a variable efficiency (between `effxlo` at `xlo` and `effxhi` at
 xhi).
 
 For 2D and 3D examples look at RooUnfoldTest2D and RooUnfoldTest3D.
-
-Testing without RooFit
----
-
-The test programs, `examples/RooUnfoldTest.cxx`,
-`examples/RooUnfoldTest2D.cxx`, and `examples/RooUnfoldTest3D.cxx `use
-RooFit to generate the toy distributions. (`RooFit` is not required to
-use the `RooUnfold` classes from another program,
-eg. `examples/RooUnfoldExample.cxx`). Hand-coded alternatives are
-provided if ROOT was not build with `RooFit` enabled
-(eg. `--enable-roofit` not specified). This version generates peaked
-signal events over their full range, so may have a fewer events within
-the range than requested.
-
-To disable the use of RooFit, 
-
-     #define NOROOFIT 
-
-before loading `RooUnfoldTest*.cxx`
-
-    root [0] #define NOROOFIT 1
-    root [1] .x examples/RooUnfoldTest.cxx
-
-For the stand-alone case, use
-
-    make bin NOROOFIT=1
-
-to build (this is the default if `RooFit` is not available).
 
 Limitations
 ---
