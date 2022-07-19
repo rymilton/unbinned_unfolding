@@ -75,7 +75,7 @@ Many versions of RooUnfold are tagged, you can access them after with
 `git checkout X.Y.Z` after cloning the repository.  The following list
 contains some of the major milestone versions.
 
-  - 3.0: Inclusion of RooFit, transition to RooFitUnfold. 
-  - 2.0: General interface improvements
+  - 3.0.0: Inclusion of RooFit, transition to RooFitUnfold. 
+  - 2.0.0: General interface improvements
   - 1.1.1: Legacy port from SVN repository
   
