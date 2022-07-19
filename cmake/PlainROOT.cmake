@@ -24,7 +24,7 @@ if(${ROOT_FOUND})
   else()
     include("${ROOTSYS}/cmake/RootMacros.cmake")
   endif()
-  ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeaders} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS})
+  ROOT_GENERATE_DICTIONARY(G__RooUnfold ${RooUnfoldHeadersForLinkDef} LINKDEF ${RooUnfoldLinkDef} OPTIONS ${EXTRA_FLAGS})
   
   # register the shared object to include both sources and dictionaries
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RooUnfold_FLAGS}")  
@@ -45,12 +45,14 @@ if(${ROOT_FOUND})
   set(CONF_LIBRARIES    RooUnfold)
   configure_file(RooUnfoldConfig.cmake.in
     "${PROJECT_BINARY_DIR}/RooUnfoldConfig.cmake" @ONLY)
-  
-  # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
-  install(FILES
-    "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
-    "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
-    DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+
+  if(${RooUnfoldGenerateCMakeConfig})
+    # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
+    install(FILES
+      "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
+      "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
+      DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+  endif()
 
   if(${RooUnfoldTests})    
     include(CTest)
@@ -59,7 +61,7 @@ if(${ROOT_FOUND})
     foreach(ExecSource ${RooUnfoldExecSources})
       get_filename_component(ExecName ${ExecSource} NAME_WE)    
       add_executable( ${ExecName} ${ExecSource} )
-      target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES} gcov)
+      target_link_libraries ( ${ExecName} RooUnfold ${ROOT_LIBRARIES})
     endforeach()
     
     add_subdirectory(test)
@@ -73,6 +75,18 @@ if(${ROOT_FOUND})
       COMMAND ln -sf ${pyfile} ${CMAKE_CURRENT_BINARY_DIR}/RooUnfold
       )
   endforeach()
+
+  install( FILES ${RooUnfoldHeaders} DESTINATION include/
+        COMPONENT headers)
+
+  install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap
+        ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold_rdict.pcm
+        DESTINATION lib
+        COMPONENT libraries)
+
+  install(TARGETS RooUnfold
+        LIBRARY DESTINATION lib
+        COMPONENT libraries)
   
   
 endif()
