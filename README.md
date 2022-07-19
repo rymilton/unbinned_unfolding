@@ -30,15 +30,11 @@ refer to this web page and/or the paper:
 
 For earlier documentation, check:
 
-  - Tim Adye, in Proceedings of the PHYSTAT 2011 Workshop on
+Tim Adye, in Proceedings of the PHYSTAT 2011 Workshop on
     Statistical Issues Related to Discovery Claims in Search
     Experiments and Unfolding, CERN, Geneva, Switzerland, 17–20
     January 2011, edited by H.B. Prosper and L. Lyons, CERN–2011–006,
-    pp. 313–318
-  - [proceedings, CDS version](https://cdsweb.cern.ch/record/1306523)
-  - [proceedings, refactored version](https://roounfold.web.cern.ch/phystat2011_adye.pdf)
-  - [slides, original version](https://indico.cern.ch/event/107747/contributions/32673/)
-  - [slides, refactored version](https://roounfold.web.cern.ch/adye_tim.pdf)
+    pp. 313–318. Proceedings [CDS](https://cdsweb.cern.ch/record/1306523), [refactored version](https://roounfold.web.cern.ch/phystat2011_adye.pdf); Slides [original](https://indico.cern.ch/event/107747/contributions/32673/), [refactored](https://roounfold.web.cern.ch/adye_tim.pdf).
 
 Building the Library
 ---
