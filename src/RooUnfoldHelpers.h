@@ -8,6 +8,14 @@
 #include <TRandom.h>
 #include <iostream>
 
+
+
+#if defined(__GNUC__) || defined(__clang__)
+#define DEPRECATED(REASON) [[deprecated("#REASON")]]
+#elif defined(_MSC_VER)
+#define DEPRECATED(REASON) __declspec(deprecated)
+#endif
+
 namespace RooUnfolding {
 
   enum Algorithm {       // Selection of unfolding algorithm:
