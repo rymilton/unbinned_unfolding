@@ -13,8 +13,8 @@ RooUnfold is a framework for unfolding (AKA "deconvolution" or
   - usage of gaussian processes (GP) for regularizing a kernel, as developed by Adam Bosson
   - Poisson unfolding, a simple likelihood unfolding
 
-RooUnfold was written by Tim Adye, Richard Claridge, Kerstin Tackmann,
-and Fergus Wilson. It can be used from the ROOT prompt, or compiled and linked
+RooUnfold was originally written by Tim Adye, Richard Claridge, Kerstin Tackmann,
+and Fergus Wilson (2007). It can be used from the ROOT prompt, or compiled and linked
 against the ROOT libraries.
 
 It is currently maintained by Tim Adye, Carsten Burgard, Lydia
