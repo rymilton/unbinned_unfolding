@@ -66,7 +66,7 @@ Usage
 ---
 
 Example usage instructions as well as a more detailed description and
-recommendations can be found in the [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_recommendations.pdf).
+recommendations can be found in the [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_user_guide.pdf).
 
 Versions
 ---
