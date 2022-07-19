@@ -70,3 +70,15 @@ Usage
 
 Example usage instructions as well as a more detailed description and
 recommendations can be found in the [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_recommendations.pdf).
+
+Versions
+---
+
+Many versions of RooUnfold are tagged, you can access them after with
+`git checkout X.Y.Z` after cloning the repository.  The following list
+contains some of the major milestone versions.
+
+  - 3.0: Inclusion of RooFit, transition to RooFitUnfold. 
+  - 2.0: General interface improvements
+  - 1.1.1: Legacy port from SVN repository
+  
