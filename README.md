@@ -9,8 +9,9 @@ RooUnfold is a framework for unfolding (AKA "deconvolution" or
   - bin-by-bin (simple correction factors);
   - an interface to the [TUnfold](https://root.cern.ch/doc/master/classTUnfold.html) method developed by Stefan Schmitt
   - simple inversion of the response matrix without regularisation
-  - iterative dynamically stabilized (IDS) unfolding; and
+  - iterative dynamically stabilized (IDS) unfolding
   - usage of gaussian processes (GP) for regularizing a kernel, as developed by Adam Bosson
+  - Poisson unfolding, a simple likelihood unfolding
 
 RooUnfold was written by Tim Adye, Richard Claridge, Kerstin Tackmann,
 and Fergus Wilson. It can be used from the ROOT prompt, or compiled and linked
