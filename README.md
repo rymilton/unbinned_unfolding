@@ -25,7 +25,7 @@ See this overview of RooUnfold or the references below for more
 information. To cite the RooUnfold package in a publication, you can
 refer to this web page and/or the paper:
 
-L. Brenner et al., International Journal of Modern Physics A, Vol. 35, No. 24, 2050145 (2020), ArXiV:1910.14654
+[Comparison of unfolding methods using RooFitUnfold., L. Brenner et al., International Journal of Modern Physics A, Vol. 35, No. 24, 2050145 (2020)](https://doi.org/10.1142/S0217751X20501456), [ArXiV:1910.14654](https://arxiv.org/abs/1910.14654)
 
 For earlier documentation, check:
 
@@ -68,5 +68,5 @@ For backwards compatibility, we also maintain a GNU `Makefile`.
 Usage
 ---
 
-Example usage instructions can be found under [USAGE.md](https://gitlab.cern.ch/RooUnfold/RooUnfold/-/blob/master/USAGE.md).
-More detailed description and recommendations can be found under [RooUnfold Documentation](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_recommendations.pdf).
+Example usage instructions as well as a more detailed description and
+recommendations can be found in the [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_recommendations.pdf).
