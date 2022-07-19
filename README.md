@@ -28,6 +28,13 @@ refer to this web page and/or the paper:
 
 [Comparison of unfolding methods using RooFitUnfold., L. Brenner et al., International Journal of Modern Physics A, Vol. 35, No. 24, 2050145 (2020)](https://doi.org/10.1142/S0217751X20501456), [ArXiV:1910.14654](https://arxiv.org/abs/1910.14654)
 
+There is extensive documentation available online:
+  - the [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_user_guide.pdf).
+  - the [RooUnfold tutorial](http://statisticalmethods.web.cern.ch/StatisticalMethods/unfolding/RooUnfold_01-Methods/) 
+  - auto-generated [Doxygen class documentation](http://roounfold.web.cern.ch/hierarchy.html) for the RooUnfold package
+  - RooUnfold package [README](README.md)
+  - RooUnfold package [release notes](History.md)
+
 For earlier documentation, check:
 
 Tim Adye, in Proceedings of the PHYSTAT 2011 Workshop on
