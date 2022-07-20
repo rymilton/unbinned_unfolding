@@ -656,6 +656,31 @@ namespace RooUnfolding {
   }
   
   
+  Bool_t resizeAxis (TAxis* ax, Int_t nx){
+    // Resize a histogram axis adding extra bins on the end. Returns true if any change made.
+    if (!ax)    return kFALSE;
+    if (nx < 0) return kFALSE;
+    Int_t mx=  ax->GetNbins();
+    if (nx == mx || mx<=0) return kFALSE;
+    Int_t ma = ax->GetXbins()->GetSize();
+    if (ma<=1 || nx<=1) {   // fixed binning
+      Double_t xlo= ax->GetXmin(), xhi= ax->GetXmax();
+      ax->Set (nx, xlo, xlo+((xhi-xlo)/mx)*nx);
+    } else {                // variable binning
+      TArrayD ar = *ax->GetXbins();
+      Int_t na = nx+1;
+      if (na > ma) {
+        ar.Set(na);
+        Double_t xhi = ar[ma-1], h = xhi - ar[ma-2];
+        for (Int_t i = ma; i<na; i++)
+          ar[i] = xhi + h*(i-ma+1);
+      }
+      ax->Set (nx, ar.GetArray());
+    }
+    return kTRUE;
+  }
+
+
   TH1* resize (TH1* h, Int_t nx, Int_t ny, Int_t nz){
     // Resize a histogram with a different number of bins.
     // Contents and errors are copied to the same bin numbers (the overflow bin
@@ -667,93 +692,86 @@ namespace RooUnfolding {
     if (nx<0 || nd<1) nx= mx;
     if (ny<0 || nd<2) ny= my;
     if (nz<0 || nd<3) nz= mz;
-    TH1* hc= (TH1*) h->Clone("resize_tmp");
 
-    bool mod= false;
-    if (nx!=mx) {
-      Double_t xlo= h->GetXaxis()->GetXmin(), xhi= h->GetXaxis()->GetXmax();
-      h->GetXaxis()->Set (nx, xlo, xlo+((xhi-xlo)/mx)*nx);
-      mod= true;
-    }
-    if (ny!=my) {
-      Double_t ylo= h->GetYaxis()->GetXmin(), yhi= h->GetYaxis()->GetXmax();
-      h->GetYaxis()->Set (ny, ylo, ylo+((yhi-ylo)/my)*ny);
-      mod= true;
-    }
-    if (nz!=mz) {
-      Double_t zlo= h->GetZaxis()->GetXmin(), zhi= h->GetZaxis()->GetXmax();
-      h->GetZaxis()->Set (nz, zlo, zlo+((zhi-zlo)/mz)*nz);
-      mod= true;
-    }
+    if (nx==mx && ny==my && nz==mz) return h;
 
-    if (mod) {
-      h->SetBinsLength(-1);  // Just copies array, which isn't right for overflows or 2D/3D
-      Int_t s= h->GetSumw2N();
-      Int_t ox= mx+1, oy= my+1, oz= mz+1;  // old overflow bin
-      Int_t px= nx+1, py= ny+1, pz= nz+1;  // new overflow bin
+    Bool_t oldstat= TH1::AddDirectoryStatus();
+    TH1::AddDirectory (kFALSE);
+    const TH1* hc= (TH1*) h->Clone("resize_tmp");
 
-      if        (nd==1) {
+    Int_t s= h->GetSumw2N();
+    resizeAxis (h->GetXaxis(), nx);
+    resizeAxis (h->GetYaxis(), ny);
+    resizeAxis (h->GetZaxis(), nz);
 
-        for (Int_t i= 0; i<=nx; i++) {
-          h->SetBinContent (i, i>mx ? 0.0 : hc->GetBinContent (i));
-          if (s) h->SetBinError   (i, i>mx ? 0.0 : hc->GetBinError   (i));
-        }
-        h->SetBinContent (px, h->GetBinContent (ox));
-        if (s) h->SetBinError   (px, h->GetBinError   (ox));
+    h->SetBinsLength(-1);  // Just copies array, which isn't right for overflows or 2D/3D
+    if (s) h->Sumw2();     // Recreate Sumw2 array
+    Int_t ox= mx+1, oy= my+1, oz= mz+1;  // old overflow bin
+    Int_t px= nx+1, py= ny+1, pz= nz+1;  // new overflow bin
 
-      } else if (nd==2) {
+    if        (nd==1) {
 
-        for (Int_t i= 0; i<=nx; i++) {
-          for (Int_t j= 0; j<=ny; j++) {
-            h->SetBinContent (i, j, i>mx||j>my ? 0.0 : hc->GetBinContent (i, j));
-            if (s) h->SetBinError   (i, j, i>mx||j>my ? 0.0 : hc->GetBinError   (i, j));
-          }
-          h->SetBinContent (i, py, i>mx ? 0.0 : hc->GetBinContent (i, oy));
-          if (s) h->SetBinError   (i, py, i>mx ? 0.0 : hc->GetBinError   (i, oy));
-        }
+      for (Int_t i= 0; i<=nx; i++) {
+               h->SetBinContent (i, i>mx ? 0.0 : hc->GetBinContent (i));
+        if (s) h->SetBinError   (i, i>mx ? 0.0 : hc->GetBinError   (i));
+      }
+             h->SetBinContent (px, h->GetBinContent (ox));
+      if (s) h->SetBinError   (px, h->GetBinError   (ox));
+
+    } else if (nd==2) {
+
+      for (Int_t i= 0; i<=nx; i++) {
         for (Int_t j= 0; j<=ny; j++) {
-          h->SetBinContent (px, j, j>my ? 0.0 : hc->GetBinContent (ox, j));
-          if (s) h->SetBinError   (px, j, j>my ? 0.0 : hc->GetBinError   (ox, j));
+                 h->SetBinContent (i, j, i>mx||j>my ? 0.0 : hc->GetBinContent (i, j));
+          if (s) h->SetBinError   (i, j, i>mx||j>my ? 0.0 : hc->GetBinError   (i, j));
         }
-        h->SetBinContent (px, py, hc->GetBinContent (ox, oy));
-        if (s) h->SetBinError   (px, py, hc->GetBinError   (ox, oy));
+               h->SetBinContent (i, py, i>mx ? 0.0 : hc->GetBinContent (i, oy));
+        if (s) h->SetBinError   (i, py, i>mx ? 0.0 : hc->GetBinError   (i, oy));
+      }
+      for (Int_t j= 0; j<=ny; j++) {
+               h->SetBinContent (px, j, j>my ? 0.0 : hc->GetBinContent (ox, j));
+        if (s) h->SetBinError   (px, j, j>my ? 0.0 : hc->GetBinError   (ox, j));
+      }
+             h->SetBinContent (px, py, hc->GetBinContent (ox, oy));
+      if (s) h->SetBinError   (px, py, hc->GetBinError   (ox, oy));
 
-      } else if (nd==3) {
+    } else if (nd==3) {
 
-        for (Int_t i= 0; i<=nx; i++) {
-          for (Int_t j= 0; j<=ny; j++) {
-            for (Int_t k= 0; k<=nz; k++) {
-              h->SetBinContent (i, j, k, i>mx||j>my||k>mz ? 0.0 : hc->GetBinContent (i, j, k));
-              if (s) h->SetBinError   (i, j, k, i>mx||j>my||k>mz ? 0.0 : hc->GetBinError   (i, j, k));
-            }
-            h->SetBinContent (i, j, pz, i>mx||j>my ? 0.0 : hc->GetBinContent (i, j, oz));
-            if (s) h->SetBinError   (i, j, pz, i>mx||j>my ? 0.0 : hc->GetBinError   (i, j, oz));
-          }
-          h->SetBinContent (i, py, pz, i>mx ? 0.0 : hc->GetBinContent (i, oy, oz));
-          if (s) h->SetBinError   (i, py, pz, i>mx ? 0.0 : hc->GetBinError   (i, oy, oz));
-        }
+      for (Int_t i= 0; i<=nx; i++) {
         for (Int_t j= 0; j<=ny; j++) {
           for (Int_t k= 0; k<=nz; k++) {
-            h->SetBinContent (px, j, k, j>my||k>mz ? 0.0 : hc->GetBinContent (ox, j, k));
-            if (s) h->SetBinError   (px, j, k, j>my||k>mz ? 0.0 : hc->GetBinError   (ox, j, k));
+                   h->SetBinContent (i, j, k, i>mx||j>my||k>mz ? 0.0 : hc->GetBinContent (i, j, k));
+            if (s) h->SetBinError   (i, j, k, i>mx||j>my||k>mz ? 0.0 : hc->GetBinError   (i, j, k));
           }
-          h->SetBinContent (px, j, pz, j>my ? 0.0 : hc->GetBinContent (ox, j, oz));
-          if (s) h->SetBinError   (px, j, pz, j>my ? 0.0 : hc->GetBinError   (ox, j, oz));
+                 h->SetBinContent (i, j, pz, i>mx||j>my ? 0.0 : hc->GetBinContent (i, j, oz));
+          if (s) h->SetBinError   (i, j, pz, i>mx||j>my ? 0.0 : hc->GetBinError   (i, j, oz));
         }
-        for (Int_t k= 0; k<=nz; k++) {
-          for (Int_t i= 0; i<=nx; i++) {
-            h->SetBinContent (i, py, k, i>mx||k>mz ? 0.0 : hc->GetBinContent (i, oy, k));
-            if (s) h->SetBinError   (i, py, k, i>mx||k>mz ? 0.0 : hc->GetBinError   (i, oy, k));
-          }
-          h->SetBinContent (px, py, k, k>mz ? 0.0 : hc->GetBinContent (ox, oy, k));
-          if (s) h->SetBinError   (px, py, k, k>mz ? 0.0 : hc->GetBinError   (ox, oy, k));
-        }
-        h->SetBinContent (px, py, pz, hc->GetBinContent (ox, oy, oz));
-        if (s) h->SetBinError   (px, py, pz, hc->GetBinError   (ox, oy, oz));
-
+               h->SetBinContent (i, py, pz, i>mx ? 0.0 : hc->GetBinContent (i, oy, oz));
+        if (s) h->SetBinError   (i, py, pz, i>mx ? 0.0 : hc->GetBinError   (i, oy, oz));
       }
+      for (Int_t j= 0; j<=ny; j++) {
+        for (Int_t k= 0; k<=nz; k++) {
+                 h->SetBinContent (px, j, k, j>my||k>mz ? 0.0 : hc->GetBinContent (ox, j, k));
+          if (s) h->SetBinError   (px, j, k, j>my||k>mz ? 0.0 : hc->GetBinError   (ox, j, k));
+        }
+               h->SetBinContent (px, j, pz, j>my ? 0.0 : hc->GetBinContent (ox, j, oz));
+        if (s) h->SetBinError   (px, j, pz, j>my ? 0.0 : hc->GetBinError   (ox, j, oz));
+      }
+      for (Int_t k= 0; k<=nz; k++) {
+        for (Int_t i= 0; i<=nx; i++) {
+                 h->SetBinContent (i, py, k, i>mx||k>mz ? 0.0 : hc->GetBinContent (i, oy, k));
+          if (s) h->SetBinError   (i, py, k, i>mx||k>mz ? 0.0 : hc->GetBinError   (i, oy, k));
+        }
+               h->SetBinContent (px, py, k, k>mz ? 0.0 : hc->GetBinContent (ox, oy, k));
+        if (s) h->SetBinError   (px, py, k, k>mz ? 0.0 : hc->GetBinError   (ox, oy, k));
+      }
+             h->SetBinContent (px, py, pz, hc->GetBinContent (ox, oy, oz));
+      if (s) h->SetBinError   (px, py, pz, hc->GetBinError   (ox, oy, oz));
+
     }
+
     delete hc;
+    TH1::AddDirectory(oldstat);
     return h;
   }
 
