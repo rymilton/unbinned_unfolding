@@ -29,6 +29,7 @@ namespace RooUnfolding {
     Variable(int nBins,double min,double max,const char*) : _nBins(nBins),_min(min),_max(max){};
   };
 
+  Bool_t resizeAxis (TAxis* ax, Int_t nx);
   TH1* resize (TH1* h, Int_t nx, Int_t ny=1, Int_t nz=1);
   TH1* convertTH1(const TVectorD& values, const TVectorD& errors, const TH1* hist);
   TH1* convertTH1(const TVectorD& values, const TH1* hist);  
