@@ -47,11 +47,10 @@ if(${ROOT_FOUND})
     "${PROJECT_BINARY_DIR}/RooUnfoldConfig.cmake" @ONLY)
 
   if(${RooUnfoldGenerateCMakeConfig})
-    # Install the RooUnfoldConfig.cmake and RooUnfoldConfigVersion.cmake
+    # Install the RooUnfoldConfig.cmake
     install(FILES
-      "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/RooUnfoldConfig.cmake"
-      "${PROJECT_BINARY_DIR}/RooUnfoldConfigVersion.cmake"
-      DESTINATION "${PROJECT_SOURCE_DIR}" COMPONENT dev)
+      "${PROJECT_BINARY_DIR}/RooUnfoldConfig.cmake"
+      DESTINATION lib/cmake/RooUnfold/ COMPONENT dev)
   endif()
 
   if(${RooUnfoldTests})    
