@@ -1,6 +1,30 @@
 Release notes
 =========
 
+Version [3.0.0](https://gitlab.cern.ch/RooUnfold/RooUnfold/tree/3.0.0)
+---
+22.07.2022
+
+Major overhaul of implementation, contains thousands of lines of changes since version [2.0.0](https://gitlab.cern.ch/RooUnfold/RooUnfold/tree/2.0.0)
+
+##### New Features
+
+  - Completely abstracted away internal histogram handling. All classes now work with TVectorD and TMatrixD instead of TH1F
+  - Base histogram type is flexible, can either be TH1 (old-style RooUnfold) or RooAbsArg (RooFitUnfold)
+
+##### Improvements
+
+  - Various compliation issues fixed and warnings fixed.
+
+##### Testing
+
+  - completely refactored testing framework
+  - added CI pipeline with decent coverage to test various features
+
+##### Documentation
+
+  - completely refactored README, added external [User Guide](https://gitlab.cern.ch/RooUnfold/documentation/-/blob/master/RooUnfold_user_guide.pdf)
+
 Version [2.0.0](https://gitlab.cern.ch/RooUnfold/RooUnfold/tree/2.0.0)
 ---
 16 September 2019
