@@ -394,7 +394,7 @@ RooUnfoldT<Hist,Hist2D>::SetMeasured (const Hist* meas)
 
 
 template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::SetMeasured (const TVectorD& meas, const TVectorD& err)
+RooUnfoldT<Hist,Hist2D>::SetMeasured (const TVectorD& meas, const TVectorD& /*err*/)
 {
   //! Set measured distribution and errors. Should be called after setting response matrix.
   const Hist* orig = _res->Hmeasured();
@@ -412,7 +412,7 @@ RooUnfoldT<Hist,Hist2D>::SetTruth (const Hist* truth)
 
 
 template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::SetTruth (const TVectorD& truth, const TVectorD& err)
+RooUnfoldT<Hist,Hist2D>::SetTruth (const TVectorD& truth, const TVectorD& /*err*/)
 {
   //! Set truth distribution and errors. Should be called after setting response matrix.
   const Hist* orig = _res->Htruth();
@@ -429,7 +429,7 @@ RooUnfoldT<Hist,Hist2D>::SetBkg (const Hist* bkg)
 
 
 template<class Hist,class Hist2D> void
-RooUnfoldT<Hist,Hist2D>::SetBkg (const TVectorD& bkg, const TVectorD& err)
+RooUnfoldT<Hist,Hist2D>::SetBkg (const TVectorD& bkg, const TVectorD& /*err*/)
 {
   //! Set truth distribution and errors. Should be called after setting response matrix.
   const Hist* orig = _res->Htruth();
@@ -747,7 +747,7 @@ RooUnfoldT<Hist,Hist2D>::Chi2(const Hist* hTrue,ErrorTreatment DoChi2) const {
 template<class Hist,class Hist2D> void
 RooUnfoldT<Hist,Hist2D>::PrintTable (const Hist* hTrue, RooUnfolding::ErrorTreatment withError) const {
   //! Prints entries from truth, measured, and unfolded data for each bin.
-  this->PrintTable(std::cout);
+  this->PrintTable(std::cout, hTrue, withError);
 }
 
 template<class Hist,class Hist2D> void
@@ -1494,7 +1494,7 @@ void  RooUnfoldT<Hist,Hist2D>::SetNToys (Int_t toys)
 }
 
 template<class Hist,class Hist2D> 
-void  RooUnfoldT<Hist,Hist2D>::SetRegParm (Double_t regparm)
+void  RooUnfoldT<Hist,Hist2D>::SetRegParm (Double_t /*regparm*/)
 {
   //! Set Regularisation parameter
 }
@@ -1539,7 +1539,7 @@ ClassImp (RooUnfold)
 #include "RooFitResult.h"
 #include "RooAbsPdf.h"
 #include "RooDataSet.h"
-template<> void RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::SetResponse (const RooUnfoldResponseT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* res, Bool_t takeOwnership){
+template<> void RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::SetResponse (const RooUnfoldResponseT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* res, Bool_t /*takeOwnership*/){
   //! Set response matrix for unfolding, optionally taking ownership of the RooUnfoldResponseT<Hist,Hist2D> object
   if(!res) throw std::runtime_error("cannot set response to invalid value!");
   _res = new RooFitUnfoldResponse(res);

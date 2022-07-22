@@ -41,7 +41,7 @@ protected:
   mutable Cache _specialcache;  //!
 
 public:
-  ClassDefT (RooUnfoldBinByBinT, 1)  // Bin-by-bin unfolding
+  ClassDefOverride (RooUnfoldBinByBinT, 1)  // Bin-by-bin unfolding
 };
 
 //! \class RooUnfoldBinByBin 

@@ -92,7 +92,7 @@ class TUnfoldSysV17 : public TUnfoldV17 {
    /// Result: systematic shift from tau
    TMatrixDSparse *fDeltaSysTau;
  protected:
-   virtual void ClearResults(void);     // clear all results
+   virtual void ClearResults(void) override;     // clear all results
    virtual void PrepareSysError(void); // common calculations for syst.errors
    virtual TMatrixDSparse *PrepareUncorrEmat(const TMatrixDSparse *m1,const TMatrixDSparse *m2); // calculate uncorrelated error matrix
    virtual TMatrixDSparse *PrepareCorrEmat(const TMatrixDSparse *m1,const TMatrixDSparse *m2,const TMatrixDSparse *dsys); // calculate correlated error matrix
@@ -123,7 +123,8 @@ class TUnfoldSysV17 : public TUnfoldV17 {
    void SubtractBackground(const TH1 *hist_bgr,const char *name,
                            Double_t scale=1.0,
                            Double_t scale_error=0.0); // subtract background prior to unfolding
-   virtual Int_t SetInput(const TH1 *hist_y,Double_t scaleBias=0.0,Double_t oneOverZeroError=0.0,const TH2 *hist_vyy=0,const TH2 *hist_vyy_inv=0); // define input consistently in case of background subtraction
+   using TUnfoldV17::SetInput;
+   virtual Int_t SetInput(const TH1 *hist_y,Double_t scaleBias=0.0,Double_t oneOverZeroError=0.0,const TH2 *hist_vyy=0,const TH2 *hist_vyy_inv=0) override; // define input consistently in case of background subtraction
    void SetTauError(Double_t delta_tau); // set uncertainty on tau
    TSortedList *GetBgrSources(void) const; // get names of background sources
    TSortedList *GetSysSources(void) const; // get names of systematic sources
@@ -146,7 +147,7 @@ class TUnfoldSysV17 : public TUnfoldV17 {
    void GetEmatrixTotal(TH2 *ematrix,const Int_t *binMap=0); // get total error including systematic,statistical,background,tau errors
    void GetRhoItotal(TH1 *rhoi,const Int_t *binMap=0,TH2 *invEmat=0); // get global correlation coefficients including systematic,statistical,background,tau errors
    Double_t GetChi2Sys(void); // get total chi**2 including all systematic errors
-   ClassDef(TUnfoldSysV17, TUnfold_CLASS_VERSION) //Unfolding with support for systematic error propagation
+   ClassDefOverride(TUnfoldSysV17, TUnfold_CLASS_VERSION) //Unfolding with support for systematic error propagation
 };
 
 #endif

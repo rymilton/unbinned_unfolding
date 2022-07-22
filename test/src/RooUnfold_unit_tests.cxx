@@ -26,7 +26,7 @@ int TestBayes(int mode=0){
         }
         ref.close();
     }
-    check(n==r.size(), "error in bayes: %d bins is not %u",n,r.size());
+    check(n==Int_t(r.size()), "error in bayes: %d bins is not %zu",n,r.size());
 
     for (int i=0; i<n; i++){
         check(EQ(u[i], r[i], 1), "error in bayes bin: %d as %f is not %f",i,u[i],r[i]);

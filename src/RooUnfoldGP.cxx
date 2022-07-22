@@ -449,6 +449,7 @@ RooUnfoldGPT<Hist,Hist2D>::SetMinInit(std::vector<Double_t>& init) const
       std::cerr << init.size() << " parameter initial values have been passed for the Marginal LH minimization. This should be 2 for the radial kernel.";
       return;
     } 
+    break;
   }
 
   case 2: { 
@@ -456,6 +457,7 @@ RooUnfoldGPT<Hist,Hist2D>::SetMinInit(std::vector<Double_t>& init) const
       std::cerr << init.size() << " parameter initial values have been passed for the Marginal LH minimization. This should be 3 for the Gibbs kernel.";
       return;
     }
+    break;
   }
     
   }
@@ -472,6 +474,7 @@ RooUnfoldGPT<Hist,Hist2D>::SetMinStep(std::vector<Double_t>& step) const
       std::cerr << step.size() << " parameter step sizes have been passed. This should be 2 for the radial kernel.";
       return;
     } 
+    break;
   }
 
   case 2: { 
@@ -479,6 +482,7 @@ RooUnfoldGPT<Hist,Hist2D>::SetMinStep(std::vector<Double_t>& step) const
       std::cerr << step.size() << " parameter step sizes have been passed. This should be 3 for the Gibbs kernel.";
       return;
     }
+    break;
   }
   }
   _specialcache._kernel_step = step;

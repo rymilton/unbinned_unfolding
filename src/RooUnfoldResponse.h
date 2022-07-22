@@ -71,7 +71,7 @@ public:
   Bool_t UseOverflowStatus() const;            // Get UseOverflow setting
   Bool_t UseDensityStatus() const;            // Get UseDensity setting
   bool HasFakes() const;                // Return number of bins with fakes
-  virtual void Print (Option_t* option="") const;
+  virtual void Print (Option_t* option="") const override;
 
   Hist* ApplyToTruth (const Hist* truth= 0, const char* name= "AppliedResponse") const; // If argument is 0, applies itself to its own truth
   TF1* MakeFoldingFunction (TF1* func, Double_t eps=1e-12, Bool_t verbose=false) const;
@@ -120,7 +120,7 @@ private:
 
 public:
 
-  ClassDefT (RooUnfoldResponseT, 1) // Respose Matrix
+  ClassDefOverride (RooUnfoldResponseT, 1) // Respose Matrix
 };
 
 //=====================================================================-*-C++-*-

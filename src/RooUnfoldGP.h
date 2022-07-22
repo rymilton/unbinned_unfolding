@@ -32,10 +32,10 @@ public:
   virtual ~RooUnfoldGPT(); // destructor
   RooUnfoldGPT& operator= (const RooUnfoldGPT<Hist,Hist2D>& rhs); // assignment operator
   RooUnfoldGPT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t kernel = 1, const char* name=0, const char* title=0);
-  virtual void SetRegParm(Double_t parm);
+  virtual void SetRegParm(Double_t parm) override;
   virtual void Reset() override;
   TDecompSVD* Impl();
-  virtual Double_t GetRegParm() const;
+  virtual Double_t GetRegParm() const override;
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;    
 
 protected:
@@ -114,7 +114,7 @@ protected:
   Int_t _kernel;
 
 public:
-  ClassDefT (RooUnfoldGPT, 1)  // Unregularised unfolding
+  ClassDefOverride (RooUnfoldGPT, 1)  // Unregularised unfolding
 };
 
 //! \class RooUnfoldGP 

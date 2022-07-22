@@ -97,7 +97,14 @@ endif
 endif
 
 # add more warnings to the C++ compiler output
-CXXFLAGS     += -Wall -Wshadow
+ifneq ($(findstring clang++,$(CXX)),)
+# NB. don't include clang's -Wshadow, which gives many errors inside ROOT
+CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual
+else
+# NB. don't include gcc's -Wsuggest-override, which gives many warnings inside ROOT.
+# Clang (and Cling)'s default and supposedly equivalent -Winconsistent-missing-override is more helpful.
+CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual -Wshadow
+endif
 
 ifeq ($(PLATFORM),macosx)
 # Remove stupid shared library option on MacOSX. The option doesn't work (and we don't

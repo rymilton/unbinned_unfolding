@@ -35,13 +35,13 @@ public:
 
   RooUnfoldPoissonT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Double_t regparm= 1e-30, const char* name= 0, const char* title= 0);
 
-  virtual void  SetRegParm (Double_t parm);
-  virtual double GetRegParm() const;
+  virtual void  SetRegParm (Double_t parm) override;
+  virtual double GetRegParm() const override;
   virtual void SetMinimizerStart(const Hist* truth);
   virtual void SetMinimizerStart(TVectorD truth);
   virtual void SetPrintLevel(Int_t print = 0);
-  virtual void Reset();
-  virtual void Print (Option_t* option= "") const;
+  virtual void Reset() override;
+  // virtual void Print (Option_t* option= "") const override;
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
   
 protected:
@@ -77,7 +77,7 @@ protected:
   mutable TMatrixD _covariance;
 
 public:
-  ClassDefT (RooUnfoldPoissonT, 1) 
+  ClassDefOverride (RooUnfoldPoissonT, 1) 
 };
 
 

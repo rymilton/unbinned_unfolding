@@ -13,8 +13,7 @@
 #define mu_run_test(test) debug("\n-----%s", " " #test); \
   message = test(); if (message) return message;
 
-#define RUN_TESTS(name) int main(int argc, char *argv[]) {	\
-    argc = 1;							\
+#define RUN_TESTS(name) int main(int, char *argv[]) {	\
     debug("----- RUNNING: %s", argv[0]);			\
     printf("----\nRUNNING: %s\n", argv[0]);			\
     const char *result = name();					\

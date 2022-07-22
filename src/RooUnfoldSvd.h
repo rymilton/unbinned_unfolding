@@ -135,9 +135,9 @@ public:
 
   void SetKterm (Int_t kreg);
   Int_t GetKterm() const;
-  virtual void  SetRegParm (Double_t parm);
-  virtual Double_t GetRegParm() const;
-  virtual void Reset();
+  virtual void  SetRegParm (Double_t parm) override;
+  virtual Double_t GetRegParm() const override;
+  virtual void Reset() override;
   SVDUnfold* Impl();
 
 protected:
@@ -162,7 +162,7 @@ protected:
   mutable const Hist2D *_reshist, *_meascov;
 
 public:
-  ClassDefT (RooUnfoldSvdT, 1) // SVD Unfolding (interface to TSVDUnfold)
+  ClassDefOverride (RooUnfoldSvdT, 1) // SVD Unfolding (interface to TSVDUnfold)
 };
 
 //! \class RooUnfoldSvd 

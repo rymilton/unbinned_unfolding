@@ -1879,7 +1879,7 @@ const TObjString *TUnfoldBinningV17::GetUnconnectedBinName(Int_t bin) const {
    TObjString *r=0;
    if(HasUnconnectedBins()) {
       if(bin<fAxisLabelList->GetEntriesFast()) {
-         r=((TObjString * const)fAxisLabelList->At(bin));
+         r=((TObjString *)fAxisLabelList->At(bin));
       }
    }
    return r;
@@ -2102,7 +2102,7 @@ void TUnfoldBinningV17::DecodeAxisSteering
      Int_t nPattern=patterns->GetEntries();
      Int_t nAxis=fAxisLabelList->GetEntries();
      for(Int_t i=0;i<nPattern;i++) {
-        TString const &pattern=((TObjString * const)patterns->At(i))
+        TString const &pattern=((TObjString const *)patterns->At(i))
            ->GetString();
         Int_t bracketBegin=pattern.Last('[');
         Int_t len=pattern.Length();

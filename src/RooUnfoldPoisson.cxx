@@ -149,12 +149,11 @@ RooUnfoldPoissonT<Hist,Hist2D>::setup() const
   }
 }
 
-template<class Hist,class Hist2D> void
-RooUnfoldPoissonT<Hist,Hist2D>::Print(Option_t* option) const
-{
-  
-  // Fill this.
-}
+// template<class Hist,class Hist2D> void
+// RooUnfoldPoissonT<Hist,Hist2D>::Print(Option_t* /*option*/) const
+// {
+//   // Fill this. Until we do, stick with RooUnfold::Print().
+// }
 
 template<class Hist,class Hist2D> double*
 RooUnfoldPoissonT<Hist,Hist2D>::Rmu(const double* truth) const
