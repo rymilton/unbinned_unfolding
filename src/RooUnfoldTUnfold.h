@@ -69,7 +69,7 @@ private:
 
 public:
 
-  ClassDefT (RooUnfoldTUnfoldT, 1)   // Interface to TUnfold
+  ClassDefOverride (RooUnfoldTUnfoldT, 1)   // Interface to TUnfold
 };
 
 //! \class RooUnfoldTUnfold 

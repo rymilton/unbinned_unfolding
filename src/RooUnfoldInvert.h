@@ -44,7 +44,7 @@ protected:
   mutable TMatrixD*   _resinv;
 
 public:
-  ClassDefT (RooUnfoldInvertT, 1)  // Unregularised unfolding
+  ClassDefOverride (RooUnfoldInvertT, 1)  // Unregularised unfolding
 };
 
 //! \class RooUnfoldInvert 

@@ -33,8 +33,8 @@ template<class Hist, class Hist2D>
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
 
   // Method-neutral method SetRegParm just calls SetNIter
-  virtual void  SetRegParm (Double_t parm);
-  virtual Double_t GetRegParm() const;
+  virtual void  SetRegParm (Double_t parm) override;
+  virtual Double_t GetRegParm() const override;
   
   void SetNIter(Int_t niter);
   Int_t GetNIter() const;
@@ -51,7 +51,7 @@ template<class Hist, class Hist2D>
   void SetLambdaS(Double_t lambdaS);
   Double_t GetLambdaS() const;
   
-  virtual void Reset();
+  virtual void Reset() override;
 
   TMatrixD* GetUnfoldCovMatrix(const TMatrixD *cov, Int_t ntoys, Int_t seed = 1) const;
   TMatrixD* GetAdetCovMatrix(Int_t ntoys, Int_t seed = 1) const;
@@ -88,7 +88,7 @@ template<class Hist, class Hist2D>
   mutable Double_t _lambdaS; // regularize background Subtraction
   
  public:
-  ClassDefT (RooUnfoldIdsT, 1)
+  ClassDefOverride (RooUnfoldIdsT, 1)
 };
 
 //! \class RooUnfoldIds 

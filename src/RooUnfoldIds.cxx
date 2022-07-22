@@ -34,7 +34,7 @@ RooUnfoldIdsT<Hist,Hist2D>::RooUnfoldIdsT(const RooUnfoldIdsT &rhs)
 //______________________________________________________________________________
 template<class Hist,class Hist2D>
 RooUnfoldIdsT<Hist,Hist2D>::RooUnfoldIdsT(const RooUnfoldResponseT<Hist,Hist2D> *res, const Hist *meas, Int_t niter, const char* name, const char* title)
-: RooUnfoldT<Hist,Hist2D>(res, meas)
+: RooUnfoldT<Hist,Hist2D>(res, meas, name, title)
 , _niter(niter)
 , _lambdaL(0.)
 , _lambdaUmin(0.5)

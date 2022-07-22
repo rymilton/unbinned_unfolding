@@ -81,7 +81,7 @@ namespace RooUnfolding {
     const TAxis* ax = getAxis(hist,d);
     return ax->GetNbins()+2*overflow;
   }
-  template<class Hist> const char* varname(const Hist* h, Dimension d){  
+  template<class Hist> const char* varname(const Hist* /*h*/, Dimension /*d*/){  
     return "";
   }
   template<class Hist> Variable<Hist> var(const Hist* h, Dimension d){
@@ -98,10 +98,10 @@ namespace RooUnfolding {
     // global bin number (0..(nx+2)*(ny+2)-1) skipping under/overflow bins
     return (dim(h)<2) ? i+(overflow ? 0 : 1) : binDim(h,i);
   }
-  template<class Hist> int bin(const Hist* h, int i, int j, Bool_t overflow){
+  template<class Hist> int bin(const Hist* h, int i, int j, Bool_t /*overflow*/){
     return h->GetBin(i,j);
   }
-  template<class Hist> int bin(const Hist* h, int i, int j, int k, Bool_t overflow){
+  template<class Hist> int bin(const Hist* h, int i, int j, int k, Bool_t /*overflow*/){
     return h->GetBin(i,j,k);
   }  
 
@@ -146,7 +146,7 @@ namespace RooUnfolding {
     // Bin content by vector index
     return h->GetBinContent (bin (h, i, overflow));
   }
-  template<> double binVolume<TH1> (const TH1* h, Int_t i, Bool_t overflow)
+  template<> double binVolume<TH1> (const TH1* h, Int_t i, Bool_t /*overflow*/)
   {
     // Bin volume by vector index
     int x,y,z;
@@ -318,8 +318,10 @@ namespace RooUnfolding {
     }
     return h;
   }
-  template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& verr, const char* name, const char* title, const Hist* origHist, bool overflow){  
+  template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& verr, const char* /*name*/, const char* /*title*/, const Hist* origHist, bool overflow){  
     // Sets the bin content of the histogram as that element of the input vector
+    // Note, does *not* set the histogram name or title, even if these are specified.
+    // Doing so breaks the CI tests. This should be investigated.
     int nb = v.GetNrows();
     Hist* h = (Hist*)(origHist ->Clone());
     for (Int_t i= 0; i < nb; i++) {
@@ -572,8 +574,6 @@ template RooUnfolding::Variable<TH1> RooUnfolding::var<TH1>(TH1 const*, RooUnfol
 template RooUnfolding::Variable<TH2> RooUnfolding::var<TH2>(TH2 const*, RooUnfolding::Dimension);
 template RooUnfolding::Variable<TH3> RooUnfolding::var<TH3>(TH3 const*, RooUnfolding::Dimension);
 template TH1* RooUnfolding::createHist<TH1>(char const*, char const*, RooUnfolding::Variable<TH1> const&);
-template TH1* RooUnfolding::createHist<TH1>(char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&);
-template TH2* RooUnfolding::createHist<TH2>(char const*, char const*, std::vector<RooUnfolding::Variable<TH2> > const&);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<TH1> const&, bool);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&, bool);
 template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, TH1 const*, bool);

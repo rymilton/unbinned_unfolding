@@ -558,7 +558,7 @@ Hist2D*         RooUnfoldResponseT<Hist,Hist2D>::Hresponse()
 template<class Hist, class Hist2D>
 TVectorD        RooUnfoldResponseT<Hist,Hist2D>::Vfolded(const TVectorD& truth) const {
   auto res = this->Mresponse(true);
-  if(!truth.GetNrows() == res.GetNcols())  throw std::runtime_error("Error in RooUnfoldResponseT::Vfolded: invalid dimensionality in given truth vector!");
+  if(truth.GetNrows() != res.GetNcols())  throw std::runtime_error("Error in RooUnfoldResponseT::Vfolded: invalid dimensionality in given truth vector!");
   auto prod = res*truth;
   return prod;
 }
@@ -1303,7 +1303,7 @@ RooFitUnfoldResponse::RooFitUnfoldResponse(const char* name, const char* title, 
 }
 
 
-RooFitUnfoldResponse::RooFitUnfoldResponse(const char* name, const char* title, RooAbsReal* response, RooAbsReal* truth, RooAbsReal* reco, RooAbsReal* fakes, RooRealVar* obs_truth, RooRealVar* obs_reco, bool density){
+RooFitUnfoldResponse::RooFitUnfoldResponse(const char* /*name*/, const char* /*title*/, RooAbsReal* response, RooAbsReal* truth, RooAbsReal* reco, RooAbsReal* fakes, RooRealVar* obs_truth, RooRealVar* obs_reco, bool density){
   if(!truth->dependsOn(*obs_truth)) throw std::runtime_error("truth histogram does not depend on truth observable!");
   if(!reco->dependsOn(*obs_reco)) throw std::runtime_error("reco histogram does not depend on reco observable!");
   if(!response->dependsOn(*obs_truth)) throw std::runtime_error("response histogram does not depend on truth observable!");

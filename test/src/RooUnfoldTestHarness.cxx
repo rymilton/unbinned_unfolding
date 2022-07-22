@@ -78,8 +78,11 @@ void RooUnfoldTestHarness::Parms (ArgVars& args)
   TString methodHelp, methodHelp2, stageHelp;  // TString::Form seems to be limited to 4 parameters in CINT.
   methodHelp.Form ("unfolding method: %d=none, %d=Bayes, %d=SVD, ",
                    RooUnfold::kNone,     RooUnfold::kBayes,   RooUnfold::kSVD);
-  methodHelp2.Form("%d=bin-by-bin, %d=TUnfold, %d=invert, %d=IDS",
+  methodHelp2.Form("%d=bin-by-bin, %d=TUnfold, %d=invert, %d=IDS, ",
                    RooUnfold::kBinByBin, RooUnfold::kTUnfold, RooUnfold::kInvert, RooUnfold::kIDS);
+  methodHelp += methodHelp2;
+  methodHelp2.Form("%d=GP, %d=Poisson",
+                   RooUnfold::kGP, RooUnfold::kPoisson);
   methodHelp += methodHelp2;
   stageHelp.Form ("1=train (writes %s.root), 2=test (reads), 0=both (default)", GetName());
   args.Add ("method",  &method,       RooUnfold::kBayes, methodHelp.Data());

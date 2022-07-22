@@ -127,8 +127,8 @@ public:
   void RunRooFitToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const;
   void RunToys(int ntoys, std::vector<TVectorD>& vx, std::vector<TVectorD>& vxe, std::vector<double>& chi2) const;
   
-  void Print(Option_t* opt="") const;
-  void Dump() const;    
+  void Print(Option_t* opt="") const override;
+  void Dump() const override;
   void ForceRecalculation() const ;
 
 protected:
@@ -210,7 +210,7 @@ protected:
 
 public:
 
-  ClassDefT (RooUnfoldT, 2) // Unfolding base class: implementations in RooUnfoldBayes, RooUnfoldSvd, RooUnfoldBinByBin, RooUnfoldTUnfold, RooUnfoldInvert, RooUnfoldIds
+  ClassDefOverride (RooUnfoldT, 2) // Unfolding base class: implementations in RooUnfoldBayes, RooUnfoldSvd, RooUnfoldBinByBin, RooUnfoldTUnfold, RooUnfoldInvert, RooUnfoldIds
 };
 
 //! \class RooUnfoldBinByBin 

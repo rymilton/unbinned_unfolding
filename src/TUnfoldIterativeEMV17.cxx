@@ -125,7 +125,7 @@ void TUnfoldIterativeEMV17::Reset(void) {
    fStep=-1;
 }
 
-void TUnfoldIterativeEMV17::SubtractBackground(const TH1 *hist_bgr,const char *name,Double_t scale) {
+void TUnfoldIterativeEMV17::SubtractBackground(const TH1 *hist_bgr, const char* /*name*/, Double_t scale) {
    int nRec=f_constInputBins->GetEndBin();
    for(int iRec=1;iRec<nRec;iRec++) {
       (*fBgr)(iRec-1)+=hist_bgr->GetBinContent(iRec)*scale;

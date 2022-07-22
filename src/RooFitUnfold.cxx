@@ -218,7 +218,7 @@ Int_t RooUnfoldFunc::getAnalyticalIntegralWN(RooArgSet &allVars, RooArgSet &numV
 }
 
 
-Double_t RooUnfoldFunc::analyticalIntegralWN(Int_t code, const RooArgSet *normSet, const char *rangeName) const {
+Double_t RooUnfoldFunc::analyticalIntegralWN(Int_t /*code*/, const RooArgSet* /*normSet*/, const char* /*rangeName*/) const {
   //! retrieve the analytical integral status
   double val = 0;
   auto vec = this->_unfolding->Vunfold();
@@ -536,7 +536,7 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const TH1* hist){
 }
 
 
-RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& source, double errorThreshold){
+RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& source, double /*errorThreshold*/){
   // build a new RooFitHist based on the source HistContainer. relative bin errors above errorThreshold will be modelled as gamma parameters.
   RooAbsReal* hf = source._nom;
   RooAbsReal* func = hf;
