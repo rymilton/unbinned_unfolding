@@ -144,7 +144,7 @@ RooUnfoldBayesT<Hist,Hist2D>::setup() const
   }
 
   this->_Nji.ResizeTo(this->_ne,this->_nt);
-  this->_Nji = this->_res->Mresponse(true);
+  this->_Nji = this->_res->Mresponse(false);
 
   if (this->_res->HasFakes() && this->_handleFakes) {
     TVectorD fakes= this->_res->Vfakes();
@@ -191,11 +191,10 @@ RooUnfoldBayesT<Hist,Hist2D>::unfold() const
 
   TMatrixD PEjCi(this->_ne,this->_nc), PEjCiEff(this->_ne,this->_nc);
   for (int i = 0 ; i < this->_nc ; i++) {
-    //if (this->_nCi[i] <= 0.0) { this->_efficiencyCi[i] = 0.0; continue; }
+    if (this->_nCi[i] <= 0.0) { this->_efficiencyCi[i] = 0.0; continue; }
     double eff = 0.0;
     for (int j = 0 ; j < this->_ne ; j++) {
-      double response = this->_Nji(j,i);
-      
+      double response = this->_Nji(j,i) / this->_nCi[i];
       PEjCi(j,i) = PEjCiEff(j,i) = response;  // efficiency of detecting the cause Ci in Effect Ej
       eff += response;
     }
@@ -221,7 +220,6 @@ RooUnfoldBayesT<Hist,Hist2D>::unfold() const
       for (int i = 0 ; i < this->_nc ; i++) {
         Uj += PEjCi(j,i) * this->_P0C[i];
       }
-      
       this->_UjInv[j] = Uj > 0.0 ? 1.0/Uj : 0.0;
     }
 
