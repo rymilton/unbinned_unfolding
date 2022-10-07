@@ -44,7 +44,7 @@ stages:
   script:
     - mkdir build
     - cd build
-    - cmake ..
+    - cmake -DRooUnfoldTests=on ..
     - make
   artifacts:
     paths:
