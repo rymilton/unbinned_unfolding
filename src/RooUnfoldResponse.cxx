@@ -1095,17 +1095,17 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth, const TH2* respo
   if (!measured || ::entries(_mes) == 0.0) {
     // Similar to _res->ProjectionX() but without stupid reset of existing histograms
     // Always include under/overflows in sum of truth.
-    projectX(_res,_mes,_overflow);
+    projectX(_res,_mes,true);
   } else {
     // Fill fakes from the difference of _mes - _res->ProjectionX()
     // Always include under/overflows in sum of truth.
-    subtractProjectX(_res,_mes,_fak,_overflow);
+    subtractProjectX(_res,_mes,_fak,true);
   }
 
   if (!truth || ::entries(_tru) == 0.0) {
     // similar to _res->ProjectionY() but without stupid reset of existing histograms
     // Always include under/overflows in sum of measurements.
-    projectY(_res,_tru,_overflow);
+    projectY(_res,_tru,true);
   }
 
   SetNameTitleDefault();
