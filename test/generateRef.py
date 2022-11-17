@@ -3,6 +3,7 @@ import json
 from test_utils import get_combination, delete_files
 from test_utils import get_field, write_field
 
+basefolder = ".."
 
 def get_parms_name(parms):
     parms_name = list(parms.keys())
@@ -13,8 +14,10 @@ def genrate_ref(combined_parm, field_to_compare, ref_file_name):
     all_output = {}
     delete_files()
     for single_parm in combined_parm:
-        command_str = "../build/RooUnfoldTest " +  single_parm
-        os.system(command_str)
+        command_str = basefolder + "/build/RooUnfoldTest " +  single_parm
+        if os.WEXITSTATUS(os.system(command_str)) != 0:
+            print("[ERROR] Cannot run RooUnfoldTest, make sure you compiled with '-D RooUnfoldTests=ON' and are executing this script from 'build'")
+            exit(1)
         u = get_field("RooUnfoldTest.root", field_to_compare)
         all_output[single_parm] = u
         delete_files()
@@ -26,7 +29,7 @@ def geneate_ref_methods():
         'method': ['1', '2', '3', '4', '5', '6'],
         'verbose': ['3']
     }
-    ref_file_name = "../ref/test_methods.ref"
+    ref_file_name = basefolder + "/ref/test_methods.ref"
     field_to_compare = ['unfold']
     combined_parm = get_combination(parms, get_parms_name(parms))
     genrate_ref(combined_parm, field_to_compare, ref_file_name)
@@ -58,7 +61,7 @@ def generate_ref_uncertainity():
     parms_name.sort()
     combined_parm.extend(get_combination(parms, parms_name))
 
-    ref_file_name = "../ref/test_uncertainty.ref"
+    ref_file_name = basefolder + "/ref/test_uncertainty.ref"
     test_name = 'test_uncertainty'
     field_to_compare = ['uncertainty']
     genrate_ref(combined_parm, field_to_compare, ref_file_name)
@@ -71,7 +74,7 @@ def generate_ref_fakes():
         'verbose': ['3']
     }
 
-    ref_file_name = "../ref/test_fakes.ref"
+    ref_file_name = basefolder + "/ref/test_fakes.ref"
     field_to_compare = ['unfold']
     combined_parm = get_combination(parms, get_parms_name(parms))
     genrate_ref(combined_parm, field_to_compare, ref_file_name)
@@ -83,7 +86,7 @@ def generate_ref_bin_correlation():
         'seed':['42'],
         'verbose': ['3']
     }
-    ref_file_name = "../ref/test_correlation.ref"
+    ref_file_name = basefolder + "/ref/test_correlation.ref"
     test_name = 'test_correlation'
     field_to_compare = ['uncertainty']
     combined_parm = get_combination(parms, get_parms_name(parms))
@@ -95,17 +98,17 @@ def generate_ref_overflow():
         'overflow': ['1', '2'],
         'verbose': ['3']
     }
-    ref_file_name = "../ref/overflow.ref"
+    ref_file_name = basefolder + "/ref/overflow.ref"
     field_to_compare = ['unfoldoverflow']
     combined_parm = get_combination(parms, get_parms_name(parms))
     genrate_ref(combined_parm, field_to_compare, ref_file_name)
 
 
 def generate_ref_2D():
-    ref_file_name = "../ref/test_2D.ref"
+    ref_file_name = basefolder + "/ref/test_2D.ref"
     field_to_compare = ['unfold2D']
     all_output = {}
-    command_str = "../build/RooUnfoldTest2D  verbose=3"
+    command_str = basefolder + "/build/RooUnfoldTest2D  verbose=3"
     os.system(command_str)
     u = get_field("RooUnfoldTest2D.root", field_to_compare)
     all_output['default'] = u
@@ -115,10 +118,10 @@ def generate_ref_2D():
 
 
 def generate_ref_3D():
-    ref_file_name = "../ref/test_3D.ref"
+    ref_file_name = basefolder + "/ref/test_3D.ref"
     field_to_compare = ['unfold3D']
     all_output = {}
-    command_str = "../build/RooUnfoldTest3D  verbose=3"
+    command_str = basefolder + "/build/RooUnfoldTest3D  verbose=3"
     os.system(command_str)
     u = get_field("RooUnfoldTest3D.root", field_to_compare)
     all_output['default'] = u

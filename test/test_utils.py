@@ -76,6 +76,9 @@ def get_uncertainty(f):
 def get_field(filename, field_to_compare = ['unfold']):
     global comparing_fields
     f =  ROOT.TFile.Open(filename,"READ")
+    if not f or not f.IsOpen():
+        print("[ERROR] Cannot open file "+filename)
+        exit(1)
     u = {}
     for field in field_to_compare:
         if field in comparing_fields:
