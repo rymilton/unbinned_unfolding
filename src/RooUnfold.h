@@ -89,7 +89,10 @@ public:
   const    TVectorD& Emeasured() const;   // Measured distribution errors as a TVectorD
   const    TVectorD& Vtruth() const;   // Truth distribution as a TVectorD
   const    TVectorD& Vbkg() const;   // Background distribution as a TVectorD
-  const    TVectorD Vbias() const;   // Bias distribution as a TVectorD
+  const    TVectorD  Vbias() const;   // Bias distribution as a TVectorD
+  //--------------------------------------------------------- !!!!!! attention Vpull() added by me D.Kavtaradze ----------------
+  const    TVectorD  VAvgPull() const;   // Pull distribution as a TVectorD
+  const    TMatrixD GetPull() const;    //Pull distribution as a matrix for each toy each bin
   const    TVectorD Ebias(RooUnfolding::BiasError E_type=RooUnfolding::kBiasSDM) const;   // Bias distribution errors as a TVectorD
   const    TMatrixD& GetMeasuredCov() const;   // Measured distribution covariance matrix
 
@@ -176,7 +179,13 @@ protected:
     Bool_t   _have_err_mat;  // have _err_mat
     Bool_t   _haveErrors;    // have _variances
     Bool_t   _haveBias;      // have _bias
+    //!!!!! attention next two lines added by me D.Kavtaradze
+    Bool_t   _havePull;      // have _pull 
+    Bool_t   _haveAvgPull;   //have _AvgPull
+    // ---------------------------------------------end of addition
     TVectorD _bias;          // Estimated bias on each truth bin
+    // !!!!! attention TVectorD _AvgPull; added by me D.Kavtaradze
+    TVectorD _AvgPull;       // Estimated pull on each truth bin with average method
     TVectorD _sdbias;        // SD of the bias on each truth bin
     TVectorD _sdmbias;       // SD of the mean of the bias on each truth bin
     TVectorD _rmsbias;       // Root mean squared on each bin
@@ -185,6 +194,7 @@ protected:
     TMatrixD _wgt;           // Reconstructed distribution weights (inverse of _cov)
     TVectorD _variances;     // Error matrix diagonals
     TMatrixD _err_mat;       // Error matrix from toys
+    TMatrixD _pull;          //Pull matrix for each toy each bin
     TVectorD* _vMes;         // Cached measured vector
     TVectorD* _eMes;         // Cached measured error
     TVectorD* _vTruth;       // Cached truth vector
