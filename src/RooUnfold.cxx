@@ -234,20 +234,13 @@ RooUnfoldT<Hist,Hist2D>::Cache::Cache() :
   _have_err_mat(false),
   _haveErrors(false),
   _haveBias(false),
-  // !!!!!! attention!! _havePulls  added by me (D.Kavtaradze)
-  // _havePull(false),
-  // _haveAvgPull(false),
-  _bias(1),
-  // !!!!!! attention!! avgpull(1) added by me (D.Kavtaradze)
-  // _AvgPull(1),                  
+  _bias(1),                
   _sdbias(1),
   _sdmbias(1),
   _rmsbias(1),
   _rec(1),
   _cov(1,1),
   _wgt(1,1),
-  // !!!! attention pull(1,1) added by me (D.Kavtaradze)
-  // _pull(1,1),
   _variances(1),
   _err_mat(1,1),
   _vMes(0),
@@ -272,20 +265,10 @@ typename RooUnfoldT<Hist,Hist2D>::Cache& RooUnfoldT<Hist,Hist2D>::Cache::operato
   _fail = other._fail;
   _have_err_mat = other._have_err_mat;
   _haveBias =  other._haveBias;
-  // // !!!!!! attention!! _havePull added by me (D.kavtaradze)--------------------------
-  // _havePull = other._havePull; 
-  // _haveAvgPull = other._haveAvgPull; 
-  // !!-----------------------------------------------------------end of addition
   _haveErrors = other._haveErrors;
   _haveWgt = other._haveWgt;
   _rec.ResizeTo(other._rec);
   _cov.ResizeTo(other._cov);
-  // !!! attention added by me (D.Kavtaradze)
-  // _pull.ResizeTo(other._pull);
-  // _pull=other._pull;
-  // _AvgPull.ResizeTo(other._AvgPull);
-  // _AvgPull=other._AvgPull;
-  // -----------------------------------end of addition
   _wgt.ResizeTo(other._wgt);
   _variances.ResizeTo(other._variances);
   _err_mat.ResizeTo(other._err_mat);
@@ -484,19 +467,21 @@ RooUnfoldT<Hist,Hist2D>::GetMeasuredCov() const
   return *_cache._covMes;
 }
 
-// !!!!! attention this GetPull() added by me D.Kavtaradze
-template<class Hist,class Hist2D> const TMatrixD
-RooUnfoldT<Hist,Hist2D>::GetPull() const
+//! Gives the pull of each unfolding instance of a given bin as a vector
+template<class Hist,class Hist2D> const TVectorD
+RooUnfoldT<Hist,Hist2D>::GetPull(Int_t BinN) const
 { 
-  //Get Pull matrix if CalculateBias function has already been done
   if (!_cache._havePull){
-    throw std::runtime_error("calculate bias before attempting to retrieve it!");
+    throw std::runtime_error("calculate pull before attempting to retrieve it!");
   }
   
-  return _cache._pull;
+  TVectorD pull(_cache._pull.GetNrows());
+  
+ for (int i = 0; i < _cache._pull.GetNrows(); i++){
+      pull(i)=_cache._pull(i,BinN);
+ }
+  return pull;
 }
-
-// -------------------------------------------------------end of addition
 
 
 template<class Hist,class Hist2D> void
@@ -617,7 +602,6 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
   //! Use the response matrix truth if not supplied..
   TVectorD vtruth(hTrue ? h2v(hTrue,false) : _res->Vtruth());
-
   TVectorD vreco2(this->response()->Vfolded(vtruth));
   TVectorD vrecoerr(vreco2);
 
@@ -636,10 +620,6 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
    
   //! Resize the bias vectors.
   _cache._bias.ResizeTo(_nt);
-  // !!!! attention attention!! _cache._AvgPull.ResizeTo(_nt);  added by me (D.kavtaradze)
-  _cache._AvgPull.ResizeTo(_nt);
-  _cache._pull.ResizeTo(ntoys,_nt); //! not so sure about this resizing
-  // ----------------------------------------------------------end of addition
   _cache._sdbias.ResizeTo(_nt);
   _cache._sdmbias.ResizeTo(_nt);
   _cache._rmsbias.ResizeTo(_nt);    
@@ -689,33 +669,92 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
     //! Get the rms.
     _cache._rmsbias(i) = sqrt(rms/ntoys);
-    
-    // ! attention!------------------------------------------- Added to source by me(D.Kavtaradze)------------------------------------------------------------------------
-    // ! trying to calculate pull as defined in https://hep-physics.rockefeller.edu/~luc/technical_reports/cdf5776_pulls.pdf Chapter 2.1 eqn (9)
-    //! Double_t pullsum=0;
-
-    for (int j = 0; j < ntoys; j++){
-      _cache._pull(j,i)=(munfolded[j][i] -vtruth(i))/(sqrt(var / (ntoys - 1)));  //!!!! question whether it should be sqrt(var / (ntoys - 1)) or just sqrt(var / (ntoys) and why do they calculate sdbias with ntoys-1.
-      //!!! maybe ntoys-1 since if ntoys=1 is no unfolding and actually we unfold ntoys-1 times! 
-    }
-    
-    // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    // ! Calculate the pull with the average of the unfolded histograms; using standard deviation 
-    _cache._AvgPull(i) = (av_unfolded-vtruth(i))/(sqrt((var)/(ntoys-1)));          //! this might be wrong/unnecessary
-    // ! Calculate the pull of bin i  with the sum of each toy's pullsum in bin i 
-    // _cache._pull(i)=pullsum/(sqrt(var/(ntoys - 1)));
   }
 
   delete asimov;
   delete toyFactory;
-  
   this->_cache._haveBias=true;
-  // !!!!!! attention the two next lines  added by me D.Kavtaradze
-  this->_cache._haveAvgPull=true;
-  this->_cache._havePull=true;
-  // !!-----------------------------------------------------------------------
   this->_cache._haveErrors=haveerrors;
   this->_cache._haveCov=havecov;
+}
+
+template<class Hist,class Hist2D> void
+RooUnfoldT<Hist,Hist2D>::CalculatePull(Int_t ntoys, const Hist* hTrue) const
+{
+  Bool_t haveerrors = this->_cache._haveErrors;
+  Bool_t havecov = this->_cache._haveCov;
+
+  //! Use the response matrix truth if not supplied..
+  TVectorD vtruth(hTrue ? h2v(hTrue,false) : _res->Vtruth());
+  TVectorD vreco2(this->response()->Vfolded(vtruth));
+  TVectorD vrecoerr(vreco2);
+
+  //! Create un unfolding instance with the reconstructed histogram
+  //! set as the measured histogram.
+  Hist* asimov = RooUnfolding::asimov1DClone(this->response()->Hmeasured(),this->response()->UseDensityStatus(),vreco2,vrecoerr);
+  auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  if(!toyFactory){
+    throw std::runtime_error(TString::Format("unable to instantiate toy factory with algorithm '%d'",this->GetAlgorithm()).Data());
+  }    
+  toyFactory->SetVerbose(0);
+
+  if (this->Htruth()){
+    toyFactory->SetTruth(this->Htruth());
+  }
+   
+  _cache._AvgPull.ResizeTo(_nt);
+  _cache._pull.ResizeTo(ntoys,_nt); 
+
+  //! An array that will contain all the unfolded toys.
+  std::vector<TVectorD> munfolded, etoys;
+  std::vector<double> chi2;
+
+  this->RunToys(ntoys, munfolded, etoys, chi2);    
+
+  //! Calculate the bias and its stat. error with 
+  //! the unfolded toys.
+  for (int i = 0; i < vtruth.GetNrows(); i++){
+
+    Double_t av_unfolded = 0;
+
+    //! Sum over all toys.
+    for (int j = 0; j < ntoys; j++){
+      av_unfolded += munfolded.at(j)(i);
+    }
+    
+    //! Divide to get the average of the unfolded histograms.
+    av_unfolded = av_unfolded / ntoys;
+
+    //! RMS
+    Double_t rms = 0;
+
+    //! Variance
+    Double_t var = 0;
+
+    
+    //! Calculate the sample variance of the unfolded histograms.
+    for (int j = 0; j < ntoys; j++){
+      rms += (munfolded[j][i] - vtruth(i))*(munfolded[j][i] - vtruth(i));
+      var += (munfolded[j][i] - av_unfolded) * (munfolded[j][i] - av_unfolded);
+    }
+      
+    // Calculate pull for each unfolding instance and each bin.
+    for (int j = 0; j < ntoys; j++){
+      _cache._pull(j,i)=(munfolded[j][i] -vtruth(i))/(sqrt(var / (ntoys - 1))); 
+    }
+    
+    // ! Calculate the pull with the average of the unfolded histograms; using standard deviation 
+    _cache._AvgPull(i) = (av_unfolded-vtruth(i))/(sqrt((var)/(ntoys-1)));  
+  }
+
+  delete asimov;
+  delete toyFactory;
+ 
+  this->_cache._haveAvgPull=true;
+  this->_cache._havePull=true;
+  this->_cache._haveErrors=haveerrors;
+  this->_cache._haveCov=havecov;
+
 }
 
 template <class Hist,class Hist2D> Bool_t
@@ -1490,7 +1529,7 @@ const TVectorD          RooUnfoldT<Hist,Hist2D>::Vbias() const
 }
 
 
-// !!!! attention this part of the code VAvgPull() added by me D.Kavtaradze --------------------------------------------------------
+// ! Average pull of bins as a vector.
 template<class Hist,class Hist2D> 
 const TVectorD          RooUnfoldT<Hist,Hist2D>::VAvgPull() const
 {
