@@ -89,9 +89,9 @@ public:
   const    TVectorD& Emeasured() const;   // Measured distribution errors as a TVectorD
   const    TVectorD& Vtruth() const;   // Truth distribution as a TVectorD
   const    TVectorD& Vbkg() const;   // Background distribution as a TVectorD
-  const    TVectorD  Vbias() const;   // Bias distribution as a TVectorD
+  const    TVectorD Vbias() const;   // Bias distribution as a TVectorD
   const    TVectorD VAvgPull() const;            // Average Pulls of bins as a TVectorD
-  const    TVectorD GetPull(Int_t binN=1) const;    //Pull results of each unfolding instance as a TVectorD for a specified bin Number
+  const    TVectorD Pull(Int_t binN=1) const;    //Pull results of each unfolding instance as a TVectorD for a specified bin Number
   const    TVectorD Ebias(RooUnfolding::BiasError E_type=RooUnfolding::kBiasSDM) const;   // Bias distribution errors as a TVectorD
   const    TMatrixD& GetMeasuredCov() const;   // Measured distribution covariance matrix
 
@@ -191,7 +191,7 @@ protected:
     TMatrixD _wgt;           // Reconstructed distribution weights (inverse of _cov)
     TVectorD _variances;     // Error matrix diagonals
     TMatrixD _err_mat;       // Error matrix from toys
-    TMatrixD _pull;          //Pull matrix for each toy each bin
+    TMatrixD _pull;          // Pull matrix for each toy each bin
     TVectorD* _vMes;         // Cached measured vector
     TVectorD* _eMes;         // Cached measured error
     TVectorD* _vTruth;       // Cached truth vector
