@@ -234,7 +234,7 @@ RooUnfoldT<Hist,Hist2D>::Cache::Cache() :
   _have_err_mat(false),
   _haveErrors(false),
   _haveBias(false),
-  _bias(1),                
+  _bias(1),
   _sdbias(1),
   _sdmbias(1),
   _rmsbias(1),
@@ -483,7 +483,6 @@ RooUnfoldT<Hist,Hist2D>::Pull(Int_t BinN) const
   return pull;
 }
 
-
 template<class Hist,class Hist2D> void
 RooUnfoldT<Hist,Hist2D>::ForceRecalculation () const {
   //! clear and rebuild the cache
@@ -602,7 +601,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
   //! Use the response matrix truth if not supplied..
   TVectorD vtruth(hTrue ? h2v(hTrue,false) : _res->Vtruth());
-  
+
   TVectorD vreco2(this->response()->Vfolded(vtruth));
   TVectorD vrecoerr(vreco2);
 
@@ -624,11 +623,11 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   _cache._sdbias.ResizeTo(_nt);
   _cache._sdmbias.ResizeTo(_nt);
   _cache._rmsbias.ResizeTo(_nt);    
-  
+
   //! An array that will contain all the unfolded toys.
   std::vector<TVectorD> munfolded, etoys;
   std::vector<double> chi2;
-  
+
   this->RunToys(ntoys, munfolded, etoys, chi2);    
 
   //! Calculate the bias and its stat. error with 
@@ -650,7 +649,6 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
     //! Variance
     Double_t var = 0;
-
     
     //! Calculate the sample variance of the unfolded histograms.
     for (int j = 0; j < ntoys; j++){
@@ -662,7 +660,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
     _cache._sdmbias(i) = sqrt(var /(ntoys*(ntoys - 1)));
 
     //! standard error.
-    _cache._sdbias(i)= sqrt(var / (ntoys - 1));                 
+    _cache._sdbias(i)= sqrt(var / (ntoys - 1));
 
     //! Estimate the bias with the average of the unfolded histograms.
     _cache._bias(i) = av_unfolded - vtruth(i);
@@ -673,7 +671,7 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
 
   delete asimov;
   delete toyFactory;
-
+  
   this->_cache._haveBias=true;
   this->_cache._haveErrors=haveerrors;
   this->_cache._haveCov=havecov;
