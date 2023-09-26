@@ -864,6 +864,9 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
   //! create an unfolding pdf
   #ifdef NO_WRAPPERPDF
   throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
+  // Silence compiler warnings about unused variables
+  (void)alg;
+  (void)regparam;
   return NULL;
   #else
   RooUnfoldFunc* func = static_cast<RooUnfoldFunc*>(this->makeFunc(alg,regparam));
