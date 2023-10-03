@@ -32,7 +32,7 @@ execute_process( COMMAND ln -sf ${RooUnfoldHeaders} -t ${CMAKE_CURRENT_BINARY_DI
 
 include(cmake/PlainROOT.cmake)
 
-if(${RooUnfoldTests} AND NOT RooUnfoldTests)  
+if(RooUnfoldTests)  
   include(cmake/testing.cmake)
 endif()
 
