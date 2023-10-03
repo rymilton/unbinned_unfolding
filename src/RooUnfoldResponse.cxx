@@ -66,7 +66,7 @@ using std::sqrt;
 template<class Hist, class Hist2D>
 class RooUnfoldFoldingFunction {
 public:
-  RooUnfoldFoldingFunction<Hist,Hist2D> (const RooUnfoldResponseT<Hist,Hist2D>* res, TF1* func, Double_t eps=1e-12, bool verbose=false)
+  RooUnfoldFoldingFunction(const RooUnfoldResponseT<Hist,Hist2D>* res, TF1* func, Double_t eps=1e-12, bool verbose=false)
     : _res(res), _func(func), _eps(eps), _verbose(verbose), _fvals(_res->GetNbinsMeasured()) {
     _ndim= dynamic_cast<TF3*>(_func) ? 3 :
       dynamic_cast<TF2*>(_func) ? 2 : 1;
