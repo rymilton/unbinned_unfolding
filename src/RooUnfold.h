@@ -53,11 +53,11 @@ public:
   RooUnfoldT (const TString& name, const TString& title); // named constructor
   RooUnfoldT (const RooUnfoldT<Hist,Hist2D>& rhs); // copy constructor
   virtual ~RooUnfoldT(); // destructor
-  RooUnfoldT<Hist,Hist2D>& operator= (const RooUnfoldT<Hist,Hist2D>& rhs); // assignment operator
+  RooUnfoldT<Hist,Hist2D>& operator = (const RooUnfoldT<Hist,Hist2D>& rhs); // assignment operator
 
   // Special constructors
 
-  RooUnfoldT<Hist,Hist2D> (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name= 0, const char* title= 0);
+  RooUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name= 0, const char* title= 0);
 
   // Set up an existing object
   
