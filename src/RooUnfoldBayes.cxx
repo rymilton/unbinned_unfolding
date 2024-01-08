@@ -51,6 +51,29 @@ RooUnfoldBayesT<Hist,Hist2D>::RooUnfoldBayesT (const RooUnfoldResponseT<Hist,His
   Init();
 }
 
+template<class Hist,class Hist2D>
+void RooUnfoldBayesT<Hist,Hist2D>::SetPriors(const TH1 *priors)
+{
+  if(priors == nullptr){
+    std::cout << "Error SetPriors: no priors provided" << std::endl;
+  }
+  Int_t nbins = priors->GetNbinsX();
+  if( nbins != _nc){
+    std::cout << "Error SetPriors: user's prior size:" << nbins << " different from response matrix size:" << _nc << std::endl;
+  }
+  _P0C.Clear();
+  _P0C.ResizeTo(nbins);
+  for(Int_t i = 1; i< nbins+1; i++){
+    _P0C[i-1] = priors->GetBinContent(i);
+  }
+  _priors = 0;
+  if(this->verbose() >= 2) {
+    std::cout << "Priors set to:" << std::endl;
+    _P0C.Print();
+  }
+}
+
+
 template<class Hist,class Hist2D> RooUnfolding::Algorithm
 RooUnfoldBayesT<Hist,Hist2D>::GetAlgorithm () const
 {
@@ -168,10 +191,19 @@ RooUnfoldBayesT<Hist,Hist2D>::setup() const
   if (this->_dosys)    this->_dnCidPjk.ResizeTo(this->_nc,this->_ne*this->_nc);
 
   // Initial distribution
-  this->_N0C= this->_nCi.Sum();
-  if (this->_N0C!=0.0) {
-    this->_P0C= this->_nCi;
-    this->_P0C *= 1.0/this->_N0C;
+  if(_priors==1){
+    this->_N0C= this->_nCi.Sum();
+    if (this->_N0C!=0.0) {
+      this->_P0C= this->_nCi;
+      this->_P0C *= 1.0/this->_N0C;
+    }
+    if(this->verbose() >=0 ) std::cout << "Using response matrix priors" << std::endl;
+  } else {
+    if(this->verbose() >= 0) std::cout << "Using user's priors" << std::endl;
+  }
+  if(this->verbose()>=1) {
+    std::cout << "Priors:" << std::endl;
+    _P0C.Print();
   }
 }
 

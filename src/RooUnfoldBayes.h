@@ -40,6 +40,7 @@ public:
   Int_t GetIterations() const;
   Int_t GetSmoothing()  const;
   const TMatrixD& UnfoldingMatrix() const;
+  void SetPriors (const TH1* priors);
 
   virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
   virtual void  SetRegParm (Double_t parm) override;
@@ -71,6 +72,7 @@ protected:
   mutable int _niter;
   mutable int _smoothit;
   mutable int _handleFakes;
+  mutable int _priors =1;
 
   mutable int _nc;              // number of causes  (same as _nt)
   mutable int _ne;              // number of effects (same as _nm)
@@ -92,7 +94,7 @@ protected:
   mutable TMatrixD _dnCidPjk;     // response error propagation matrix (stack j,k into each column)
 
 public:
-  ClassDefOverride (RooUnfoldBayesT, 1) // Bayesian Unfolding
+  ClassDefOverride (RooUnfoldBayesT, 2) // Bayesian Unfolding
 };
 
 

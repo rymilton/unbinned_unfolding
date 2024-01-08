@@ -467,6 +467,21 @@ RooUnfoldT<Hist,Hist2D>::GetMeasuredCov() const
   return *_cache._covMes;
 }
 
+//! Gives the pull of each unfolding instance of a given bin as a vector
+template<class Hist,class Hist2D> const TVectorD
+RooUnfoldT<Hist,Hist2D>::Pull(Int_t BinN) const
+{ 
+  if (!_cache._havePull){
+    throw std::runtime_error("calculate pull before attempting to retrieve it!");
+  }
+  
+  TVectorD pull(_cache._pull.GetNrows());
+  
+ for (int i = 0; i < _cache._pull.GetNrows(); i++){
+      pull(i)=_cache._pull(i,BinN);
+ }
+  return pull;
+}
 
 template<class Hist,class Hist2D> void
 RooUnfoldT<Hist,Hist2D>::ForceRecalculation () const {
@@ -660,6 +675,85 @@ RooUnfoldT<Hist,Hist2D>::CalculateBias(Int_t ntoys, const Hist* hTrue) const
   this->_cache._haveBias=true;
   this->_cache._haveErrors=haveerrors;
   this->_cache._haveCov=havecov;
+}
+
+template<class Hist,class Hist2D> void
+RooUnfoldT<Hist,Hist2D>::CalculatePull(Int_t ntoys, const Hist* hTrue) const
+{
+  Bool_t haveerrors = this->_cache._haveErrors;
+  Bool_t havecov = this->_cache._haveCov;
+
+  //! Use the response matrix truth if not supplied..
+  TVectorD vtruth(hTrue ? h2v(hTrue,false) : _res->Vtruth());
+  TVectorD vreco2(this->response()->Vfolded(vtruth));
+  TVectorD vrecoerr(vreco2);
+
+  //! Create un unfolding instance with the reconstructed histogram
+  //! set as the measured histogram.
+  Hist* asimov = RooUnfolding::asimov1DClone(this->response()->Hmeasured(),this->response()->UseDensityStatus(),vreco2,vrecoerr);
+  auto* toyFactory = this->New(this->GetAlgorithm(),this->response(),asimov,GetRegParm());
+  if(!toyFactory){
+    throw std::runtime_error(TString::Format("unable to instantiate toy factory with algorithm '%d'",this->GetAlgorithm()).Data());
+  }    
+  toyFactory->SetVerbose(0);
+
+  if (this->Htruth()){
+    toyFactory->SetTruth(this->Htruth());
+  }
+   
+  _cache._AvgPull.ResizeTo(_nt);
+  _cache._pull.ResizeTo(ntoys,_nt); 
+
+  //! An array that will contain all the unfolded toys.
+  std::vector<TVectorD> munfolded, etoys;
+  std::vector<double> chi2;
+
+  this->RunToys(ntoys, munfolded, etoys, chi2);    
+
+  //! Calculate the bias and its stat. error with 
+  //! the unfolded toys.
+  for (int i = 0; i < vtruth.GetNrows(); i++){
+
+    Double_t av_unfolded = 0;
+
+    //! Sum over all toys.
+    for (int j = 0; j < ntoys; j++){
+      av_unfolded += munfolded.at(j)(i);
+    }
+    
+    //! Divide to get the average of the unfolded histograms.
+    av_unfolded = av_unfolded / ntoys;
+
+    //! RMS
+    Double_t rms = 0;
+
+    //! Variance
+    Double_t var = 0;
+
+    
+    //! Calculate the sample variance of the unfolded histograms.
+    for (int j = 0; j < ntoys; j++){
+      rms += (munfolded[j][i] - vtruth(i))*(munfolded[j][i] - vtruth(i));
+      var += (munfolded[j][i] - av_unfolded) * (munfolded[j][i] - av_unfolded);
+    }
+      
+    // Calculate pull for each unfolding instance and each bin.
+    for (int j = 0; j < ntoys; j++){
+      _cache._pull(j,i)=(munfolded[j][i] -vtruth(i))/(sqrt(var / (ntoys - 1))); 
+    }
+    
+    // ! Calculate the pull with the average of the unfolded histograms; using standard deviation 
+    _cache._AvgPull(i) = (av_unfolded-vtruth(i))/(sqrt((var)/(ntoys-1)));  
+  }
+
+  delete asimov;
+  delete toyFactory;
+ 
+  this->_cache._haveAvgPull=true;
+  this->_cache._havePull=true;
+  this->_cache._haveErrors=haveerrors;
+  this->_cache._haveCov=havecov;
+
 }
 
 template <class Hist,class Hist2D> Bool_t
@@ -1431,6 +1525,18 @@ const TVectorD          RooUnfoldT<Hist,Hist2D>::Vbias() const
   }
 
   return _cache._bias;
+}
+
+// ! Average pull of bins as a vector.
+template<class Hist,class Hist2D> 
+const TVectorD          RooUnfoldT<Hist,Hist2D>::VAvgPull() const
+{
+  //! AvgPull distribution as a vector
+  if (!_cache._haveAvgPull){
+    throw std::runtime_error("calculate bias before attempting to retrieve it!");
+  }
+
+  return _cache._AvgPull;
 }
 
 template<class Hist,class Hist2D> 
