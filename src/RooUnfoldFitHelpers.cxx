@@ -19,6 +19,7 @@
 #include "RooHistPdf.h"
 #include "RooExtendPdf.h"
 #include "RooProduct.h"
+#include "RooBinning.h"
 #include "RooParamHistFunc.h"
 #include "RooStats/HistFactory/ParamHistFunc.h"
 
@@ -226,7 +227,10 @@ namespace {
 namespace RooUnfolding { // section 1: trivial helpers
   
   Variable<RooUnfolding::RooFitHist>::Variable(int nBins,double min,double max,const char* name) : _var(new RooRealVar(name,name,nBins,min,max)) {}
-  Variable<RooUnfolding::RooFitHist>::Variable(RooAbsArg* var) : _var(var) {}
+  Variable<RooUnfolding::RooFitHist>::Variable(int nBins,double* bounds,const char* name) : _var(new RooRealVar(name,name,nBins,bounds[0],bounds[nBins])) {
+    _var->setBinning(RooBinning(nBins,bounds));
+  }  
+  Variable<RooUnfolding::RooFitHist>::Variable(RooRealVar* var) : _var(var) {}
 
   template<> Variable<RooUnfolding::RooFitHist> var(const RooUnfolding::RooFitHist* h, Dimension d){
     return Variable<RooUnfolding::RooFitHist>(h->obs(d));
@@ -462,7 +466,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
 
   const char* RooFitHist::name() const { return this->_func->GetName(); }
   const char* RooFitHist::title() const { return this->_func->GetTitle(); }
-  RooAbsArg* RooFitHist::obs(size_t i) const { if(i>this->_obs.size()) throw std::runtime_error("attempt to access invalid observable!"); return this->_obs[i]; }
+  RooRealVar* RooFitHist::obs(size_t i) const { if(i>this->_obs.size()) throw std::runtime_error("attempt to access invalid observable!"); return this->_obs[i]; }
   size_t RooFitHist::dim() const { return this->_obs.size(); }
   
   const char* RooFitHist::GetName() const { return this->name(); }
@@ -484,7 +488,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     size_t offset = 1;
     size_t ibin = 0;
     for(size_t i=0; i<this->dim(); ++i){
-      RooAbsArg* x = this->obs(i);
+      auto* x = this->obs(i);
       size_t ix = ::getBin(x);
       ibin += offset*ix;
       offset *= ::nBins(x);
@@ -503,24 +507,24 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   RooFitHist::RooFitHist(const RooFitHist* h) : _func(h->_func), _obs(h->_obs) {
     // for(auto obs:_obs) if(!obs) obs->GetName();
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obsvec) : _func(f), _obs(obsvec) {
+  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooRealVar*>& obsvec) : _func(f), _obs(obsvec) {
     // for(auto obs:_obs) if(!obs) obs->GetName();
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obsarg) : _func(f) {
+  RooFitHist::RooFitHist(RooAbsReal* f, RooRealVar* obsarg) : _func(f) {
     _obs.push_back(obsarg);
     // for(auto obs:_obs) if(!obs) obs->GetName();
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obs1, RooAbsArg* obs2) : _func(f) { 
+  RooFitHist::RooFitHist(RooAbsReal* f, RooRealVar* obs1, RooRealVar* obs2) : _func(f) { 
     _obs.push_back(obs1); _obs.push_back(obs2);
     // for(auto obs:_obs) if(!obs) obs->GetName();
   } 
-  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obs, const std::vector<RooRealVar*>& nps) : RooFitHist(f,obs) {
+  RooFitHist::RooFitHist(RooAbsReal* f, const std::vector<RooRealVar*>& obs, const std::vector<RooRealVar*>& nps) : RooFitHist(f,obs) {
     findDependantsPerBin(this,nps,this->_gamma);
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obs, const std::vector<RooRealVar*>& nps)  : RooFitHist(f,obs) {
+  RooFitHist::RooFitHist(RooAbsReal* f, RooRealVar* obs, const std::vector<RooRealVar*>& nps)  : RooFitHist(f,obs) {
     findDependantsPerBin(this,nps,this->_gamma);
   }
-  RooFitHist::RooFitHist(RooAbsReal* f, RooAbsArg* obs1, RooAbsArg* obs2, const std::vector<RooRealVar*>& nps) :  RooFitHist(f,obs1,obs2) { 
+  RooFitHist::RooFitHist(RooAbsReal* f, RooRealVar* obs1, RooRealVar* obs2, const std::vector<RooRealVar*>& nps) :  RooFitHist(f,obs1,obs2) { 
     findDependantsPerBin(this,nps,this->_gamma);
   }
 
@@ -551,7 +555,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     return integral;
   }
   
-  RooDataHist* convertTH1(const TH1* histo, const std::vector<RooAbsArg*>& vars, bool includeUnderflowOverflow, bool correctDensity, double scale){
+  RooDataHist* convertTH1(const TH1* histo, const std::vector<RooRealVar*>& vars, bool includeUnderflowOverflow, bool correctDensity, double scale){
     return convertTH1(histo,argList(vars),includeUnderflowOverflow,correctDensity,scale);
   }
 
@@ -560,9 +564,9 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     TString title(histo->GetTitle());
    
     // Define x,y,z as 1st, 2nd and 3rd observable
-    RooAbsArg* xvar = obs.at(0);
-    RooAbsArg* yvar = obs.at(1);
-    RooAbsArg* zvar = obs.at(2);
+    RooRealVar* xvar = dynamic_cast<RooRealVar*>(obs.at(0));
+    RooRealVar* yvar = dynamic_cast<RooRealVar*>(obs.at(1));
+    RooRealVar* zvar = dynamic_cast<RooRealVar*>(obs.at(2));
  
     RooArgSet args(obs);
     RooDataHist* dh = new RooDataHist(TString::Format("%s_hist",name.Data()),title,args);
@@ -660,9 +664,9 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     std::vector<RooRealVar*> gammas;
 
     // Define x,y,z as 1st, 2nd and 3rd observable
-    RooAbsArg* xvar = obs.at(0);
-    RooAbsArg* yvar = obs.at(1);
-    RooAbsArg* zvar = obs.at(2);
+    RooRealVar* xvar = dynamic_cast<RooRealVar*>(obs.at(0));
+    RooRealVar* yvar = dynamic_cast<RooRealVar*>(obs.at(1));
+    RooRealVar* zvar = dynamic_cast<RooRealVar*>(obs.at(2));
 
     // Transfer contents
     Int_t ix(0),iy(0),iz(0) ;
@@ -723,14 +727,14 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   }  
   
   
-  RooFitHist::RooFitHist(const TH1* hist, const std::vector<RooAbsArg*>& obs, bool includeUnderflowOverflow, double uncThreshold, bool correctDensity) : RooFitHist(hist,argList(obs),includeUnderflowOverflow,uncThreshold,correctDensity) {}
+  RooFitHist::RooFitHist(const TH1* hist, const std::vector<RooRealVar*>& obs, bool includeUnderflowOverflow, double uncThreshold, bool correctDensity) : RooFitHist(hist,argList(obs),includeUnderflowOverflow,uncThreshold,correctDensity) {}
   RooFitHist::RooFitHist(const TH1* hist, const RooArgList& obslist, bool includeUnderflowOverflow, double uncThreshold, bool correctDensity) : RooFitHist(convertTH1(hist,obslist,includeUnderflowOverflow,correctDensity),obslist,uncThreshold){}
 
 
   RooFitHist::RooFitHist(RooHistFunc* hf, const RooArgList& obslist, double uncThreshold){
     RooFIter itr(obslist.fwdIterator());
-    RooAbsArg* arg = NULL;
-    while((arg = (RooAbsArg*)itr.next())){
+    RooRealVar* arg = NULL;
+    while((arg = (RooRealVar*)itr.next())){
       if(!arg) continue;
       if(!hf->dependsOn(*arg)) continue;
       this->_obs.push_back(arg);
@@ -747,8 +751,8 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     TString title(dh->GetTitle());
     RooHistFunc* hf = new RooHistFunc(TString::Format("%s_Values",name.Data()),title,obslist,*dh);
     RooFIter itr(obslist.fwdIterator());
-    RooAbsArg* arg = NULL;
-    while((arg = (RooAbsArg*)itr.next())){
+    RooRealVar* arg = NULL;
+    while((arg = (RooRealVar*)itr.next())){
       if(!arg) continue;
       if(!hf->dependsOn(*arg)) continue;
       this->_obs.push_back(arg);
@@ -857,7 +861,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     TString name(TString::Format("%s_histfunc",histo->GetName()));
     return makeHistFunc(name.Data(),histo,obs,includeUnderflowOverflow,correctDensity);
   }
-  RooHistFunc* makeHistFunc(RooDataHist* dhist, const std::vector<RooAbsArg*>& obs){
+  RooHistFunc* makeHistFunc(RooDataHist* dhist, const std::vector<RooRealVar*>& obs){
     if(!dhist) return NULL;
     RooArgSet vars;
     for(size_t i=0; i<obs.size(); ++i){
@@ -882,7 +886,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   RooAbsPdf* makeHistPdf(const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity){
     return makeHistPdf(histo->GetName(),histo,obs,includeUnderflowOverflow,correctDensity);
   }
-  RooAbsPdf* makeHistPdf(RooDataHist* dhist, const std::vector<RooAbsArg*>& obs){
+  RooAbsPdf* makeHistPdf(RooDataHist* dhist, const std::vector<RooRealVar*>& obs){
     if(!dhist) return NULL;
     RooArgSet vars;
     for(size_t i=0; i<obs.size(); ++i){
@@ -895,15 +899,15 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     return new RooExtendPdf(TString::Format("%s_pdf",dhist->GetName()),dhist->GetTitle(),*hf,*norm);
   }
 
-  RooFitHist::RooFitHist(RooDataHist* d, const std::vector<RooAbsArg*>& obs) : _func(0), _obs(obs) {
+  RooFitHist::RooFitHist(RooDataHist* d, const std::vector<RooRealVar*>& obs) : _func(0), _obs(obs) {
     this->_func = makeHistFunc(d,_obs);
   }
-  RooFitHist::RooFitHist(RooDataHist* d, RooAbsArg* obs) : _func(0) {
-    this->_obs.push_back(obs);
+  RooFitHist::RooFitHist(RooDataHist* d, RooRealVar* obs) : _func(0) {
+    this->_obs.push_back(dynamic_cast<RooRealVar*>(obs));
     this->_func = makeHistFunc(d,_obs);    
   }
-  RooFitHist::RooFitHist(RooDataHist* d, RooAbsArg* obs1, RooAbsArg* obs2) : _func(0) { 
-    this->_obs.push_back(obs1); this->_obs.push_back(obs2);
+  RooFitHist::RooFitHist(RooDataHist* d, RooRealVar* obs1, RooRealVar* obs2) : _func(0) { 
+    this->_obs.push_back(dynamic_cast<RooRealVar*>(obs1)); this->_obs.push_back(dynamic_cast<RooRealVar*>(obs2));
     this->_func = makeHistFunc(d,_obs);    
   } 
 
@@ -1050,9 +1054,9 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   template<> RooUnfolding::RooFitHist* clone<RooUnfolding::RooFitHist>(RooUnfolding::RooFitHist const* h){
     if(!h) return NULL;
     RooAbsReal* rr = (RooAbsReal*)(h->func()->cloneTree());
-    std::vector<RooAbsArg*> obs;
+    std::vector<RooRealVar*> obs;
     for(int i=0; i<dim(h); ++i){
-      RooAbsArg* rrv = findLeafServer<RooAbsArg>(rr,h->obs(i)->GetName());
+      RooRealVar* rrv = findLeafServer<RooRealVar>(rr,h->obs(i)->GetName());
       obs.push_back(rrv);
     }
     std::vector<RooRealVar*> nps;

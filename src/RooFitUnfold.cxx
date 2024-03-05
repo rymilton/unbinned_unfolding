@@ -541,7 +541,7 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& sour
   RooAbsReal* hf = source._nom;
   RooAbsReal* func = hf;
   if(!hf) return 0;
-  std::vector<RooAbsArg*> obs;
+  std::vector<RooRealVar*> obs;
   RooArgList obslist;
   if(this->_obs_all.getSize() < 1){
     throw std::runtime_error("in RooUnfoldSpec::makeHistogram: no observables known!");
@@ -551,7 +551,7 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& sour
   while((arg = itr.next())){
     if(!arg) continue;
     if(!hf->dependsOn(*arg)) continue;
-    obs.push_back(arg);
+    obs.push_back(dynamic_cast<RooRealVar*>(arg));
     obslist.add(*arg);
   }
   if(obslist.getSize() < 1){

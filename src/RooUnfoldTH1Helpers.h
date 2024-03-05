@@ -14,19 +14,28 @@ namespace RooUnfolding {
     int _nBins;
     double _min;
     double _max;
+    std::vector<double> _bounds;
+    bool irregular() const { return _bounds.size() > 0; }
     Variable(int nBins,double min,double max,const char*) : _nBins(nBins),_min(min),_max(max){};
+    Variable(int nBins, double* bounds,const char*) : _nBins(nBins),_min(bounds[0]),_max(bounds[nBins]) { for(size_t i=0; i<=nBins; ++i){ _bounds.push_back(bounds[i]); } }        
   };
   template<> struct Variable<TH2> {
     int _nBins;
     double _min;
     double _max;
+    std::vector<double> _bounds;    
+    bool irregular() const { return _bounds.size() > 0; }
     Variable(int nBins,double min,double max,const char*) : _nBins(nBins),_min(min),_max(max){};
+    Variable(int nBins, double* bounds,const char*) : _nBins(nBins),_min(bounds[0]),_max(bounds[nBins]) { for(size_t i=0; i<=nBins; ++i){ _bounds.push_back(bounds[i]); } }    
   };
   template<> struct Variable<TH3> {
     int _nBins;
     double _min;
     double _max;
+    std::vector<double> _bounds;
+    bool irregular() const { return _bounds.size() > 0; }
     Variable(int nBins,double min,double max,const char*) : _nBins(nBins),_min(min),_max(max){};
+    Variable(int nBins, double* bounds,const char*) : _nBins(nBins),_min(bounds[0]),_max(bounds[nBins]) { for(size_t i=0; i<=nBins; ++i){ _bounds.push_back(bounds[i]); } }
   };
 
   Bool_t resizeAxis (TAxis* ax, Int_t nx);

@@ -14,10 +14,10 @@ set(VERSION_MAJOR   3   CACHE STRING "Project major version number.")
 set(VERSION_MINOR   0   CACHE STRING "Project minor version number.")
 mark_as_advanced(VERSION_MAJOR VERSION_MINOR)
 
+find_package( ROOT COMPONENTS Tree  Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser)
+
 option (RooUnfoldGenerateCMakeConfig "generate a RooUnfoldConfig.cmake file for dependency tracking with other packages" OFF)
 option (RooUnfoldTests "enable testing" OFF)
-
-find_package( ROOT COMPONENTS Tree Unfold Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser REQUIRED)
 
 set(ROOUNFOLD_SOURCE_DIR src)
 set(ROOUNFOLD_HEADER_DIR src)

@@ -283,9 +283,21 @@ namespace RooUnfolding {
     TH1::AddDirectory (kFALSE);
     TH1* hist = NULL;
     if(x.size() == 1){
-      hist = new TH1D (name,title, x[0]._nBins, x[0]._min, x[0]._max);
+      if(x[0].irregular()){
+	hist = new TH1D (name,title, x[0]._nBins, &(x[0]._bounds[0]));
+      } else {
+	hist = new TH1D (name,title, x[0]._nBins, x[0]._min, x[0]._max);
+      }
     } else if(x.size() == 2){
-      hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max);
+      if(x[0].irregular() && x[1].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, &(x[1]._bounds[0]));
+      } else if(x[0].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, x[1]._min, x[1]._max);
+      } else if(x[1].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, &(x[1]._bounds[0]));
+      } else {
+	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max);
+      }
     } else if(x.size() == 3){
       hist = new TH3D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max, x[2]._nBins, x[2]._min, x[2]._max);
     } else {

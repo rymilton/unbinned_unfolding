@@ -17,27 +17,27 @@ namespace RooUnfolding {
   public:
     RooFitHist();
     RooFitHist(const RooFitHist* h);
-    RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obs);
-    RooFitHist(RooAbsReal* f, RooAbsArg* obs);
-    RooFitHist(RooAbsReal* f, RooAbsArg* obs1, RooAbsArg* obs2);
-    RooFitHist(RooAbsReal* f, const std::vector<RooAbsArg*>& obs, const std::vector<RooRealVar*>& nps);
-    RooFitHist(RooAbsReal* f, RooAbsArg* obs, const std::vector<RooRealVar*>& nps);
-    RooFitHist(RooAbsReal* f, RooAbsArg* obs1, RooAbsArg* obs2, const std::vector<RooRealVar*>& nps);
-    RooFitHist(RooHistFunc* f, const std::vector<RooAbsArg*>& obs);
-    RooFitHist(RooHistFunc* f, RooAbsArg* obs);
-    RooFitHist(RooHistFunc* f, RooAbsArg* obs1, RooAbsArg* obs2);
+    RooFitHist(RooAbsReal* f, const std::vector<RooRealVar*>& obs);
+    RooFitHist(RooAbsReal* f, RooRealVar* obs);
+    RooFitHist(RooAbsReal* f, RooRealVar* obs1, RooRealVar* obs2);
+    RooFitHist(RooAbsReal* f, const std::vector<RooRealVar*>& obs, const std::vector<RooRealVar*>& nps);
+    RooFitHist(RooAbsReal* f, RooRealVar* obs, const std::vector<RooRealVar*>& nps);
+    RooFitHist(RooAbsReal* f, RooRealVar* obs1, RooRealVar* obs2, const std::vector<RooRealVar*>& nps);
+    RooFitHist(RooHistFunc* f, const std::vector<RooRealVar*>& obs);
+    RooFitHist(RooHistFunc* f, RooRealVar* obs);
+    RooFitHist(RooHistFunc* f, RooRealVar* obs1, RooRealVar* obs2);
     RooFitHist(RooHistFunc* hist, const RooArgList& obslist, double uncThreshold = -1);        
-    RooFitHist(RooDataHist* hist, const std::vector<RooAbsArg*>& obs);
-    RooFitHist(RooDataHist* hist, RooAbsArg* obs);
-    RooFitHist(RooDataHist* hist, RooAbsArg* obs1, RooAbsArg* obs2);
+    RooFitHist(RooDataHist* hist, const std::vector<RooRealVar*>& obs);
+    RooFitHist(RooDataHist* hist, RooRealVar* obs);
+    RooFitHist(RooDataHist* hist, RooRealVar* obs1, RooRealVar* obs2);
     RooFitHist(RooDataHist* hist, const RooArgList& obslist, double uncThreshold = -1);    
-    RooFitHist(const TH1* hist, const std::vector<RooAbsArg*>& obs, bool includeUnderflowOverflow, double errorThreshold, bool correctDensity=false);
+    RooFitHist(const TH1* hist, const std::vector<RooRealVar*>& obs, bool includeUnderflowOverflow, double errorThreshold, bool correctDensity=false);
     RooFitHist(const TH1* hist, const RooArgList& obs, bool includeUnderflowOverflow, double errorThreshold, bool correctDensity=false);
     virtual ~RooFitHist() = default;
     
     virtual const char* name() const;
     virtual const char* title() const;
-    virtual RooAbsArg* obs(size_t) const;
+    virtual RooRealVar* obs(size_t) const;
     virtual size_t dim() const;
     RooFitHist* clone() const;
     RooFitHist* asimovClone(bool correctDensity) const;    
@@ -64,18 +64,19 @@ namespace RooUnfolding {
   protected:
     RooAbsReal* setupErrors(const RooHistFunc* hf, const RooDataHist* dh, double uncThreshold);    
     RooAbsReal* _func;
-    std::vector<RooAbsArg*> _obs;
+    std::vector<RooRealVar*> _obs;
     std::vector<RooRealVar*> _gamma;
     ClassDefOverride(RooFitHist,1)
   };
 
   template<> struct Variable<RooFitHist> {
-    RooAbsArg* _var;
+    RooRealVar* _var;
     Variable(int nBins,double min,double max,const char* name);
-    Variable(RooAbsArg* var);
+    Variable(int nBins,double* bounds,const char* name);    
+    Variable(RooRealVar* var);
   };
 
-  RooDataHist* convertTH1(const TH1* histo, const std::vector<RooAbsArg*>& vars, bool includeUnderflowOverflow, bool correctDensity=false, double scale=1.);
+  RooDataHist* convertTH1(const TH1* histo, const std::vector<RooRealVar*>& vars, bool includeUnderflowOverflow, bool correctDensity=false, double scale=1.);
   double getIntegral(const TH1* histo, bool includeUnderflowOverflow, bool correctDensity);  
   RooDataHist* convertTH1(const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity=false, double scale=1.);
   std::vector<RooRealVar*> createGammas(const TH1* histo, bool includeUnderflowOverflow, double uncThreshold);
@@ -85,11 +86,11 @@ namespace RooUnfolding {
   void setGammaUncertainties(RooWorkspace* ws);
   RooHistFunc* makeHistFunc(const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity=false);    
   RooHistFunc* makeHistFunc(const char* name, const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity=false);  
-  RooHistFunc* makeHistFunc(RooDataHist* dhist, const std::vector<RooAbsArg*>& obs); 
+  RooHistFunc* makeHistFunc(RooDataHist* dhist, const std::vector<RooRealVar*>& obs); 
   RooHistFunc* makeHistFunc(RooDataHist* dhist, const RooArgList& obs);
   RooAbsPdf* makeHistPdf(const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity=false);    
   RooAbsPdf* makeHistPdf(const char* name, const TH1* histo, const RooArgList& obs, bool includeUnderflowOverflow, bool correctDensity=false);  
-  RooAbsPdf* makeHistPdf(RooDataHist* dhist, const std::vector<RooAbsArg*>& obs);  
+  RooAbsPdf* makeHistPdf(RooDataHist* dhist, const std::vector<RooRealVar*>& obs);  
   void importToWorkspace(RooWorkspace* ws, RooAbsReal* object);
   void importToWorkspace(RooWorkspace* ws, RooAbsData* object);
   RooArgSet allVars(RooWorkspace* ws, const char* pattern);
