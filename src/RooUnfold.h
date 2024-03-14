@@ -57,7 +57,7 @@ public:
 
   // Special constructors
 
-  RooUnfoldT(const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name= 0, const char* title= 0);
+  RooUnfoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name= 0, const char* title= 0);
 
   // Set up an existing object
   

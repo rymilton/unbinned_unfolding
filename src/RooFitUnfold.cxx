@@ -860,7 +860,7 @@ void RooUnfoldSpec::registerSystematic(Contribution c, const char* name, double 
 
 
 
-RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
+RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
   //! create an unfolding pdf
   #ifdef NO_WRAPPERPDF
   throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
