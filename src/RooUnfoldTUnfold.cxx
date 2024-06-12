@@ -38,6 +38,13 @@ if v15 of TUnfold is used. ROOT versions 5.26 or below use v13 and so should be 
 
 using namespace RooUnfolding;
 
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldTUnfoldT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kTUnfold;
+}
+
 template<class Hist,class Hist2D>
 RooUnfoldTUnfoldT<Hist,Hist2D>::RooUnfoldTUnfoldT (const RooUnfoldTUnfoldT& rhs)
 : RooUnfoldT<Hist,Hist2D> (rhs)

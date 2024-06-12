@@ -19,7 +19,8 @@ class TSpline;
 
 template<class Hist, class Hist2D>
 class RooUnfoldTUnfoldT : public RooUnfoldT<Hist,Hist2D> {
-
+public:
+  virtual RooUnfolding::Algorithm GetAlgorithm() const override;    
 public:
 
   RooUnfoldTUnfoldT(); // default constructor
