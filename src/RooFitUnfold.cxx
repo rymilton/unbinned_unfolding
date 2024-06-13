@@ -51,6 +51,7 @@ RooUnfoldFunc::RooUnfoldFunc(const char* name, const char* title, const RooUnfol
   auto unfolding = RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::New(unf->GetAlgorithm(),unf->response(),unf->Hmeasured(),unf->GetRegParm(),unf->GetName(),unf->GetTitle());
   if (unf->Hbkg()) unfolding->SetBkg(unf->Hbkg());
   unfolding->SetTruth(unf->Htruth());
+  unfolding->SetMeasuredCov(unf->GetMeasuredCov());  
   this->_unfolding = dynamic_cast<RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>*>(unfolding);
   this->_unfolding->SetVerbose(0);
   const RooUnfoldResponseT<RooFitHist,RooFitHist>* res = this->_unfolding->response();
@@ -84,6 +85,7 @@ RooUnfoldFunc::RooUnfoldFunc(const char* name, const char* title, const RooUnfol
       }
     }
   }
+
   const RooFitHist* hmeasured = this->_unfolding->Hmeasured();
 
   if(hmeasured){
@@ -536,6 +538,66 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const TH1* hist){
 }
 
 
+TMatrixD RooUnfoldSpec::makeCovarianceMatrix() {
+  int bins = 1;
+  for (int i = 0; i < _obs_reco.getSize(); ++i) {
+    RooRealVar* obs = dynamic_cast<RooRealVar*>(_obs_reco.at(i));
+    if (obs) {
+      bins *= obs->numBins();
+    } else {
+      throw std::runtime_error("Observable is not of type RooRealVar");
+    }
+  }
+        
+  // Initialize the covariance matrix with zeros
+  TMatrixD covarianceMatrix(bins, bins);
+        
+  // Process shape and norm uncertainties for _reco and _bkg
+  addToCovarianceMatrix(_reco, covarianceMatrix);
+  addToCovarianceMatrix(_bkg, covarianceMatrix);
+
+  return covarianceMatrix;
+}
+
+
+void RooUnfoldSpec::addToCovarianceMatrix(const HistContainer& histContainer, TMatrixD& covarianceMatrix) { 
+  const int bins = covarianceMatrix.GetNrows();
+  
+  auto counts = h2v(histContainer._nom,false,this->_useDensity);
+  for(size_t i=0; i<bins; ++i){
+    // asusming sqrt(n) uncertainties, so the variance is the central value
+    covarianceMatrix(i, i) += counts[i];
+  }
+  
+  // Process shape uncertainties
+  if (!histContainer._shapes.empty()) {
+    for (const auto& var : histContainer._shapes) {
+      if (var.second.size() != 2) {
+	throw std::runtime_error("unable to process systematics '" + var.first + "' with size " + std::to_string(var.second.size()) + " != 2");
+      }
+
+      // Calculate sum of squares of shape uncertainties
+      auto shapeUp   = h2v(var.second[0],false,this->_useDensity);
+      auto shapeDown = h2v(var.second[1],false,this->_useDensity);
+      for (int i = 0; i < bins; ++i) {
+	double shapeUncertainty = std::pow(shapeUp[i], 2) + std::pow(shapeDown[i], 2);      
+	covarianceMatrix(i, i) += shapeUncertainty;
+      }
+    }
+  }
+
+  // Process norm uncertainties
+  if (!histContainer._norms.empty()) {
+    for (const auto& var : histContainer._norms) {
+      // Calculate sum of squares of norm uncertainties
+      double normUncertainty = std::pow(var.second.first, 2) + std::pow(var.second.second, 2);
+      for (int i = 0; i < bins; ++i) {
+	covarianceMatrix(i, i) *= normUncertainty;
+      }
+    }
+  }
+}
+
 RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& source, double /*errorThreshold*/){
   // build a new RooFitHist based on the source HistContainer. relative bin errors above errorThreshold will be modelled as gamma parameters.
   RooAbsReal* hf = source._nom;
@@ -753,10 +815,12 @@ RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* RooUnfoldSpec::un
   //! create the unfolding object
   this->makeResponse();
   this->makeDataMinusBackground();
+
   RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* unfolding = RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>::New(alg,this->_cache._response,this->_cache._data_minus_bkg,regparam);
   if (this->_cache._bkg) {
     unfolding->SetBkg(this->_cache._bkg);
   }
+  unfolding->SetMeasuredCov(this->makeCovarianceMatrix());
   unfolding->SetTruth(this->_cache._truth);
   unfolding->SetOverflow(this->_includeUnderflowOverflow);
 
@@ -883,10 +947,9 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
 
 RooAbsReal* RooUnfoldSpec::makeFunc(Algorithm alg, Double_t regparam){
   //! create an unfolding function
-  RooUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>* unfold = this->unfold(alg, regparam);
-  RooAbsReal* func = new RooUnfoldFunc(this->GetName(),this->GetTitle(),this->unfold(alg, regparam),false);
+  auto* unfold = this->unfold(alg, regparam);
+  RooAbsReal* func = new RooUnfoldFunc(this->GetName(),this->GetTitle(),unfold,false);  
   func->setStringAttribute("source",func->GetName());
-  delete unfold;
   return func;
 }
 

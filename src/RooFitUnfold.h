@@ -118,8 +118,14 @@ public:
   RooUnfolding::RooFitHist* makeHistogram(const TH1* hist);
   RooHistFunc* makeHistFuncTruth(const TH1* hist);
   RooHistFunc* makeHistFuncMeasured(const TH1* hist);
+  TMatrixD makeCovarianceMatrix();
 
+  const RooArgList& getTruthObservables() const { return _obs_truth; }
+  const RooArgList& getRecoObservables() const { return _obs_reco; }
+  const RooArgList& getObservables() const { return _obs_all; }  
+  
 protected:
+  void addToCovarianceMatrix(const HistContainer& histContainer, TMatrixD& covarianceMatrix);
   void setup(const TH1* truth_th1, const RooArgList& obs_truth, const TH1* reco_th1, const RooArgList& obs_reco, const TH2* response_th1, const TH1* bkg_th1, const TH1* data_th1, bool includeUnderflowOverflow, double errorThreshold = -1, bool useDensity = false);
   ClassDef(RooUnfoldSpec,0)
 };
