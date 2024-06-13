@@ -962,7 +962,41 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     for(size_t i=0; i<n; ++i){
       v[i] = binError(h,i,overflow) * (correctDensity ? binVolume(h,i,overflow) : 1);      
     }    
-  }    
+  }
+
+  template<> TVectorD h2v(const RooAbsReal* h, bool overflow, bool correctDensity) {
+    std::vector<double> values;
+    std::vector<RooRealVar*> observables;
+    for(auto* obs:*h->getParameters((RooArgSet*)nullptr)){
+      observables.push_back(dynamic_cast<RooRealVar*>(obs));
+    }
+    
+    // Helper function to recursively loop over bins in multiple dimensions
+    std::function<void(size_t, std::vector<int>&)> loopBins;
+    loopBins = [&](size_t dim, std::vector<int>& currentBins) {
+      if (dim == observables.size()) {
+	// Set the values for each observable
+	double volume = 1.;
+	for (size_t i = 0; i < observables.size(); ++i) {
+	  observables[i]->setVal(observables[i]->getBinning().binCenter(currentBins[i]));
+	  volume *= observables[i]->getBinning().binWidth(currentBins[i]);
+	}
+	// since the input function is already a density, we only need to correct if correctDensity=false
+	double density = h->getVal();
+	values.push_back(correctDensity ? density : volume * density);
+      } else {
+	for (int bin = 0; bin < observables[dim]->numBins(); ++bin) {
+	  currentBins[dim] = bin;
+	  loopBins(dim + 1, currentBins);
+	}
+      }
+    };
+
+    std::vector<int> currentBins(observables.size(), 0);
+    loopBins(0, currentBins);
+
+    return TVectorD(values.size(), &(values[0]));
+  }
 
   template<> TVectorD h2v<RooUnfolding::RooFitHist>  (const RooUnfolding::RooFitHist* h, bool overflow, bool correctDensity){
     TVectorD v;
