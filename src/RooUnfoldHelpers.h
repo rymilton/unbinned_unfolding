@@ -110,6 +110,7 @@ namespace RooUnfolding {
   template<class Hist2D> Hist2D* createHist(const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
   template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
   template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
+  
   template<class Hist> Hist* createHist(const char* name, const char* title, const std::vector<Variable<Hist>>& x);
   template<class Hist> Hist* createHist(const char* name, const char* title, const Variable<Hist>& x) { return createHist<Hist>(name,title,std::vector<Variable<Hist>>{x}); }
   template<class Hist> Hist* createHist(const TVectorD& vec, const char* name, const char* title, const std::vector<Variable<Hist>>& x, bool overflow=false);
@@ -130,6 +131,7 @@ namespace RooUnfolding {
   void addEmptyBins(TMatrixD& m);
 
   TH1D* getTH1(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, bool overflow=false);
+  TH1D* getTH1(const TVectorD& vec, const char* name, const char* title, bool overflow=false);  
   TH2D* getTH2(const TMatrixD& matrix, const char* name, const char* title, bool overflow=false);
 
   void add(TMatrixD& target, const TMatrixD& addition);

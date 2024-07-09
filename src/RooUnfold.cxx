@@ -1658,9 +1658,7 @@ namespace {
   void getParameters(const RooUnfolding::RooFitHist* hist, RooArgSet& params, std::string type){
     if(hist){
       RooArgSet* args = hist->func()->getParameters((RooArgSet*)0);
-      RooFIter iter(args->fwdIterator()) ;
-      RooAbsArg* p = nullptr;
-      while((p=iter.next())) {
+      for(auto& p:*args){
         if(params.find(*p)) continue;
         RooRealVar* rrv = dynamic_cast<RooRealVar*>(p);
         if(!rrv) continue;

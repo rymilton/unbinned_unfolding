@@ -21,7 +21,7 @@ namespace RooUnfolding {
   }  
   template<class Hist> const char* title(const Hist* hist){
     return hist->GetTitle();
-  }  
+  }
 }
 
 

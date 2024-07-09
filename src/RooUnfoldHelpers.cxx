@@ -87,6 +87,23 @@ namespace RooUnfolding {
   }
 
 
+  TH1D* getTH1(const TVectorD& vec, const char* name, const char* title, bool overflow){
+    
+    Int_t i_start = 1;
+
+    if(overflow){
+      i_start = 0;
+    }
+
+    TH1D* hist = new TH1D(name, title, vec.GetNrows(), 0, 1);
+
+    for (int i = 0; i < vec.GetNrows(); i++){
+      hist->SetBinContent(i + i_start, vec[i]);
+    }
+    
+    return hist;
+  }
+  
   TH1D* getTH1(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, bool overflow){
     
     Int_t i_start = 1;
