@@ -30,8 +30,9 @@ protected:
   bool _locked = false;
   void lockCheck();
 
+public:
   class HistContainer {
-    friend RooUnfoldSpec;
+  public:    
     RooAbsReal* _nom = 0;
     RooAbsReal* _staterror = 0;
     RooArgSet _obs;
@@ -45,6 +46,7 @@ protected:
     void addShape(const char* name, RooAbsReal* up, RooAbsReal* dn);
     void addNorm(const char* name, double up, double dn);
   };
+protected:
   bool _includeUnderflowOverflow = false;
   bool _useDensity = false;
   double _errorThreshold = -1;
@@ -128,7 +130,10 @@ public:
 
   const RooArgList& getTruthObservables() const { return _obs_truth; }
   const RooArgList& getRecoObservables() const { return _obs_reco; }
-  const RooArgList& getObservables() const { return _obs_all; }  
+  const RooArgList& getObservables() const { return _obs_all; }
+
+  std::map<std::string, TH1*> createHistogramDictionary() const;
+  std::string createLikelihoodConfig() const;
   
 protected:
   void addToCovarianceMatrix(const HistContainer& histContainer, TMatrixD& covarianceMatrix) const;

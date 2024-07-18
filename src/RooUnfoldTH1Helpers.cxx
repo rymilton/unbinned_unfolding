@@ -447,6 +447,33 @@ namespace RooUnfolding {
     }
     return h;
   }
+  template<> TH2* createHist<TH2>(const TMatrixD& m, const char* name, const char* title, const std::vector<Variable<TH2>>& x, bool overflow){
+    // Sets the bin content of the histogram as that element of the input vector
+    int nx = m.GetNrows();
+    int ny = m.GetNcols();
+    TH2* h = createHist<TH2>(name,title,x[0],x[1]);
+    for (Int_t i= 0; i < nx; i++) {
+      for (Int_t j= 0; j < ny; j++) {
+        Int_t n= RooUnfolding::bin<TH1>(h, i, j, overflow);
+        h->SetBinContent (n, m(i,j));
+      }
+    }
+    return h;
+  }
+  template<> TH2* createHist<TH2>(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const std::vector<Variable<TH2>>& x, bool overflow){
+    // Sets the bin content of the histogram as that element of the input vector
+    int nx = m.GetNrows();
+    int ny = m.GetNcols();
+    TH2* h = createHist<TH2>(name,title,x[0],x[1]);
+    for (Int_t i= 0; i < nx; i++) {
+      for (Int_t j= 0; j < ny; j++) {
+        Int_t n= RooUnfolding::bin<TH1>(h, i, j, overflow);
+        h->SetBinContent (n, m(i,j));
+        h->SetBinError   (n, me(i,j));
+      }
+    }
+    return h;
+  }
   template<> TVectorD subtract<TH1,TVectorD>(const TVectorD& orig, const TH1* hist, bool overflow){
     const int n = nBins(hist);
     TVectorD res(n);

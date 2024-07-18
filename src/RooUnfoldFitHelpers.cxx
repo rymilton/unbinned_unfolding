@@ -964,12 +964,16 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     }    
   }
 
-  template<> TVectorD h2v(const RooAbsReal* h, bool overflow, bool correctDensity) {
-    std::vector<double> values;
+  std::vector<RooRealVar*> getObservables(const RooAbsReal* h){
     std::vector<RooRealVar*> observables;
     for(auto* obs:*h->getParameters((RooArgSet*)nullptr)){
       observables.push_back(dynamic_cast<RooRealVar*>(obs));
     }
+    return observables;
+  }
+    
+  std::vector<double> h2Xhelper(const RooAbsReal* h, const std::vector<RooRealVar*>& observables, bool overflow, bool correctDensity) {
+    std::vector<double> values;
     
     // Helper function to recursively loop over bins in multiple dimensions
     std::function<void(size_t, std::vector<int>&)> loopBins;
@@ -995,9 +999,42 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     std::vector<int> currentBins(observables.size(), 0);
     loopBins(0, currentBins);
 
+    return values;
+  }
+  TMatrixD toMatrix(const std::vector<double>& values, const std::vector<RooRealVar*>& observables) {
+    if (observables.size() != 2) {
+      throw std::runtime_error("toMatrix requires exactly two observables.");
+    }
+    
+    int nBinsX = observables[0]->numBins();
+    int nBinsY = observables[1]->numBins();
+    
+    if (values.size() != static_cast<size_t>(nBinsX * nBinsY)) {
+      throw std::runtime_error("Mismatch between values size and bin structure.");
+    }
+    
+    TMatrixD matrix(nBinsX, nBinsY);
+    for (int i = 0; i < nBinsX; ++i) {
+      for (int j = 0; j < nBinsY; ++j) {
+	matrix(i, j) = values[i * nBinsY + j];
+      }
+    }
+    
+    return matrix;
+  }
+  
+  
+  template<> TVectorD h2v(const RooAbsReal* h, bool overflow, bool correctDensity) {
+    auto obs = getObservables(h);
+    auto values = h2Xhelper(h, obs, overflow, correctDensity);
     return TVectorD(values.size(), &(values[0]));
   }
-
+  template<> TMatrixD h2m(const RooAbsReal* h, bool overflow, bool correctDensity) {
+    auto obs = getObservables(h);
+    auto values = h2Xhelper(h, obs, overflow, correctDensity);
+    return toMatrix(values, obs);
+  }  
+  
   template<> TVectorD h2v<RooUnfolding::RooFitHist>  (const RooUnfolding::RooFitHist* h, bool overflow, bool correctDensity){
     TVectorD v;
     h2v(h,v,overflow,correctDensity);

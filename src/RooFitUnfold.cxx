@@ -23,6 +23,7 @@
 #include "RooBinning.h"
 
 #include "THStack.h"
+#include <RooFit/Detail/JSONInterface.h>
 
 using namespace RooUnfolding;
 
@@ -365,6 +366,12 @@ RooUnfoldSpec::RooUnfoldSpec(const char* name, const char* title, const TH1* tru
   this->setup(truth,truth_vars,reco,reco_vars,response,bkg,data,includeUnderflowOverflow,errorThreshold,useDensity);
 }
 
+RooUnfoldSpec::~RooUnfoldSpec(){
+  //! destructor
+}
+
+#ifndef NOROOFIT
+
 RooUnfoldSpec::RooUnfoldSpec(const char* name, const char* title, const TH1* truth_th1, const RooArgList& obs_truth, const TH1* reco_th1, const RooArgList& obs_reco, const TH2* response_th1, const TH1* bkg, const TH1* data, bool includeUnderflowOverflow, double errorThreshold, bool useDensity) : 
   TNamed(name,title)
 {
@@ -525,15 +532,12 @@ void RooUnfoldSpec::setup(const TH1* truth_th1, const RooArgList& obs_truth, con
   if(data_th1) this->_data.setNominal(data_th1,obs_reco,0.,includeUnderflowOverflow,this->_useDensity);
 }
 
-RooUnfoldSpec::~RooUnfoldSpec(){
-  //! destructor
-}
-
-
 RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const TH1* hist){
   // convert a TH1 into a RooFitHist
   return new RooUnfolding::RooFitHist(hist, this->_obs_truth, this->_includeUnderflowOverflow, this->_errorThreshold, this->_useDensity);
 }
+
+#endif
 
 namespace {
   int countBins(const RooArgList& set){
@@ -563,6 +567,7 @@ TMatrixD RooUnfoldSpec::makeCovarianceMatrix() const {
 
   return covarianceMatrix;
 }
+
 
 THStack* RooUnfoldSpec::makeBreakdownHistogram() const {
   THStack* hstack = new THStack("breakdown","breakdown");
@@ -685,6 +690,135 @@ void RooUnfoldSpec::addToCovarianceMatrix(const HistContainer& histContainer, TM
     }
   }
 }
+
+
+namespace {
+  template<typename THist>
+  THist* createHistogram(RooAbsReal* hist, bool useDensity, const std::string& name, const std::vector<Variable<THist>>& vars);
+
+  template<>
+  TH1* createHistogram<TH1>(RooAbsReal* hist, bool useDensity, const std::string& name, const std::vector<Variable<TH1>>& vars) {
+    // Create histogram for TH1
+    return createHist<TH1>(h2v(hist, false, useDensity), name.c_str(), name.c_str(), vars, true);
+  }
+
+  template<>
+  TH2* createHistogram<TH2>(RooAbsReal* hist, bool useDensity, const std::string& name, const std::vector<Variable<TH2>>& vars) {
+    // Create histogram for TH2
+    return createHist<TH2>(h2m(hist, false, useDensity), name.c_str(), name.c_str(), vars, true);
+  }
+
+  template<typename THist>
+  void addSampleToDictionary(const std::string& histName, const RooUnfoldSpec::HistContainer& cont,std::map<std::string, TH1*>& histograms, const std::vector<RooRealVar*>& observables, bool useDensity) {
+    // Create variables for the histogram
+    std::vector<Variable<THist>> vars;
+    for (auto& obs : observables) {
+      vars.push_back(Variable<THist>(obs));
+    }
+    
+    histograms[histName] = createHistogram<THist>(cont._nom, useDensity, histName, vars);
+    for (const auto& var : cont._shapes) {
+      std::string shape_up = histName + "_shape_up_" + var.first;
+      std::string shape_down = histName + "_shape_down_" + var.first;
+      histograms[shape_up] = createHistogram<THist>(var.second[0], useDensity, shape_up, vars);
+      histograms[shape_down] = createHistogram<THist>(var.second[1], useDensity, shape_down, vars);
+    }
+  }
+}
+
+std::map<std::string, TH1*> RooUnfoldSpec::createHistogramDictionary() const {
+  std::vector<RooRealVar*> observables;
+  for (auto& obs : _obs_reco) {
+    observables.push_back(static_cast<RooRealVar*>(obs));
+  }
+
+  std::map<std::string, TH1*> histograms;
+  addSampleToDictionary<TH1>("reco_sig", _reco, histograms, observables, _useDensity);
+  addSampleToDictionary<TH1>("bkg", _bkg, histograms, observables, _useDensity);
+  addSampleToDictionary<TH1>("truth_sig", _truth, histograms, observables, _useDensity);
+  addSampleToDictionary<TH2>("response", _res, histograms, observables, _useDensity);
+  return histograms;
+}
+
+
+std::string RooUnfoldSpec::createLikelihoodConfig() const {
+  auto tree = RooFit::Detail::JSONTree::create();
+  auto &root = tree->rootnode();
+  root.set_map();
+
+  // Settings
+  auto &settings = root["settings"].set_map();
+  settings["include_systematics"] << false;
+  settings["prune_systematics_threshold"] << 0;
+  settings["prune_migration_threshold"] << 0;
+
+  // Channels
+  auto &channels = root["channels"].set_map();
+  auto &channel = channels["reco_SR"].set_map();
+
+  // Variables
+  auto &variables = channel["variables"].set_seq();
+  variables.append_child() << "reco_x";
+
+  // Samples
+  auto &samples = channel["samples"].set_map();
+
+  auto addSampleToJSON = [&](const std::string& histString, const HistContainer& cont, RooFit::Detail::JSONNode &target) {
+    target["data"] << histString;
+
+    auto &modifiers = target["modifiers"].set_seq();
+
+    for (const auto& var : cont._shapes) {
+      std::string shape_up = histString + "_shape_up_" + var.first;
+      std::string shape_down = histString + "_shape_down_" + var.first;
+
+      auto &mod = modifiers.append_child().set_map();
+      mod["name"] << histString + "_shape_var_" + var.first;
+      mod["type"] << "histosys";
+      auto &data = mod["data"].set_map();
+      data["hi"] << shape_up;
+      data["lo"] << shape_down;
+    }
+
+    for (const auto& var : cont._norms) {
+      std::string norm_up = histString + "_norm_up_" + var.first;
+      std::string norm_down = histString + "_norm_down_" + var.first;
+
+      auto &mod = modifiers.append_child().set_map();
+      mod["name"] << histString + "_norm_var_" + var.first;
+      mod["type"] << "normsys";
+      auto &data = mod["data"].set_map();
+      data["hi"] << norm_up;
+      data["lo"] << norm_down;
+    }
+  };
+    
+  auto &reco_sig_sample = samples["signal"].set_map();
+  addSampleToJSON("reco_sig", _reco, reco_sig_sample);
+  auto &reco_bkg_sample = samples["background"].set_map();
+  addSampleToJSON("bkg", _bkg, reco_bkg_sample);
+    
+  // Unfolding
+  auto &unfolding = reco_sig_sample["unfolding"].set_map();
+  auto &regularize = unfolding["regularize"].set_map();
+  regularize["type"] << "tikhonov";
+  regularize["strength"] << 0.1;
+  regularize["curvature"] << "ss";
+  unfolding["poi"] << "xs";
+  unfolding["poitype"] << "cs";
+    
+  auto &truth = unfolding["truth"].set_map();
+  addSampleToJSON("truth_sig", _truth, truth);
+    
+  auto &migration = unfolding["migration"].set_map();
+  addSampleToJSON("response", _res, migration);
+
+  // Convert the JSON configuration to a string
+  std::stringstream ss;
+  ss << root;
+  return ss.str();
+}
+
 
 RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& source, double /*errorThreshold*/){
   // build a new RooFitHist based on the source HistContainer. relative bin errors above errorThreshold will be modelled as gamma parameters.
@@ -810,7 +944,7 @@ void RooUnfoldSpec::addGaussNP(RooRealVar* v){
 }
 void RooUnfoldSpec::addPoissonNP(RooRealVar* v){ 
   //! add a new poisson NP
- if(v) this->_gammas.add(*v);
+  if(v) this->_gammas.add(*v);
 }
 
 void RooUnfoldSpec::makeBackground(){
@@ -1032,10 +1166,10 @@ void RooUnfoldSpec::registerSystematic(Contribution c, const char* name, double 
 
 RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
   //! create an unfolding pdf
-  #ifdef NO_WRAPPERPDF
+#ifdef NO_WRAPPERPDF
   throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
   return NULL;
-  #else
+#else
   RooUnfoldFunc* func = static_cast<RooUnfoldFunc*>(this->makeFunc(alg,regparam));
   func->setDensity(true);
   RooWrapperPdf* pdf = new RooWrapperPdf(TString::Format("%s_pdf",func->GetName()),TString::Format("%s Pdf",func->GetTitle()),*func);
@@ -1047,7 +1181,7 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
   RooProdPdf* prod = new RooProdPdf(TString::Format("%s_x_constraints",this->GetName()),"Unfolding pdf, including constraints",comps);
   prod->setStringAttribute("source",func->GetName());
   return prod;
-  #endif
+#endif
 }
 
 

@@ -110,6 +110,8 @@ namespace RooUnfolding {
   template<class Hist2D> Hist2D* createHist(const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
   template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
   template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const Variable<Hist2D>& x, const Variable<Hist2D>& y);
+  template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const std::vector<Variable<Hist2D>>& vars, bool overflow=false);
+  template<class Hist2D> Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const std::vector<Variable<Hist2D>>& vars, bool overflow=false);
   
   template<class Hist> Hist* createHist(const char* name, const char* title, const std::vector<Variable<Hist>>& x);
   template<class Hist> Hist* createHist(const char* name, const char* title, const Variable<Hist>& x) { return createHist<Hist>(name,title,std::vector<Variable<Hist>>{x}); }
