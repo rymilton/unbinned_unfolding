@@ -19,7 +19,7 @@ stages:
   image: rootproject/root:6.32.02-ubuntu24.04
   before_script:
     - apt-get update
-    - apt-get -y install python
+    - apt-get -y install python-is-python3
 
 .doxygen: &doxygen
   <<: *standalone
