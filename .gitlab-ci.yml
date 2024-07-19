@@ -16,7 +16,7 @@ stages:
   image: blang/latex:ubuntu
 
 .standalone: &standalone    
-  image: rootproject/root:6.22.00-ubuntu20.04
+  image: rootproject/root:6.32.02-ubuntu24.04
   before_script:
     - apt-get update
     - apt-get -y install python
