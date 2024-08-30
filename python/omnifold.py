@@ -1,3 +1,4 @@
+import ROOT
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score
@@ -98,12 +99,21 @@ def omnifold(MC_entries, sim_entries, measured_entries, num_iterations):
 
 def binned_omnifold(response_hist, measured_hist, num_iterations):
     measured_counts, measured_bin_centers = TH1_to_numpy(measured_hist)
-    # response_hist = response.HresponseNoOverflow()
     response_counts, response_bin_centers = TH2_to_numpy(response_hist)
     MC_entries, sim_entries = prepare_response_data(response_counts.flatten(), response_bin_centers.flatten())
     measured_entries = prepare_hist_data(measured_counts, measured_bin_centers)
     
-    return omnifold(MC_entries, sim_entries, measured_entries, num_iterations)
+    weights, MC_data, _ = omnifold(MC_entries, sim_entries, measured_entries, num_iterations)
+    unfolded_hist = ROOT.TH1D("unfolded_hist",
+                              "unfolded_hist",
+                              response_hist.GetNbinsY(),
+                              response_hist.GetYaxis().GetBinLowEdge(1),
+                              response_hist.GetYaxis().GetBinLowEdge(response_hist.GetNbinsY())
+                              +response_hist.GetYaxis().GetBinWidth(response_hist.GetNbinsY())
+                             )
+    for (weight, MC) in zip(weights[-1,1], MC_data.flatten()):
+        unfolded_hist.Fill(MC, weight)
+    return unfolded_hist
 def unbinned_omnifold(MC_data, sim_data, measured_data, pass_reco_mask, num_iterations):
     MC_entries = np.expand_dims(MC_data[pass_reco_mask], axis = 1)
     sim_entries = np.expand_dims(sim_data, axis = 1)
