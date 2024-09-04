@@ -8,6 +8,10 @@ list(REMOVE_ITEM RooUnfoldHeadersForLinkDef ${RooUnfoldLinkDef2})
 file(GLOB RooUnfoldExecSources test/src/RooUnfoldTest.cxx test/src/RooUnfoldTest2D.cxx test/src/RooUnfoldTest3D.cxx)
 file(GLOB RooUnfoldUnitTests test/*.cxx)
 
-# -fprofile-arcs -ftest-coverage
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g -ftest-coverage  -fprofile-arcs ")
+if(RooUnfoldEnableProfiling)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g -ftest-coverage -fprofile-arcs ")
+else()
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g ")
+endif()
+
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE ON)

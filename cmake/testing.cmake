@@ -2,7 +2,11 @@
 foreach(UnitTest ${RooUnfoldUnitTests})
 get_filename_component(Test ${UnitTest} NAME_WE)
 add_executable(${Test} ${UnitTest})
-target_link_libraries(${Test} PUBLIC RooUnfoldTests gcov)
+if(RooUnfoldEnableProfiling)
+  target_link_libraries(${Test} PUBLIC RooUnfoldTests gcov)
+else()
+  target_link_libraries(${Test} PUBLIC RooUnfoldTests)
+endif()
 endforeach()
 
 file(GLOB test_bayes "test/test_bayes.cxx")
