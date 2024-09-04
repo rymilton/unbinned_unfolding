@@ -14,9 +14,9 @@ if(${ROOT_FOUND})
   include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/src")
   include_directories ("${ROOT_INCLUDE_DIRS}")
   
-  file(APPEND ${SETUP} "export PATH=\${PATH}:${CMAKE_CURRENT_BINARY_DIR}\n")  
-  file(APPEND ${SETUP} "export PYTHONPATH=\${PYTHONPATH}:${CMAKE_CURRENT_BINARY_DIR}\n")
-  file(APPEND ${SETUP} "export LD_LIBRARY_PATH=\${LD_LIBRARY_PATH}:${CMAKE_CURRENT_BINARY_DIR}\n")  
+  file(APPEND ${SETUP} "export PATH=${CMAKE_CURRENT_BINARY_DIR}:\${PATH}\n")  
+  file(APPEND ${SETUP} "export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:\${PYTHONPATH}\n")
+  file(APPEND ${SETUP} "export LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}:\${LD_LIBRARY_PATH}\n")  
   
   # generate the dictionary source code
   if(DEFINED ROOT_USE_FILE)
