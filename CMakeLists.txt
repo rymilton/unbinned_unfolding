@@ -19,6 +19,7 @@ option (RooUnfoldGenerateCMakeConfig "generate a RooUnfoldConfig.cmake file for 
 # For compatability with old CMake versions, this variable is unset, and then set again.
 unset(RooUnfoldTests)
 option (RooUnfoldTests "enable testing" OFF)
+option (RooUnfoldEnableProfiling "enable profiling" OFF)
 
 find_package( ROOT COMPONENTS Tree Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser REQUIRED)
 
