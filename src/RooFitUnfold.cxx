@@ -6,7 +6,11 @@
 #include "RooUnfoldTH1Helpers.h"
 #include "RooUnfoldFitHelpers.h"
 #include "RooHistFunc.h"
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,12,0)
 #include "RooRealSumFunc.h"
+#else
+#pragma message("RooFitUnfold requires ROOT version 6.12 or later (missing RooRealSumFunc.h)")
+#endif
 #include "RooPrintable.h"
 #include "RooHistPdf.h"
 #include "RooExtendPdf.h"

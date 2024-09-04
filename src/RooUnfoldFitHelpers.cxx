@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <limits>
+#include <stdexcept>
 
 #include "TMath.h"
 #include "RooAbsReal.h"
