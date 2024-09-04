@@ -103,7 +103,7 @@ CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual
 else
 # NB. don't include gcc's -Wsuggest-override, which gives many warnings inside ROOT.
 # Clang (and Cling)'s default and supposedly equivalent -Winconsistent-missing-override is more helpful.
-CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual -Wshadow
+CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual -Wshadow -Wno-deprecated-declarations
 endif
 
 ifeq ($(PLATFORM),macosx)

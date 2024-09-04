@@ -860,12 +860,14 @@ void RooUnfoldSpec::registerSystematic(Contribution c, const char* name, double 
 
 
 
+#ifdef NO_WRAPPERPDF
 RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
-  //! create an unfolding pdf
-  #ifdef NO_WRAPPERPDF
   throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
   return NULL;
-  #else
+}
+#else
+RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
+  //! create an unfolding pdf
   RooUnfoldFunc* func = static_cast<RooUnfoldFunc*>(this->makeFunc(alg,regparam));
   func->setDensity(true);
   RooWrapperPdf* pdf = new RooWrapperPdf(TString::Format("%s_pdf",func->GetName()),TString::Format("%s Pdf",func->GetTitle()),*func);
@@ -877,8 +879,8 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
   RooProdPdf* prod = new RooProdPdf(TString::Format("%s_x_constraints",this->GetName()),"Unfolding pdf, including constraints",comps);
   prod->setStringAttribute("source",func->GetName());
   return prod;
-  #endif
 }
+#endif
 
 
 RooAbsReal* RooUnfoldSpec::makeFunc(Algorithm alg, Double_t regparam){
