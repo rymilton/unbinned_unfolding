@@ -1,6 +1,6 @@
 import ROOT
 import numpy as np
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
@@ -49,61 +49,98 @@ def reweight(events, classifier):
     weights = data_probability / (1. - data_probability)
     return np.squeeze(np.nan_to_num(weights))
 
-def omnifold(MC_entries, sim_entries, measured_entries, num_iterations):
-
-    MC_train, MC_test, sim_train, sim_test = train_test_split(MC_entries, sim_entries, test_size = .5)
+def omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations):
+    verbose = False
     
-    sim_labels = np.zeros(len(sim_train))
+    sim_entries = sim_entries[pass_truth_mask]
+    # Want all arrays to be the same size so we can split them simultaneously
+    sim_entries_padded = np.full_like(MC_entries, np.nan)
+    
+    num_pass = 0
+    for i, entry in enumerate(pass_reco_mask):
+        if entry:
+            if num_pass < len(sim_entries):
+                sim_entries_padded[i] = sim_entries[num_pass]
+                num_pass += 1
+            else:
+                break
+
+    MC_train, MC_test, sim_train, sim_test, pass_reco_train, pass_reco_test = train_test_split(MC_entries, sim_entries_padded, pass_reco_mask,  test_size = .5)
+    
     measured_labels = np.ones(len(measured_entries))
     MC_labels = np.zeros(len(MC_train))
 
-    step1_data = np.concatenate((sim_train, measured_entries))
-    step1_labels = np.concatenate((sim_labels, measured_labels))
+    weights_pull_train = np.ones(len(MC_train))
+    weights_push_train = np.ones(len(MC_train))
+    weights_train = np.empty(shape=(num_iterations, 2, len(MC_train)))
 
-    step2_data = np.concatenate((MC_train, MC_train))
-    step2_labels = np.concatenate((MC_labels, np.ones(len(MC_train))))
+    weights_pull_test = np.ones(len(MC_test))
+    weights_push_test = np.ones(len(MC_test))
+    weights_test = np.empty(shape=(num_iterations, 2, len(MC_test)))
 
-    weights_pull_train = np.ones(len(sim_train))
-    weights_push_train = np.ones(len(sim_train))
-    weights_train = np.empty(shape=(num_iterations, 2, len(sim_train)))
-
-    weights_pull_test = np.ones(len(sim_test))
-    weights_push_test = np.ones(len(sim_test))
-    weights_test = np.empty(shape=(num_iterations, 2, len(sim_test)))
-    
+    step1_classifier = GradientBoostingClassifier()
+    step2_classifier = GradientBoostingClassifier()
     for i in range(num_iterations):
-        step1_weights = np.concatenate((weights_push_train, np.ones(len(measured_entries))))
-        # Training step 1 classifier
-        step1_classifier = GradientBoostingClassifier()
+        print(f"Starting iteration {i}") 
+        step1_data = np.concatenate((sim_train[pass_reco_train], measured_entries))
+        step1_labels = np.concatenate((np.zeros(len(sim_train[pass_reco_train])), np.ones(len(measured_labels))))
+        step1_weights = np.concatenate((weights_push_train[pass_reco_train], np.ones(len(measured_entries))))
+        
+        # Training step 1 classifier and getting weights
         step1_classifier.fit(step1_data, step1_labels, sample_weight = step1_weights)
-        weights_pull_train = np.multiply(weights_push_train, reweight(sim_train, step1_classifier))
-        weights_pull_test = np.multiply(weights_push_test, reweight(sim_test, step1_classifier))
+        new_weights_train = np.ones_like(weights_pull_train)
+        new_weights_train[pass_reco_train] = reweight(sim_train[pass_reco_train], step1_classifier)
+        
+        # Training a regression model to predict the weights of the events that don't pass reconstruction
+        if len(sim_train[~pass_reco_train]) > 0:
+            regressor_train = GradientBoostingRegressor()
+            regressor_train.fit(MC_train[pass_reco_train], new_weights_train[pass_reco_train])
+            new_weights_train[~pass_reco_train] = regressor_train.predict(MC_train[~pass_reco_train])
+        weights_pull_train = np.multiply(weights_push_train, new_weights_train)
+
+        # Repeating on the test data
+        new_weights_test = np.ones_like(weights_pull_test)
+        new_weights_test[pass_reco_test] = reweight(sim_test[pass_reco_test], step1_classifier)
+        if len(sim_test[~pass_reco_test]) > 0:
+            regressor_test = GradientBoostingRegressor()
+            regressor_test.fit(MC_test[pass_reco_test], new_weights_test[pass_reco_test])
+            new_weights_test[~pass_reco_test] = regressor_test.predict(MC_test[~pass_reco_test])
+        weights_pull_test = np.multiply(weights_push_test, new_weights_test)
+        
         # Testing step 1 classifier
-        step1_test_accuracy = step1_classifier.score(sim_test, np.zeros(len(sim_test)))
-        print(f"Iteration {i+1}, Step 1 Test Accuracy: {step1_test_accuracy}")        
+        if verbose:
+            step1_test_accuracy = step1_classifier.score(sim_test[pass_reco_test], np.zeros(len(sim_test[pass_reco_test])))
+            print(f"Iteration {i+1}, Step 1 Test Accuracy: {step1_test_accuracy}")        
 
         # Training step 2 classifier
+        step2_data = np.concatenate((MC_train, MC_train))
+        step2_labels = np.concatenate((MC_labels, np.ones(len(MC_train))))
         step2_weights = np.concatenate((np.ones(len(MC_train)), weights_pull_train))
-        step2_classifier = GradientBoostingClassifier()
         step2_classifier.fit(step2_data, step2_labels, sample_weight = step2_weights)
-        # Testing step 2 classifier
-        step2_test_accuracy = step2_classifier.score(MC_test, np.zeros(len(MC_test)))
-        print(f"Iteration {i+1}, Step 2 Test Accuracy: {step2_test_accuracy}")        
         
+        # Testing step 2 classifier
+        if verbose:
+            step2_train_accuracy = step2_classifier.score(step2_data, step2_labels, step2_weights)
+            print(f"Iteration {i+1}, Step 2 Train Accuracy: {step2_train_accuracy}")
+            step2_test_accuracy = step2_classifier.score(MC_test, np.zeros(len(MC_test)))
+            print(f"Iteration {i+1}, Step 2 Test Accuracy: {step2_test_accuracy}")
+
+        # Getting step 2 weights and storing iteration weights
         weights_push_train = reweight(MC_train, step2_classifier)
         weights_push_test = reweight(MC_test, step2_classifier)
-        
         weights_train[i, 0], weights_train[i, 1] = weights_pull_train, weights_push_train
         weights_test[i, 0], weights_test[i, 1] = weights_pull_test, weights_push_test
-    return weights_test, MC_test, sim_test
+    return weights_test, MC_test, sim_test[pass_reco_test], pass_reco_test
+
 
 def binned_omnifold(response_hist, measured_hist, num_iterations):
     measured_counts, measured_bin_centers = TH1_to_numpy(measured_hist)
     response_counts, response_bin_centers = TH2_to_numpy(response_hist)
     MC_entries, sim_entries = prepare_response_data(response_counts.flatten(), response_bin_centers.flatten())
     measured_entries = prepare_hist_data(measured_counts, measured_bin_centers)
-    
-    weights, MC_data, _ = omnifold(MC_entries, sim_entries, measured_entries, num_iterations)
+    pass_reco_mask = np.full_like(np.ones(len(MC_entries)), True, dtype=bool)
+    pass_truth_mask = np.full_like(np.ones(len(sim_entries)), True, dtype=bool)
+    weights, MC_data, _, _ = omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations)
     unfolded_hist = ROOT.TH1D("unfolded_hist",
                               "unfolded_hist",
                               response_hist.GetNbinsY(),
