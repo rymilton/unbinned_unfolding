@@ -47,9 +47,13 @@ void Omnifold::EfficiencyCorrections(TH1* hist)
         hist->SetBinContent(i+1, corrected_content);
     }
 }
-std::tuple<TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TVectorD MC_entries, TVectorD sim_entries, TVectorD measured_entries, TVector pass_reco, TVector pass_truth, Int_t num_iterations)
+std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TVectorD MC_entries,
+                                                                              TVectorD sim_entries,
+                                                                              TVectorD measured_entries,
+                                                                              TVector pass_reco,
+                                                                              TVector pass_truth,
+                                                                              Int_t num_iterations)
 {
-    TPython::Bind( &MC_entries, "MC_entries" );
     TPython::Bind( &MC_entries, "unbinned_MC_entries" );
     TPython::Bind( &sim_entries, "unbinned_sim_entries" );
     TPython::Bind( &measured_entries, "unbinned_measured_entries" );
@@ -59,15 +63,30 @@ std::tuple<TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TVectorD MC_entries, T
     TPython::Exec( "pass_truth_mask = np.array(pass_truth_mask, dtype=bool)" );
     TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", num_iterations);
     TPython::Bind(num_iterations_object, "num_iterations" );
-    TPython::Exec("weights, MC_data, _, _ = unbinned_omnifold(unbinned_MC_entries, unbinned_sim_entries, unbinned_measured_entries, pass_reco_mask, pass_truth_mask, num_iterations.GetVal())");
-    TPython::Exec("weights_MC_ROOT = convert_to_TVectorD(weights[-1][1])");
-    TPython::Exec("unbinned_MC_ROOT = convert_to_TVectorD(MC_data.flatten()) ");
-    TVectorD* weights_MC = TPython::Eval("weights_MC_ROOT");
-    TVectorD* unbinned_MC = TPython::Eval("unbinned_MC_ROOT");
-    TVectorD out_weights_MC = *weights_MC;
-    TVectorD out_unbinned_MC = *unbinned_MC;
-    std::tuple<TVectorD, TVectorD> out_tuple = std::make_tuple(out_weights_MC, out_unbinned_MC);
+    TPython::Exec("weights_test, MC_test, sim_test, pass_reco_test = unbinned_omnifold(unbinned_MC_entries,\
+                                                                                       unbinned_sim_entries,\
+                                                                                       unbinned_measured_entries,\
+                                                                                       pass_reco_mask,\
+                                                                                       pass_truth_mask,\
+                                                                                       num_iterations.GetVal())");
+    TPython::Exec("weights_MC_TVectorD = convert_to_TVectorD(weights_test[-1, 1])");
+    TPython::Exec("MC_TVectorD = convert_to_TVectorD(MC_test.flatten())");
+    TPython::Exec("weights_sim_TVectorD = convert_to_TVectorD(weights_test[-1, 0][pass_reco_test])");
+    TPython::Exec("sim_TVectorD = convert_to_TVectorD(sim_test.flatten())");
+    
+    TVectorD* weights_MC_test = TPython::Eval("weights_MC_TVectorD");
+    TVectorD* MC_test = TPython::Eval("MC_TVectorD");
+    TVectorD* weights_sim_test = TPython::Eval("weights_sim_TVectorD");
+    TVectorD* sim_test = TPython::Eval("sim_TVectorD");
+
+    TVectorD out_weights_MC_test = *weights_MC_test;
+    TVectorD out_MC_test = *MC_test;
+    TVectorD out_weights_sim_test = *weights_sim_test;
+    TVectorD out_sim_test = *sim_test;
+    std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> out_tuple = std::make_tuple(out_weights_MC_test,
+                                                                                   out_MC_test,
+                                                                                   out_weights_sim_test,
+                                                                                   out_sim_test);
     return out_tuple;
-    // std::cout<<"hi"<<std::endl;
 }
                                                                        

@@ -19,9 +19,7 @@ public:
     Omnifold(RooUnfoldResponse response, TH1* measured_hist, Int_t num_iterations);
     ~Omnifold();
     TH1D* BinnedOmnifold();
-    // std::tuple<const TVectorD&, const TVectorD&, const TVectorD&, const TVectorD&> UnbinnedOmnifold(TVectorD& MC_entries, TVectorD& sim_entries, TVectorD& measured_entries,
-    //                                                                                                 TVector& pass_reco, TVector& pass_truth, Int_t num_iterations);
-    std::tuple<TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries, TVectorD sim_entries, TVectorD measured_entries, TVector pass_reco, TVector pass_truth, Int_t num);
+    std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries, TVectorD sim_entries, TVectorD measured_entries, TVector pass_reco, TVector pass_truth, Int_t num);
     void SetIterations(Int_t nIter) {_nIter = nIter;}
     Int_t GetIterations() const {return _nIter;}
     void SetMeasuredHist(TH1* measured_hist) {_measuredHist = measured_hist;}
