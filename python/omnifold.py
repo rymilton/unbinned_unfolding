@@ -43,6 +43,12 @@ def prepare_response_data(counts, bin_centers):
         entry_tracker += int(count)
     return truth_array, sim_array
 
+def convert_to_TVectorD(array):
+    out = ROOT.TVectorD(len(array))
+    for i, entry in enumerate(array):
+        out[i] = array[i]
+    return out
+
 def reweight(events, classifier):
     class_probabilities = classifier.predict_proba(events)
     data_probability = class_probabilities[:,1]
@@ -151,9 +157,8 @@ def binned_omnifold(response_hist, measured_hist, num_iterations):
     for (weight, MC) in zip(weights[-1,1], MC_data.flatten()):
         unfolded_hist.Fill(MC, weight)
     return unfolded_hist
-def unbinned_omnifold(MC_data, sim_data, measured_data, pass_reco_mask, num_iterations):
-    MC_entries = np.expand_dims(MC_data[pass_reco_mask], axis = 1)
+def unbinned_omnifold(MC_data, sim_data, measured_data, pass_reco_mask, pass_truth_mask, num_iterations):
+    MC_entries = np.expand_dims(MC_data, axis = 1)
     sim_entries = np.expand_dims(sim_data, axis = 1)
     measured_entries = np.expand_dims(measured_data, axis = 1)
-    
-    return omnifold(MC_entries, sim_entries, measured_entries, num_iterations)
+    return omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations)
