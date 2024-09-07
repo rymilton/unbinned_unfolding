@@ -7,11 +7,12 @@
 #ifndef OMNIFOLD_H_
 #define OMNIFOLD_H_
 
-#include "RooUnfoldResponse.h"
-#include "TH1.h"
 #include <tuple>
-#include <TVector.h>
-#include <TVectorD.h>
+#include "TH1.h"
+#include "TVector.h"
+#include "TVectorD.h"
+#include "RooUnfoldResponse.h"
+#include "TObjArray.h"
 
 class Omnifold {
 public:
@@ -19,7 +20,18 @@ public:
     Omnifold(RooUnfoldResponse response, TH1* measured_hist, Int_t num_iterations);
     ~Omnifold();
     TH1D* BinnedOmnifold();
-    std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries, TVectorD sim_entries, TVectorD measured_entries, TVector pass_reco, TVector pass_truth, Int_t num);
+    std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries,
+                                                                        TVectorD sim_entries,
+                                                                        TVectorD measured_entries,
+                                                                        TVector pass_reco,
+                                                                        TVector pass_truth,
+                                                                        Int_t num_iterations);
+    std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> UnbinnedOmnifold(TObjArray MC_entries,
+                                                                          TObjArray sim_entries,
+                                                                          TObjArray measured_entries,
+                                                                          TVector pass_reco,
+                                                                          TVector pass_truth,
+                                                                          Int_t num_iterations);
     void SetIterations(Int_t nIter) {_nIter = nIter;}
     Int_t GetIterations() const {return _nIter;}
     void SetMeasuredHist(TH1* measured_hist) {_measuredHist = measured_hist;}
