@@ -467,9 +467,7 @@ namespace {
     binWidth->setConstant(true);
     RooArgList functions;
     RooArgList coefs;
-    RooFIter itr(contributions.fwdIterator());
-    RooAbsArg* obj;
-    while((obj = itr.next())){
+    for(RooAbsArg* obj: contributions){
       functions.add(*obj);
       coefs.add(*binWidth);
     }
@@ -550,9 +548,7 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& sour
   if(this->_obs_all.getSize() < 1){
     throw std::runtime_error("in RooUnfoldSpec::makeHistogram: no observables known!");
   }
-  RooFIter itr(this->_obs_all.fwdIterator());
-  RooAbsArg* arg = NULL;
-  while((arg = itr.next())){
+  for(RooAbsArg* arg : this->_obs_all){
     if(!arg) continue;
     if(!hf->dependsOn(*arg)) continue;
     obs.push_back(arg);
