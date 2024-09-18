@@ -63,9 +63,7 @@ namespace {
     const RooRealProxy& px = pois->*RooPoissonHackResult<RooPoissonMean>::ptr;
     RooProduct* prod = const_cast<RooProduct*>(dynamic_cast<const RooProduct*>(&(px.arg())));
     RooArgList compList(prod->components());
-    RooFIter citr(compList.fwdIterator());
-    RooAbsArg* arg;
-    while((arg = citr.next())){
+    for (RooAbsArg* arg : compList) {
       RooRealVar* gamma = dynamic_cast<RooRealVar*>(arg);
       if(gamma) return gamma;
     }
@@ -109,9 +107,7 @@ namespace {
 namespace {
   template<class T> T* findLeafServer(RooAbsArg* rr, const char* name){
     if(!rr) return NULL;
-    RooFIter sIter = rr->serverMIterator();
-    RooAbsArg* server = NULL;
-    while ((server=sIter.next())) {
+    for (RooAbsArg* server : rr->servers()) {
       if(!server) continue;
       if(strcmp(server->GetName(),name) == 0 && (server->InheritsFrom(RooRealVar::Class()) || server->InheritsFrom(RooCategory::Class()))){
         return dynamic_cast<T*>(server);
@@ -729,9 +725,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
 
 
   RooFitHist::RooFitHist(RooHistFunc* hf, const RooArgList& obslist, double uncThreshold){
-    RooFIter itr(obslist.fwdIterator());
-    RooAbsArg* arg = NULL;
-    while((arg = (RooAbsArg*)itr.next())){
+    for(RooAbsArg* arg : obslist){
       if(!arg) continue;
       if(!hf->dependsOn(*arg)) continue;
       this->_obs.push_back(arg);
@@ -747,9 +741,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     TString name(dh->GetName());
     TString title(dh->GetTitle());
     RooHistFunc* hf = new RooHistFunc(TString::Format("%s_Values",name.Data()),title,obslist,*dh);
-    RooFIter itr(obslist.fwdIterator());
-    RooAbsArg* arg = NULL;
-    while((arg = (RooAbsArg*)itr.next())){
+    for(RooAbsArg* arg : obslist){
       if(!arg) continue;
       if(!hf->dependsOn(*arg)) continue;
       this->_obs.push_back(arg);
@@ -1093,11 +1085,9 @@ void RooUnfolding::importToWorkspace(RooWorkspace* ws, RooAbsData* object){
 }
 
 void RooUnfolding::setGammaUncertainties(RooWorkspace* ws){
-  RooArgSet pdfs (ws->allPdfs());
-  RooFIter itr(pdfs.fwdIterator());
   TPRegexp re("gamma_stat_.*");    
-  RooAbsArg* obj = NULL;;
-  while((obj = itr.next())){
+  RooArgSet pdfs (ws->allPdfs());
+  for(RooAbsArg* obj : pdfs){
     RooPoisson* pois = dynamic_cast<RooPoisson*>(obj);
     if(!pois) continue;
     if(!re.Match(pois->GetName())) continue;
@@ -1112,18 +1102,14 @@ const RooArgSet* RooUnfolding::getObservables(const RooHistFunc* f){
 }
 
 void RooUnfolding::printClients(const RooAbsArg* obj){
-  TIterator* itr = obj->clientIterator();
-  TObject* x;
   std::cout << obj << " " << obj->ClassName() << " " << obj->GetName() << " has the following clients" << std::endl;
-  while((x = itr->Next())){
+  for(TObject* x : obj->clients()){
     std::cout << "  " << x << " " << x->ClassName() << " " << x->GetName() << std::endl;
   }
 }
 void RooUnfolding::printServers(const RooAbsArg* obj){
-  TIterator* itr = obj->serverIterator();
-  TObject* x;
   std::cout << obj << " " << obj->ClassName() << " " << obj->GetName() << " has the following servers" << std::endl;
-  while((x = itr->Next())){
+  for(TObject* x: obj->servers()){
     std::cout << "  " << x << " " << x->ClassName() << " " << x->GetName() << std::endl;
   }
 }  
@@ -1131,9 +1117,13 @@ void RooUnfolding::printServers(const RooAbsArg* obj){
  template<class ObjT,class ListT>std::vector<ObjT*> RooUnfolding::matchingObjects(const ListT* c, const char* pattern){
   TPRegexp re(pattern);
   std::vector<ObjT*> retval;
-  RooFIter itr(c->fwdIterator());
-  ObjT* arg = NULL;
-  while((arg = (ObjT*)itr.next())){
+
+  // When called with RooAbsCollection, begin() returns RooAbsArg.
+  // However, ObjT may be RooAbsReal, a class inheriting from RooAbsArg.
+  // We do a dynamic_cast for RooAbsReal. 
+  // In the general case, this requires a dynamic_cast for ObjT*
+  for(auto item : *c){
+    auto arg = dynamic_cast<ObjT*>(item);
     if(!arg) continue;
     if(re.Match(arg->GetName())){
       retval.push_back(arg);
@@ -1149,10 +1139,8 @@ std::vector<RooAbsReal*> RooUnfolding::matchingObjects(const RooAbsCollection* c
 RooArgSet RooUnfolding::allVars(RooWorkspace* ws, const char* pattern){
   TPRegexp re(pattern);
   RooArgSet allVars(ws->allVars());
-  RooFIter itr(allVars.fwdIterator());
-  RooAbsArg* arg = NULL;
   RooArgSet retval;
-  while((arg = itr.next())){
+  for(RooAbsArg* arg : allVars){
     if(!arg) continue;
     if(re.Match(arg->GetName())){
       retval.add(*arg,true);
