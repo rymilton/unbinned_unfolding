@@ -80,7 +80,10 @@ if(${ROOT_FOUND})
       )
   endforeach()
 
-  install( FILES ${RooUnfoldHeaders} DESTINATION include/
+  install( FILES ${RooUnfoldHeadersOnly} DESTINATION include/
+        COMPONENT headers)
+
+  install( FILES ${TUnfoldHeaders} DESTINATION include/RooUnfold/TUnfold
         COMPONENT headers)
 
   install( FILES ${CMAKE_CURRENT_BINARY_DIR}/libRooUnfold.rootmap

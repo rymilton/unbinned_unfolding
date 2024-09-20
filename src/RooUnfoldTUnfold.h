@@ -8,7 +8,7 @@
 #define ROOUNFOLDTUNFOLD_HH
 
 #include "RooUnfold.h"
-#include "TUnfold.h"
+#include "RooUnfold/TUnfold/TUnfold.h"
 #include "RooUnfoldResponse.h"
 
 class TH1;
