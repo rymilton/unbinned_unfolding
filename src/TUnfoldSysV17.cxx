@@ -158,7 +158,7 @@ INCLUDED in the methods provided by the base class TUnfold.
 #include <RVersion.h>
 #include <cmath>
 
-#include "TUnfoldSys.h"
+#include "RooUnfold/TUnfold/TUnfoldSys.h"
 
 ClassImp(TUnfoldSysV17)
 

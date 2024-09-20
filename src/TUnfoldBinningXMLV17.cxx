@@ -121,8 +121,8 @@ scheme consists of two two-dimensional distributions, signal and background.
 */
 
 
-#include "TUnfold.h"
-#include "TUnfoldBinningXML.h"
+#include "RooUnfold/TUnfold/TUnfold.h"
+#include "RooUnfold/TUnfold/TUnfoldBinningXML.h"
 
 #include <TXMLDocument.h>
 #include <TXMLNode.h>

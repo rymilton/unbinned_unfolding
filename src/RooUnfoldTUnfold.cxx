@@ -26,9 +26,9 @@ if v15 of TUnfold is used. ROOT versions 5.26 or below use v13 and so should be 
 #include "TVectorD.h"
 #include "TMatrixD.h"
 #ifndef NOTUNFOLDSYS
-#include "TUnfoldSys.h"
+#include "RooUnfold/TUnfold/TUnfoldSys.h"
 #else
-#include "TUnfold.h"
+#include "RooUnfold/TUnfold/TUnfold.h"
 #endif
 #include "TGraph.h"
 #include "TSpline.h"

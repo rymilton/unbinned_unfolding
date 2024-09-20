@@ -113,7 +113,7 @@ constraint, both x and &lambda; are determined.
 #include <TMatrixDSym.h>
 #include <TMatrixDSymEigen.h>
 #include <TMath.h>
-#include "TUnfold.h"
+#include "RooUnfold/TUnfold/TUnfold.h"
 
 #include <map>
 #include <vector>
