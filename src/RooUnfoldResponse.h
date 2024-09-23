@@ -88,10 +88,8 @@ protected:
   // instance variables
 
   Hist*  _mes = 0;      // Measured histogram
-  Hist*  _mestru = 0;   // Histogram with events that were reconstructed in the same bin.
   Hist*  _fak = 0;      // Fakes    histogram
   Hist*  _tru = 0;      // Truth    histogra
-  Hist*  _tru_m = 0;    // Truth histogram with meas binning for the purity.
   Hist2D*_res = 0;      // Response histogram
   Int_t _overflow = 0; // Use histogram under/overflows if 1
   bool  _density = false;

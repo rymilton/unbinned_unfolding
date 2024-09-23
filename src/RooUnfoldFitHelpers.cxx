@@ -906,39 +906,6 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     this->_func = makeHistFunc(d,_obs);    
   } 
 
-
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const char* name, const char* /*title*/, const Variable<RooUnfolding::RooFitHist>& x, const Variable<RooUnfolding::RooFitHist>& y){
-    RooArgSet vars(*x._var,*y._var, name);
-    std::runtime_error("createHist 1 called");
-    return NULL;
-  }
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const char* /*name*/, const char* /*title*/, const std::vector<Variable<RooUnfolding::RooFitHist>>& /*x*/){
-    std::runtime_error("createHist 2 called");
-    return NULL;
-  }
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TMatrixD& /*m*/, const char* /*name*/, const char* /*title*/, const Variable<RooUnfolding::RooFitHist>& /*x*/, const Variable<RooUnfolding::RooFitHist>& /*y*/){  
-    // Sets the bin content of the histogram as that element of the input vector
-    std::runtime_error("createHist 3 called");        
-    return NULL;
-  }
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TMatrixD& /*m*/, const TMatrixD& /*me*/, const char* /*name*/, const char* /*title*/, const Variable<RooUnfolding::RooFitHist>& /*x*/, const Variable<RooUnfolding::RooFitHist>& /*y*/){  
-    // Sets the bin content of the histogram as that element of the input vector
-    std::runtime_error("createHist 4 called");            
-    return NULL;
-  }
-
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& /*v*/, const char* /*name*/, const char* /*title*/, const std::vector<Variable<RooUnfolding::RooFitHist>>& /*x*/, bool /*overflow*/){
-    std::runtime_error("createHist 5 called");
-    return 0;
-  }
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& /*v*/, const TVectorD& /*ve*/, const char* /*name*/, const char* /*title*/, const std::vector<Variable<RooUnfolding::RooFitHist>>& /*x*/, bool /*overflow*/){
-    std::runtime_error("createHist 6 called");   
-    return 0;
-  }
-  template<> RooUnfolding::RooFitHist* createHist<RooUnfolding::RooFitHist>(const TVectorD& /*v*/, const TVectorD& /*verr*/, const char* /*name*/, const char* /*title*/, const RooUnfolding::RooFitHist* /*origHist*/, bool /*overflow*/){
-    std::runtime_error("createHist 7 called");
-    return 0;
-  }
   template<> TVectorD subtract<RooUnfolding::RooFitHist,TVectorD>(const TVectorD& orig, const RooUnfolding::RooFitHist* hist, bool overflow) {
     TVectorD res(orig);
     size_t n = nBins(hist);
@@ -1070,7 +1037,7 @@ namespace RooUnfolding { // section 2: non-trivial helpers
   }
 }  
 
-template RooUnfolding::RooFitHist* RooUnfolding::createHist<RooUnfolding::RooFitHist>(TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<RooUnfolding::RooFitHist> const&, bool);
+
 template std::vector<RooUnfolding::Variable<RooUnfolding::RooFitHist> > RooUnfolding::vars<RooUnfolding::RooFitHist>(RooUnfolding::RooFitHist const*); 
 template void RooUnfolding::printTable<RooUnfolding::RooFitHist>(std::ostream&, RooUnfolding::RooFitHist const*, RooUnfolding::RooFitHist const*, RooUnfolding::RooFitHist const*, RooUnfolding::RooFitHist const*, RooUnfolding::RooFitHist const*, bool, RooUnfolding::ErrorTreatment, double);
 

@@ -10,6 +10,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "TMath.h"
 #include "THashList.h"
 
 namespace RooUnfolding { 
@@ -41,9 +42,183 @@ namespace{
     }
     return i+1;   // not used: 1D handled by inline GetBin() (and handling UseOverflow), don't support >3D.
   }
+
+  template<class Hist> TH1* createHistHelper(const char* name, const char* title, const std::vector<RooUnfolding::Variable<Hist>>& x){
+    Bool_t oldstat= TH1::AddDirectoryStatus();
+    TH1::AddDirectory (kFALSE);
+    TH1* hist = NULL;
+    if(x.size() == 1){
+      if(x[0].irregular()){
+	hist = new TH1D (name,title, x[0]._nBins, &(x[0]._bounds[0]));
+      } else {
+	hist = new TH1D (name,title, x[0]._nBins, x[0]._min, x[0]._max);
+      }
+    } else if(x.size() == 2){
+      if(x[0].irregular() && x[1].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, &(x[1]._bounds[0]));
+      } else if(x[0].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, x[1]._min, x[1]._max);
+      } else if(x[1].irregular()){
+	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, &(x[1]._bounds[0]));
+      } else {
+	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max);
+      }
+    } else if(x.size() == 3){
+      hist = new TH3D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max, x[2]._nBins, x[2]._min, x[2]._max);
+    } else {
+      throw std::runtime_error(TString::Format("invalid dimensionality for ROOT histogram: %d",(int)x.size()).Data());
+    }
+    hist->Sumw2();
+    TH1::AddDirectory (oldstat);
+    return hist;
+  }
+
+  bool isEquidistantBinning(const TAxis& axis){
+    if (!axis.GetXbins()->fN) return true;  //
+    bool isEquidistant = true;
+    const Double_t firstBinWidth = axis.GetBinWidth(1);
+    for (int i = 1; i < axis.GetNbins(); ++i) {
+      const Double_t binWidth = axis.GetBinWidth(i);
+      const bool match = TMath::AreEqualRel(firstBinWidth, binWidth, 1.E-10);
+      isEquidistant &= match;
+      if (!match)
+	break;
+    }
+    return isEquidistant;
+  }
+  std::vector<double> binning(const TAxis& axis){
+    std::vector<double> edges;
+    for (int i = 1; i < axis.GetNbins()+2; ++i) {
+      edges.push_back(axis.GetBinLowEdge(i));
+    }
+    return edges;
+  }
+  
 }
 
-namespace RooUnfolding { 
+namespace RooUnfolding {
+
+  // 1D histogram with a single variable
+  template <class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x) {
+    return static_cast<Hist*>(createHistHelper(name, title, std::vector<Variable<AnyHist>>{x}));
+  }
+
+  // ND histogram with a vector of variables
+  template <class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const std::vector<Variable<AnyHist>>& x) {
+    return static_cast<Hist*>(createHistHelper(name, title, x));
+  }
+
+  // 2D histogram with two variables
+  template <class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x, const RooUnfolding::Variable<AnyHist>& y) {
+    return static_cast<Hist*>(createHistHelper(name, title, std::vector<Variable<AnyHist>>{x, y}));
+  }
+
+  // 2D histogram from a matrix
+  template <class Hist2D, class AnyHist>
+  Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x, const RooUnfolding::Variable<AnyHist>& y) {
+    Hist2D* hist = static_cast<Hist2D*>(createHistHelper(name, title, std::vector<Variable<AnyHist>>{x, y}));
+    for (int i = 0; i < m.GetNrows(); ++i) {
+      for (int j = 0; j < m.GetNcols(); ++j) {
+	hist->SetBinContent(i + 1, j + 1, m(i, j));
+      }
+    }
+    return hist;
+  }
+
+  // 2D histogram from a matrix with errors
+  template <class Hist2D, class AnyHist>
+  Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x, const RooUnfolding::Variable<AnyHist>& y) {
+    Hist2D* hist = createHist<Hist2D>(m, name, title, x, y);
+    for (int i = 0; i < me.GetNrows(); ++i) {
+      for (int j = 0; j < me.GetNcols(); ++j) {
+	hist->SetBinError(i + 1, j + 1, me(i, j));
+      }
+    }
+    return hist;
+  }
+
+  // 1D histogram from a vector
+  template <class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, bool overflow) {
+    Hist* hist = static_cast<Hist*>(createHistHelper(name, title, x));
+    for (int i = 0; i < vec.GetNrows(); ++i) {
+      hist->SetBinContent(i + 1, vec(i));
+    }
+    return hist;
+  }
+
+  // 1D histogram from a vector with a single variable
+  template <class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x, bool overflow) {
+    return createHist<Hist>(vec, name, title, std::vector<Variable<AnyHist>>{x}, overflow);
+  }
+
+  // 1D histogram from vector and error vector
+  template <class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, bool overflow) {
+    Hist* hist = createHist<Hist>(vec, name, title, x, overflow);
+    for (int i = 0; i < errvec.GetNrows(); ++i) {
+      hist->SetBinError(i + 1, errvec(i));
+    }
+    return hist;
+  }
+
+  // 1D histogram from vector, error vector, and single variable
+  template <class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const RooUnfolding::Variable<AnyHist>& x, bool overflow) {
+    return createHist<Hist>(vec, errvec, name, title, std::vector<Variable<AnyHist>>{x}, overflow);
+  }
+
+  // Histogram creation from an existing histogram
+  template <class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const Hist* origHist, bool overflow) {
+    Hist* hist = dynamic_cast<Hist*>(origHist->Clone(name));
+    for (int i = 0; i < vec.GetNrows(); ++i) {
+      hist->SetBinContent(i + 1, vec(i));
+      hist->SetBinError(i + 1, errvec(i));
+    }
+    return hist;
+  }
+
+
+
+  // Specializations for TH1 as both Hist and AnyHist
+  template TH1* createHist<TH1, TH1>(const char* name, const char* title, const RooUnfolding::Variable<TH1>& x);
+  template TH1* createHist<TH1, TH1>(const char* name, const char* title, const std::vector<Variable<TH1>>& x);
+  template TH1* createHist<TH1, TH1>(const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, const RooUnfolding::Variable<TH1>& y);
+  template TH1* createHist<TH1, TH1>(const TVectorD& vec, const char* name, const char* title, const std::vector<Variable<TH1>>& x, bool overflow);
+  template TH1* createHist<TH1, TH1>(const TVectorD& vec, const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, bool overflow);
+  template TH1* createHist<TH1, TH1>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const std::vector<Variable<TH1>>& x, bool overflow);
+  template TH1* createHist<TH1, TH1>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, bool overflow);
+  template TH1* createHist<TH1, TH1>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const TH1* origHist, bool overflow);
+
+  // Specializations for TH2 as both Hist and AnyHist
+  template TH2* createHist<TH2, TH2>(const char* name, const char* title, const RooUnfolding::Variable<TH2>& x);
+  template TH2* createHist<TH2, TH2>(const char* name, const char* title, const std::vector<Variable<TH2>>& x);
+  template TH2* createHist<TH2, TH2>(const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, const RooUnfolding::Variable<TH2>& y);
+  template TH2* createHist<TH2, TH2>(const TMatrixD& m, const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, const RooUnfolding::Variable<TH2>& y);
+  template TH2* createHist<TH2, TH2>(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, const RooUnfolding::Variable<TH2>& y);
+
+  // Specializations for TH1 as Hist and TH2 as AnyHist
+  template TH1* createHist<TH1, TH2>(const char* name, const char* title, const RooUnfolding::Variable<TH2>& x);
+  template TH1* createHist<TH1, TH2>(const char* name, const char* title, const std::vector<Variable<TH2>>& x);
+  template TH1* createHist<TH1, TH2>(const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, const RooUnfolding::Variable<TH2>& y);
+  template TH1* createHist<TH1, TH2>(const TVectorD& vec, const char* name, const char* title, const std::vector<Variable<TH2>>& x, bool overflow);
+  template TH1* createHist<TH1, TH2>(const TVectorD& vec, const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, bool overflow);
+  template TH1* createHist<TH1, TH2>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const std::vector<Variable<TH2>>& x, bool overflow);
+  template TH1* createHist<TH1, TH2>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const RooUnfolding::Variable<TH2>& x, bool overflow);
+  template TH1* createHist<TH1, TH2>(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const TH1* origHist, bool overflow);
+
+  // Specializations for TH2 as Hist and TH1 as AnyHist
+  template TH2* createHist<TH2, TH1>(const char* name, const char* title, const RooUnfolding::Variable<TH1>& x);
+  template TH2* createHist<TH2, TH1>(const char* name, const char* title, const std::vector<Variable<TH1>>& x);
+  template TH2* createHist<TH2, TH1>(const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, const RooUnfolding::Variable<TH1>& y);
+  template TH2* createHist<TH2, TH1>(const TMatrixD& m, const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, const RooUnfolding::Variable<TH1>& y);
+  template TH2* createHist<TH2, TH1>(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const RooUnfolding::Variable<TH1>& x, const RooUnfolding::Variable<TH1>& y);
+ 
   const TAxis* getAxis(const TH1* h, RooUnfolding::Dimension d){
     if(d==RooUnfolding::X) return h->GetXaxis();
     if(d==RooUnfolding::Y) return h->GetYaxis();
@@ -51,6 +226,12 @@ namespace RooUnfolding {
     throw std::runtime_error("invalid dimension passed!");
   }
 
+  template<class Hist> bool irregular(const Hist* hist, RooUnfolding::Dimension d){
+    return !::isEquidistantBinning(*getAxis(hist,d));
+  }
+  template<class Hist> std::vector<double> binning(const Hist* hist, RooUnfolding::Dimension d){
+    return ::binning(*getAxis(hist,d));
+  }
   template<> int findBin<TH1>(const TH1* h, double x, RooUnfolding::Dimension d){
     return getAxis(h,d)->FindBin(x);
   }
@@ -84,8 +265,12 @@ namespace RooUnfolding {
   template<class Hist> const char* varname(const Hist* /*h*/, Dimension /*d*/){  
     return "";
   }
-  template<class Hist> Variable<Hist> var(const Hist* h, Dimension d){
-    return Variable<Hist>(nBins(h,d),min(h,d),max(h,d),"");
+  template<class Hist> RooUnfolding::Variable<Hist> var(const Hist* h, Dimension d){
+    if(irregular(h,d)){
+      return RooUnfolding::Variable<Hist>(binning(h,d),"");
+    } else {
+      return RooUnfolding::Variable<Hist>(nBins(h,d),min(h,d),max(h,d),"");
+    }
   }
   template<class Hist> bool empty(const Hist* hist){
     return hist->GetEntries() == 0;
@@ -278,71 +463,6 @@ namespace RooUnfolding {
     return v;
   }
   
-  template<> TH1* createHist<TH1>(const char* name, const char* title, const std::vector<Variable<TH1>>& x){
-    Bool_t oldstat= TH1::AddDirectoryStatus();
-    TH1::AddDirectory (kFALSE);
-    TH1* hist = NULL;
-    if(x.size() == 1){
-      if(x[0].irregular()){
-	hist = new TH1D (name,title, x[0]._nBins, &(x[0]._bounds[0]));
-      } else {
-	hist = new TH1D (name,title, x[0]._nBins, x[0]._min, x[0]._max);
-      }
-    } else if(x.size() == 2){
-      if(x[0].irregular() && x[1].irregular()){
-	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, &(x[1]._bounds[0]));
-      } else if(x[0].irregular()){
-	hist = new TH2D (name,title, x[0]._nBins, &(x[0]._bounds[0]), x[1]._nBins, x[1]._min, x[1]._max);
-      } else if(x[1].irregular()){
-	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, &(x[1]._bounds[0]));
-      } else {
-	hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max);
-      }
-    } else if(x.size() == 3){
-      hist = new TH3D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max, x[2]._nBins, x[2]._min, x[2]._max);
-    } else {
-      throw std::runtime_error(TString::Format("invalid dimensionality for ROOT histogram: %d",(int)x.size()).Data());
-    }
-    hist->Sumw2();
-    TH1::AddDirectory (oldstat);
-    return hist;
-  }
-  template<> TH2* createHist<TH2>(const char* name, const char* title, const std::vector<Variable<TH2>>& x){
-    Bool_t oldstat= TH1::AddDirectoryStatus();
-    TH1::AddDirectory (kFALSE);
-    TH2* hist = NULL;
-    if(x.size() == 2){
-      hist = new TH2D (name,title, x[0]._nBins, x[0]._min, x[0]._max, x[1]._nBins, x[1]._min, x[1]._max);
-    } else {
-      throw std::runtime_error(TString::Format("invalid dimensionality for ROOT histogram: %d",(int)x.size()).Data());
-    }
-    hist->Sumw2();    
-    TH1::AddDirectory (oldstat);
-    return hist;
-  }  
-  template<class Hist> Hist* createHist(const TVectorD& v, const char* name, const char* title, const std::vector<Variable<Hist>>& x, bool overflow){  
-    // Sets the bin content of the histogram as that element of the input vector
-    int nb = v.GetNrows();
-    Hist* h = createHist<Hist>(name,title,x);
-    for (Int_t i= 0; i < nb; i++) {
-      Int_t j= RooUnfolding::bin<TH1>(h, i, overflow);
-      h->SetBinContent (j, v(i));
-    }
-    return h;
-  }
-  template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& verr, const char* /*name*/, const char* /*title*/, const Hist* origHist, bool overflow){  
-    // Sets the bin content of the histogram as that element of the input vector
-    // Note, does *not* set the histogram name or title, even if these are specified.
-    // Doing so breaks the CI tests. This should be investigated.
-    int nb = v.GetNrows();
-    Hist* h = (Hist*)(origHist ->Clone());
-    for (Int_t i= 0; i < nb; i++) {
-      Int_t j= RooUnfolding::bin<TH1>(h, i, overflow);
-      h->SetBinContent (j, v(i));
-      h->SetBinError (j, verr(i));
-    }
-    return h;
-  }
   template<class Hist> Hist* clone(const Hist* orighist){
     if(!orighist) return NULL;
 
@@ -411,54 +531,7 @@ namespace RooUnfolding {
       return hist;
     }
   }
-  template<class Hist> Hist* createHist(const TVectorD& v, const TVectorD& ve, const char* name, const char* title, const std::vector<Variable<Hist>>& x, bool overflow){  
-    // Sets the bin content of the histogram as that element of the input vector
-    int nb = v.GetNrows();
-    Hist* h = createHist<Hist>(name,title,x);
-    if (overflow) nb += 2;
-    for (Int_t i= 0; i < nb; i++) {
-      Int_t j= RooUnfolding::bin<TH1>(h, i, overflow);
-      h->SetBinContent (j, v(i));
-      h->SetBinError (j, ve(i));
-    }
-    return h;
-  }
-  template<>  
-  TH2* createHist<TH2>(const char* name, const char* title, const Variable<TH2>& x, const Variable<TH2>& y){
-    Bool_t oldstat= TH1::AddDirectoryStatus();
-    TH1::AddDirectory (kFALSE);
-    TH2* hist = new TH2D (name,title, x._nBins, x._min, x._max, y._nBins, y._min, y._max);
-    hist->Sumw2();
-    TH1::AddDirectory (oldstat);
-    return hist;
-  }
-  template<> TH2* createHist<TH2>(const TMatrixD& m, const char* name, const char* title, const Variable<TH2>& x, const Variable<TH2>& y){  
-    // Sets the bin content of the histogram as that element of the input vector
-    int nx = m.GetNrows();
-    int ny = m.GetNcols();
-    TH2* h = createHist<TH2>(name,title,x,y);
-    for (Int_t i= 0; i < nx; i++) {
-      for (Int_t j= 0; j < ny; j++) {
-        Int_t n= RooUnfolding::bin<TH1>(h, i, j, false);
-        h->SetBinContent (n, m(i,j));
-      }
-    }
-    return h;
-  }
-  template<> TH2* createHist<TH2>(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const Variable<TH2>& x, const Variable<TH2>& y){  
-    // Sets the bin content of the histogram as that element of the input vector
-    int nx = m.GetNrows();
-    int ny = m.GetNcols();
-    TH2* h = createHist<TH2>(name,title,x,y);
-    for (Int_t i= 0; i < nx; i++) {
-      for (Int_t j= 0; j < ny; j++) {
-        Int_t n= RooUnfolding::bin<TH1>(h, i, j, false);
-        h->SetBinContent (n, m(i,j));
-        h->SetBinError   (n, me(i,j));
-      }
-    }
-    return h;
-  }
+
   template<> TVectorD subtract<TH1,TVectorD>(const TVectorD& orig, const TH1* hist, bool overflow){
     const int n = nBins(hist);
     TVectorD res(n);
@@ -585,14 +658,6 @@ template TH3* RooUnfolding::clone<TH3>(TH3 const*);
 template RooUnfolding::Variable<TH1> RooUnfolding::var<TH1>(TH1 const*, RooUnfolding::Dimension);
 template RooUnfolding::Variable<TH2> RooUnfolding::var<TH2>(TH2 const*, RooUnfolding::Dimension);
 template RooUnfolding::Variable<TH3> RooUnfolding::var<TH3>(TH3 const*, RooUnfolding::Dimension);
-template TH1* RooUnfolding::createHist<TH1>(char const*, char const*, RooUnfolding::Variable<TH1> const&);
-template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<TH1> const&, bool);
-template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&, bool);
-template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, TH1 const*, bool);
-template TH2* RooUnfolding::createHist<TH2>(TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH2> > const&, bool);
-template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, RooUnfolding::Variable<TH1> const&, bool);
-template TH1* RooUnfolding::createHist<TH1>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH1> > const&, bool);
-template TH2* RooUnfolding::createHist<TH2>(TVectorT<double> const&, TVectorT<double> const&, char const*, char const*, std::vector<RooUnfolding::Variable<TH2> > const&, bool);
 template void RooUnfolding::h2v<TH1>(TH1 const*, TVectorT<double>&, bool, bool);
 template TVectorT<double> RooUnfolding::h2v<TH1>(TH1 const*, bool, bool);
 template TVectorT<double> RooUnfolding::h2ve<TH1>(TH1 const*, bool, bool);
@@ -666,7 +731,14 @@ namespace RooUnfolding {
     }
     return hist;
   }
-  
+
+  void print(int _nBins, double _min, double _max, const std::vector<double>& _bounds){
+    if(_bounds.size() > 0){
+      std::cout << "["; for(double c : _bounds) std::cout << c << ","; std::cout << "]" << std::endl;
+    } else {
+      std::cout << _nBins << " bins in [" << _min << "," << _max << "]" << std::endl;
+    }
+  }
   
   Bool_t resizeAxis (TAxis* ax, Int_t nx){
     // Resize a histogram axis adding extra bins on the end. Returns true if any change made.
@@ -786,7 +858,7 @@ namespace RooUnfolding {
     TH1::AddDirectory(oldstat);
     return h;
   }
-
+  
   TH1* convertTH1(const TVectorD& values, const TVectorD& errors, const TH1* hist){
     return RooUnfolding::createHist<TH1>(values,errors,hist->GetName(),hist->GetTitle(),RooUnfolding::vars(hist));
   }

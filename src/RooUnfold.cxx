@@ -910,7 +910,7 @@ RooUnfoldT<Hist,Hist2D>::Hunfold (ErrorTreatment withError)
   } else {
     TVectorD rec(this->Vunfold());
     TVectorD errors(this->EunfoldV());
-    Hist* unfolded = RooUnfolding::createHist<Hist>(rec, errors, GetName(), GetTitle(), _res->Htruth(), this->_overflow);    
+    Hist* unfolded = RooUnfolding::createHist<Hist,Hist>(rec, errors, GetName(), GetTitle(), _res->Htruth(), this->_overflow);    
     return unfolded;
   }
 }

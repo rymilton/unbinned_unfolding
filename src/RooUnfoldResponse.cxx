@@ -160,7 +160,7 @@ private:
 template <class Hist, class Hist2D> void
 RooUnfoldResponseT<Hist,Hist2D>::setup()
 {
-  _tru= _mes= _fak= _tru_m = 0;
+  _tru= _mes= _fak = 0;
   _res= 0;
   this->ClearCache();
   SetNameTitleDefault ("response", "Response");
@@ -169,8 +169,10 @@ RooUnfoldResponseT<Hist,Hist2D>::setup()
 template <class Hist, class Hist2D> void
 RooUnfoldResponseT<Hist,Hist2D>::ClearCache() const
 {
-  _cache = Cache();
-  _cached= false;
+  if(Cached()){
+    _cache = Cache();
+    _cached= false;
+  }
 }
 
 template <class Hist, class Hist2D> Hist2D*
@@ -432,10 +434,8 @@ template<class Hist, class Hist2D>
 RooUnfoldResponseT<Hist,Hist2D>::RooUnfoldResponseT(const RooUnfoldResponseT<Hist,Hist2D>& rhs) : 
   TNamed(rhs.GetName(),rhs.GetTitle()),
   _mes(clone(rhs._mes)),
-  _mestru(clone(rhs._mestru)),
   _fak(clone(rhs._fak)),      
   _tru(clone(rhs._tru)),
-  _tru_m(clone(rhs._tru_m)),
   _res(clone(rhs._res)),
   _overflow(rhs._overflow),
   _density(rhs._density)
@@ -908,8 +908,6 @@ RooUnfoldResponse::Reset()
 {
   //! Resets object to initial state.
   if(_mes) delete  _mes;
-  if(_tru_m) delete _tru_m;
-  if(_mestru) delete _mestru;
   if(_tru) delete  _tru;
   if(_res) delete  _res;
   if(_fak) delete _fak;
@@ -977,8 +975,6 @@ void RooUnfoldResponse::Add(const RooUnfoldResponse& rhs)
   assert (_res != 0 && rhs._res != 0);
   if (Cached()) ClearCache();
   _mes->Add(rhs._mes);
-  _tru_m->Add(rhs._tru_m);
-  _mestru->Add(rhs._mestru);
   _fak->Add(rhs._fak);
   _tru->Add(rhs._tru);
   _res->Add(rhs._res);
@@ -1015,8 +1011,6 @@ RooUnfoldResponse::Setup(Int_t nm, Double_t mlo, Double_t mhi, Int_t nt, Double_
   _mes= createHist<TH1>("measured", "Measured",   Variable<TH1>(nm, mlo, mhi,"xm"));
   _fak= createHist<TH1>("fakes",    "Fakes",      Variable<TH1>(nm, mlo, mhi,"xm"));
   _tru= createHist<TH1>("truth",    "Truth",      Variable<TH1>(nt, tlo, thi,"xt"));
-  _tru_m= createHist<TH1>("truth_m","truth_m",Variable<TH1>(nm, tlo, thi,"xt"));
-  _mestru= createHist<TH1>("meastru","Meastru",Variable<TH1>(nm, tlo, thi,"xt"));
   _res= createHist<TH2>("response", "Response", Variable<TH2>(nm, mlo, mhi, "xm"), Variable<TH2>(nt, tlo, thi, "xt"));
   return *this;
 }
@@ -1029,13 +1023,9 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth)
   _mes= clone(measured);
   _fak= clone(measured);
   _tru= clone(truth);
-  _tru_m= clone(measured);
-  _mestru=clone(measured);
   _mes->Reset();
   _fak->Reset();
   _tru->Reset();
-  _tru_m->Reset();
-  _mestru->Reset();
   if (_overflow && (GetDimensionMeasured() > 1 || GetDimensionTruth() > 1)) {
     cerr << "UseOverflow setting ignored for multi-dimensional distributions" << endl;
     _overflow= 0;
@@ -1043,8 +1033,13 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth)
 
   SetNameTitleDefault();
 
-  _res = new TH2D(GetName(), GetTitle(), _mes->GetNbinsX() * _mes->GetNbinsY() * _mes->GetNbinsZ(), 0, 1, _tru->GetNbinsX() * _tru->GetNbinsY() * _tru->GetNbinsZ(), 0, 1);
-  _res->Sumw2();
+  auto mes_vars = RooUnfolding::vars(measured);
+  auto tru_vars = RooUnfolding::vars(truth);
+  for(auto var : mes_vars){
+      var.print();
+    }
+  _res = createHist<TH2>(GetName(), GetTitle(), mes_vars[0], tru_vars[0]);
+  _fak= createHist<TH1>("fakes","Fakes",mes_vars[0]);
 
   return *this;
 }
@@ -1083,8 +1078,6 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth, const TH2* respo
   double tlow = truth->GetXaxis()->GetXmin();
   double thigh = truth->GetXaxis()->GetXmax();
 
-  _tru_m= createHist<TH1>("truth_m","truth_m",Variable<TH1>(GetNbinsMeasured(), tlow, thigh,"xt"));
-  _mestru= createHist<TH1>("meastru","Meastru",Variable<TH1>(GetNbinsMeasured(), tlow, thigh,"xt"));
   _fak= createHist<TH1>("fakes","Fakes",Variable<TH1>(GetNbinsMeasured(), mlow, mhigh,"xm"));
 
   if (GetNbinsMeasured() != nBins(_res,RooUnfolding::X) || GetNbinsTruth() != nBins(_res,RooUnfolding::Y)) {
@@ -1116,23 +1109,14 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth, const TH2* respo
  Int_t
 RooUnfoldResponse::Fill (Double_t xr, Double_t xt, Double_t w)
 {
-
   //! Fill 1D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==1 && GetDimensionTruth()==1);
-  if (Cached()) ClearCache();
+  ClearCache();
   Int_t bin_m = fill(_mes,xr,w);
   Int_t bin_t = fill(_tru,xt,w);
-  if (GetNbinsMeasured() != GetNbinsTruth()){
-    bin_t = fill(_tru_m,xt,w);
-  }
-
-  // Fill a histogram with events that are reconstructed
-  // in the same truth bin.
-  if (bin_m == bin_t){
-    fill(_mestru,xr,w);
-  }
-  return fill(_res,xr,xt,w);
+  int retval = fill(_res,xr,xt,w);
+  return retval;
 }
 
  Int_t
@@ -1141,7 +1125,7 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t yr, Double_t xt, Double_t yt, Dou
   //! Fill 2D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==2 && GetDimensionTruth()==2);
-  if (Cached()) ClearCache();
+  ClearCache();
   fill((TH2*)_mes,xr, yr, w);
   fill((TH2*)_tru,xt, yt, w);
   return fill(_res,binCenter(_res,findBin (_mes, xr, yr)+1,RooUnfolding::X),binCenter(_res,findBin (_tru, xt, yt)+1,RooUnfolding::Y), w);
@@ -1153,7 +1137,7 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t yr, Double_t zr, Double_t xt, Dou
   //! Fill 3D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==3 && GetDimensionTruth()==3);
-  if (Cached()) ClearCache();
+  ClearCache();
   fill(_mes,xr, yr, zr, w);
   fill(_tru,xt, yt, zt, w);
   return fill(_res,binCenter(_res,findBin (_mes, xr, yr, zr)+1,RooUnfolding::X),binCenter(_res,findBin (_tru, xt, yt, zt)+1,RooUnfolding::Y), w);  
@@ -1185,7 +1169,7 @@ RooUnfoldResponse::Miss1D (Double_t xt, Double_t w)
   //! Fill missed event (not reconstructed due to detection inefficiencies) into 1D Response Matrix (with weight)
   assert (_tru != 0);
   assert (GetDimensionTruth()==1);
-  if (Cached()) ClearCache();
+  ClearCache();
   return fill(_tru, xt, w);
 }
 
@@ -1195,7 +1179,7 @@ RooUnfoldResponse::Miss2D (Double_t xt, Double_t yt, Double_t w)
   //! Fill missed event (not reconstructed due to detection inefficiencies) into 2D Response Matrix (with weight)
   assert (_tru != 0);
   assert (GetDimensionTruth()==2);
-  if (Cached()) ClearCache();
+  ClearCache();
   return fill(_tru, xt, yt, w);
 }
 
@@ -1205,7 +1189,7 @@ RooUnfoldResponse::Miss (Double_t xt, Double_t yt, Double_t zt, Double_t w)
   //! Fill missed event (not reconstructed due to detection inefficiencies) into 3D Response Matrix
   assert (_tru != 0);
   assert (GetDimensionTruth()==3);
-  if (Cached()) ClearCache();
+  ClearCache();
   return fill(_tru, xt, yt, zt, w);
 }
 
@@ -1215,7 +1199,7 @@ RooUnfoldResponse::Fake1D (Double_t xr, Double_t w)
   //! Fill fake event (reconstructed event with no truth) into 1D Response Matrix (with weight)
   assert (_fak != 0 && _mes != 0);
   assert (GetDimensionMeasured()==1);
-  if (Cached()) ClearCache();
+  ClearCache();
   fill(_mes,xr, w);
   return fill(_fak, xr, w);
 }
@@ -1226,7 +1210,7 @@ RooUnfoldResponse::Fake2D (Double_t xr, Double_t yr, Double_t w)
   //! Fill fake event (reconstructed event with no truth) into 2D Response Matrix (with weight)
   assert (_mes != 0);
   assert (GetDimensionMeasured()==2);
-  if (Cached()) ClearCache();
+  ClearCache();
   fill(_fak, xr, yr, w);
   return fill(_mes, xr, yr, w);
 }
@@ -1237,7 +1221,7 @@ RooUnfoldResponse::Fake (Double_t xr, Double_t yr, Double_t zr, Double_t w)
   //! Fill fake event (reconstructed event with no truth) into 3D Response Matrix
   assert (_mes != 0);
   assert (GetDimensionMeasured()==3);
-  if (Cached()) ClearCache();
+  ClearCache();
   fill(_mes, xr, yr, zr, w);
   return fill(_fak, xr, yr, zr, w);
 }
