@@ -729,10 +729,11 @@ namespace RooUnfolding { // section 2: non-trivial helpers
 
 
   RooFitHist::RooFitHist(RooHistFunc* hf, const RooArgList& obslist, double uncThreshold){
-    for(RooAbsArg* arg : obslist){
+    for(auto* arg : obslist){
       if(!arg) continue;
-      if(!hf->dependsOn(*arg)) continue;
-      this->_obs.push_back(arg);
+      RooRealVar* var = static_cast<RooRealVar*>(arg);
+      if(!hf->dependsOn(*var)) continue;
+      this->_obs.push_back(var);
     }
     if(uncThreshold >= 0){
       this->_func = this->setupErrors(hf,&(hf->dataHist()),uncThreshold);
@@ -747,8 +748,9 @@ namespace RooUnfolding { // section 2: non-trivial helpers
     RooHistFunc* hf = new RooHistFunc(TString::Format("%s_Values",name.Data()),title,obslist,*dh);
     for(RooAbsArg* arg : obslist){
       if(!arg) continue;
-      if(!hf->dependsOn(*arg)) continue;
-      this->_obs.push_back(arg);
+      RooRealVar* var = static_cast<RooRealVar*>(arg);
+      if(!hf->dependsOn(*var)) continue;
+      this->_obs.push_back(var);
     }    
     if(uncThreshold >= 0){
       this->_func = this->setupErrors(hf,dh,uncThreshold);
