@@ -5,6 +5,7 @@
 #include <ostream>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 using std::cerr;
 

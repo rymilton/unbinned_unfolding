@@ -103,7 +103,7 @@ CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual
 else
 # NB. don't include gcc's -Wsuggest-override, which gives many warnings inside ROOT.
 # Clang (and Cling)'s default and supposedly equivalent -Winconsistent-missing-override is more helpful.
-CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual -Wshadow
+CXXFLAGS     += -Wall -Wextra -Woverloaded-virtual -Wshadow -Wno-deprecated-declarations
 endif
 
 ifeq ($(PLATFORM),macosx)
@@ -208,7 +208,7 @@ MAIN          = $(notdir $(EXESRC))
 MAINEXE       = $(addprefix $(EXEDIR),$(patsubst %.cxx,%$(ExeSuf),$(MAIN)))
 LINKDEF       = $(INCDIR)$(PACKAGE)_LinkDef.h
 LINKDEFMAP    = $(WORKDIR)$(PACKAGE)Map_LinkDef
-HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)*.h $(INCDIR)*.tpp)) $(LINKDEF)
+HLIST         = $(filter-out $(addprefix $(INCDIR),$(EXCLUDE)) $(LINKDEF),$(wildcard $(INCDIR)R*.h $(INCDIR)/RooUnfold/TUnfold/*.h $(INCDIR)*.tpp)) $(LINKDEF)
 CINTFILE      = $(WORKDIR)$(PACKAGE)Dict.cxx
 ifneq ($(ROOTCLING),)
 CLINGDICT     = $(SHLIBDIR)$(PACKAGE)Dict_rdict.pcm

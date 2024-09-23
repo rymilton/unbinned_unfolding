@@ -1265,10 +1265,9 @@ ClassImp (RooUnfoldResponse)
 
 namespace {
   template<class T> void makeList(const RooAbsCollection* c,std::vector<T*>& vars,TPRegexp* re = 0){
-    RooFIter itr(c->fwdIterator());
-    RooRealVar* obj = NULL;
-    while((obj = (RooRealVar*)itr.next())){
-      if(!obj->InheritsFrom(RooRealVar::Class())) continue;
+    for(auto* item : *c){
+      auto obj = dynamic_cast<RooRealVar*>(item);
+      if(!obj) continue;
       if(!re || re->Match(obj->GetName()))
         vars.push_back(obj);
     }

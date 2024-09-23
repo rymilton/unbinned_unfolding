@@ -104,7 +104,7 @@ binned multidimensional histograms.
 */
 
 
-#include "TUnfoldBinningXML.h"
+#include "RooUnfold/TUnfold/TUnfoldBinningXML.h"
 #include <TVectorD.h>
 #include <TAxis.h>
 #include <TString.h>
