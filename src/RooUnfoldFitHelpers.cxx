@@ -1214,15 +1214,46 @@ namespace RooUnfolding {
     return outvars;
   }
   TH1* convertTH1(const TVectorD& values, const TVectorD& errors, const RooUnfolding::RooFitHist* hist){
-    return RooUnfolding::createHist<TH1>(values,errors,hist->GetName(),hist->GetTitle(),RooUnfolding::convertTH1(RooUnfolding::vars(hist)));
+    return RooUnfolding::createHist<TH1, TH1>(values,errors,hist->GetName(),hist->GetTitle(),RooUnfolding::convertTH1(RooUnfolding::vars(hist)));
   }
   TH1* convertTH1(const TVectorD& values, const RooUnfolding::RooFitHist* hist){
-    return RooUnfolding::createHist<TH1>(values,hist->GetName(),hist->GetTitle(),RooUnfolding::convertTH1(RooUnfolding::vars(hist)));
+    return RooUnfolding::createHist<TH1, TH1>(values,hist->GetName(),hist->GetTitle(),RooUnfolding::convertTH1(RooUnfolding::vars(hist)));
   }
   TH2* convertTH2(const TMatrixD& values, const TMatrixD& errors, const RooUnfolding::RooFitHist* hist){
     std::vector<Variable<TH2> > outvars = RooUnfolding::convertTH2(RooUnfolding::vars(hist));
-    return RooUnfolding::createHist<TH2>(values,errors,hist->GetName(),hist->GetTitle(),outvars.at(0),outvars.at(1));
+    return RooUnfolding::createHist<TH2, TH2>(values,errors,hist->GetName(),hist->GetTitle(),outvars.at(0),outvars.at(1));
   }
+
+  // Specialization 1: createHist<RooFitHist, RooFitHist> with TVectorT and vector of variables
+  template<>
+  RooFitHist* createHist<RooFitHist, RooFitHist>(
+						 const TVectorT<double>& vec,
+						 const char* name,
+						 const char* title,
+						 const std::vector<Variable<RooFitHist>>& x,
+						 bool overflow) {
+    
+    // Throw a runtime error when invoked
+    throw std::runtime_error(std::string("createHist<RooFitHist> with TVectorT is not supported: ") +
+                             "name: " + name + ", title: " + title);
+  }
+  
+  // Specialization 2: createHist<RooFitHist, RooFitHist> with TVectorT, errvec, and vector of variables
+  template<>
+  RooFitHist* createHist<RooFitHist, RooFitHist>(
+						 const TVectorT<double>& vec,
+						 const TVectorT<double>& errvec,
+						 const char* name,
+						 const char* title,
+						 const std::vector<Variable<RooFitHist>>& x,
+						 bool overflow) {
+    
+    // Throw a runtime error when invoked
+    throw std::runtime_error(std::string("createHist<RooFitHist> with TVectorT and error vector is not supported: ") +
+                             "name: " + name + ", title: " + title);
+  }
+  
+  
 }
 
 

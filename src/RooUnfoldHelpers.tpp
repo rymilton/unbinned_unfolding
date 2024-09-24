@@ -4,8 +4,36 @@
 #include <stdexcept>
 
 namespace RooUnfolding {
-  template<class Hist> Hist* createHist(const TVectorD& vec, const char* name, const char* title, const Variable<Hist>& x, bool overflow) { return createHist<Hist>(vec,name,title,std::vector<Variable<Hist>>{x},overflow); }
-  template<class Hist> Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const Variable<Hist>& x, bool overflow) { return createHist<Hist>(vec,errvec,name,title,std::vector<Variable<Hist>>{x},overflow); }
+  template<class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const Variable<AnyHist>& x) {
+    return createHist<Hist, AnyHist>(name, title, std::vector<Variable<AnyHist>>{x});
+  }
+
+  template<class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y) {
+    return createHist<Hist, AnyHist>(name, title, std::vector<Variable<AnyHist>>{x, y});
+  }
+
+  template<class Hist2D, class AnyHist>
+  Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y, bool overflow) {
+    return createHist<Hist2D, AnyHist>(m, name, title, std::vector<Variable<AnyHist>>{x, y}, overflow);
+  }
+
+  template<class Hist2D, class AnyHist>
+  Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y, bool overflow) {
+    return createHist<Hist2D, AnyHist>(m, me, name, title, std::vector<Variable<AnyHist>>{x, y}, overflow);
+  }
+
+  template<class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const char* name, const char* title, const Variable<AnyHist>& x, bool overflow) {
+    return createHist<Hist, AnyHist>(vec, name, title, std::vector<Variable<AnyHist>>{x}, overflow);
+  }
+
+  template<class Hist, class AnyHist>
+  Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const Variable<AnyHist>& x, bool overflow) {
+    return createHist<Hist, AnyHist>(vec, errvec, name, title, std::vector<Variable<AnyHist>>{x}, overflow);
+  }
+  
   template<class Hist> std::vector<RooUnfolding::Variable<Hist>> vars(const Hist* h){
     int d = dim(h);
     std::vector<Variable<Hist> > v;

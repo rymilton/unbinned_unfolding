@@ -16,6 +16,8 @@ mark_as_advanced(VERSION_MAJOR VERSION_MINOR)
 
 find_package( ROOT COMPONENTS Tree  Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 option (RooUnfoldGenerateCMakeConfig "generate a RooUnfoldConfig.cmake file for dependency tracking with other packages" OFF)
 # See https://cmake.org/cmake/help/latest/policy/CMP0077.html
 # For compatability with old CMake versions, this variable is unset, and then set again.
@@ -32,6 +34,8 @@ include(cmake/source.cmake)
 
 if(ROOT_VERSION VERSION_LESS 6.20)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g -DNO_WRAPPERPDF")
+else()
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${EXTRA_FLAGS} -g")
 endif()
 
 execute_process( COMMAND ln -sf ${RooUnfoldHeaders} -t ${CMAKE_CURRENT_BINARY_DIR} )

@@ -179,9 +179,9 @@ template <class Hist, class Hist2D> Hist2D*
 RooUnfoldResponseT<Hist,Hist2D>::HresponseNoOverflow() const
 {
   const Hist2D* res = Hresponse();
-  TVectorD vals(h2v<Hist>(res,_overflow,_density));
-  TVectorD errs(h2ve<Hist>(res,_overflow,_density));  
-  return createHist<Hist2D>(vals,errs,name(res),title(res),vars(res),_overflow);
+  auto vals(h2m<Hist2D>(res,_overflow,_density));
+  auto errs(h2me<Hist2D>(res,_overflow,_density));  
+  return createHist<Hist2D,Hist2D>(vals,errs,name(res),title(res),vars(res),_overflow);
 }
 
 template <class Hist, class Hist2D> void
