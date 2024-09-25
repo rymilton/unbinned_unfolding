@@ -123,6 +123,7 @@ RooUnfoldBayesT<Hist,Hist2D>::Unfold() const
   unfold();
   if (this->verbose() >= 2) Print();
   this->_cache._rec.ResizeTo(this->_nc);
+  assert_compat(this->_cache._rec,this->_nbarCi);
   this->_cache._rec = this->_nbarCi;
   this->_cache._rec.ResizeTo(this->_nt);  // drop fakes in final bin
   this->_cache._unfolded= true;
@@ -167,6 +168,7 @@ RooUnfoldBayesT<Hist,Hist2D>::setup() const
   }
 
   this->_Nji.ResizeTo(this->_ne,this->_nt);
+  assert_compat(this->_Nji,this->_res->Mresponse(false));
   this->_Nji = this->_res->Mresponse(false);
 
   if (this->_res->HasFakes() && this->_handleFakes) {
@@ -243,7 +245,9 @@ RooUnfoldBayesT<Hist,Hist2D>::unfold() const
 
     // update prior from previous iteration
     if (kiter>0) {
+      assert_compat(this->_P0C,PbarCi);
       this->_P0C = PbarCi;
+      this->_N0C,_nbartrue;
       this->_N0C = this->_nbartrue;
     }
 

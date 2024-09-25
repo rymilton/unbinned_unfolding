@@ -414,5 +414,11 @@ namespace RooUnfolding {
       }
     }
   }
-  
+
+  void assert_compat(const TMatrixD& a, const TMatrixD& b) {
+    if(a.GetNcols() != b.GetNcols() || a.GetNrows() != b.GetNrows()) throw std::runtime_error(TString::Format("matrix operation impossible due to size mismatch: arguments are of size %d/%d and %d/%d",a.GetNrows(),a.GetNcols(),b.GetNrows(),b.GetNcols()).Data());
+  }
+  void assert_compat(const TVectorD& a, const TVectorD& b) {
+    if(a.GetNrows() != b.GetNrows()) throw std::runtime_error(TString::Format("vector operation impossible due to size mismatch: arguments are of size %d and %d",a.GetNrows(),b.GetNrows()).Data());
+  }
 }

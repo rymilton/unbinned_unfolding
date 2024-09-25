@@ -148,7 +148,10 @@ namespace RooUnfolding {
   void randomize(TVectorD& values, TRandom& rnd);
   void randomize(TVectorD& values, const TVectorD& errors, TRandom& rnd);
   void randomize(TMatrixD& values, const TMatrixD& errors, TRandom& rnd);
-  void mNorm (TMatrixD& m, const TVectorD& norm);  
+  void mNorm (TMatrixD& m, const TVectorD& norm);
+
+  void assert_compat(const TMatrixD& a, const TMatrixD& b);
+  void assert_compat(const TVectorD& a, const TVectorD& b);  
 }
 
 #include "RooUnfoldHelpers.tpp"
