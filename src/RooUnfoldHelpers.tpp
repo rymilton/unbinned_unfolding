@@ -43,7 +43,6 @@ namespace RooUnfolding {
     return v;
   }
 
-
   template<class Hist> Hist* histNoOverflow(const Hist* hist, bool overflow){
     return createHist<Hist>(h2v<Hist>(hist,overflow),h2ve<Hist>(hist,overflow),name(hist),title(hist),vars(hist),false);
   }

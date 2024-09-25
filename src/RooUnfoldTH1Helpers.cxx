@@ -22,7 +22,16 @@ namespace RooUnfolding {
   }  
   template<class Hist> const char* title(const Hist* hist){
     return hist->GetTitle();
-  }  
+  }
+
+  template<class Hist> int nBins(const std::vector<RooUnfolding::Variable<Hist>>& vars){
+    int n = 1;
+    for(auto& x : vars){
+      if(x.irregular()) n *= (x._bounds.size() - 1);
+      else              n *= x._nBins;
+    }
+    return n;
+  }
 }
 
 
@@ -103,6 +112,24 @@ namespace RooUnfolding {
   Hist* createHist(const char* name, const char* title, const std::vector<Variable<AnyHist>>& x) {
     return static_cast<Hist*>(createHistHelper<AnyHist>(name, title, x));
   }
+
+    // Call createHistHelper for vector of variables
+  template<class Hist, class AnyHist>
+  Hist* createHist(const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, const std::vector<Variable<AnyHist>>& y) {
+    assert(x.size()>0);
+    assert(y.size()>0);    
+    // first check if we only have one variable each, in which case this is easy
+    if(x.size() == 1 && y.size() == 1){
+      return createHist<Hist,AnyHist>(name,title,x[0],y[0]);
+    }
+    // now comes is the complicated part: we have several variables listed as "x" and "y". since there are no TH4s, we have to make a workaround
+    int nx = nBins(x);
+    int ny = nBins(y);    
+    Variable<TH2> x_integrated(nx,0,nx,"x_integrated");
+    Variable<TH2> y_integrated(ny,0,ny,"y_integrated");
+    
+    return static_cast<Hist*>(createHistHelper<TH2>(name, title, {x_integrated, y_integrated}));
+  }
   
   template<class Hist2D, class AnyHist>
   Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, bool overflow) {
@@ -155,7 +182,7 @@ namespace RooUnfolding {
 
   // Specializations for TH2 as Hist and TH1 as AnyHist
   template TH2* createHist<TH2, TH1>(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const std::vector<Variable<TH1>>& x, bool overflow);
-  
+  template TH2* createHist<TH2, TH1>(const char* name, const char* title, const std::vector<Variable<TH1>>& x, const std::vector<Variable<TH1>>& y);
   
   const TAxis* getAxis(const TH1* h, RooUnfolding::Dimension d){
     if(d==RooUnfolding::X) return h->GetXaxis();

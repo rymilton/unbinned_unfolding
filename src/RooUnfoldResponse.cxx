@@ -1038,8 +1038,8 @@ RooUnfoldResponse::Setup(const TH1* measured, const TH1* truth)
   for(auto var : mes_vars){
       var.print();
     }
-  _res = createHist<TH2>(GetName(), GetTitle(), mes_vars[0], tru_vars[0]);
-  _fak= createHist<TH1>("fakes","Fakes",mes_vars[0]);
+  _res = createHist<TH2, TH1>(GetName(), GetTitle(), mes_vars, tru_vars);
+  _fak= createHist<TH1>("fakes","Fakes",mes_vars);
 
   return *this;
 }
@@ -1112,6 +1112,7 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t xt, Double_t w)
   //! Fill 1D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==1 && GetDimensionTruth()==1);
+  assert (nBins(_mes) * nBins(_tru) == nBins (_res));  
   ClearCache();
   Int_t bin_m = fill(_mes,xr,w);
   Int_t bin_t = fill(_tru,xt,w);
@@ -1125,6 +1126,7 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t yr, Double_t xt, Double_t yt, Dou
   //! Fill 2D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==2 && GetDimensionTruth()==2);
+  assert (nBins(_mes) * nBins(_tru) == nBins (_res));
   ClearCache();
   fill((TH2*)_mes,xr, yr, w);
   fill((TH2*)_tru,xt, yt, w);
@@ -1137,6 +1139,7 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t yr, Double_t zr, Double_t xt, Dou
   //! Fill 3D Response Matrix
   assert (_mes != 0 && _tru != 0);
   assert (GetDimensionMeasured()==3 && GetDimensionTruth()==3);
+  assert (nBins(_mes) * nBins(_tru) == nBins (_res));  
   ClearCache();
   fill(_mes,xr, yr, zr, w);
   fill(_tru,xt, yt, zt, w);

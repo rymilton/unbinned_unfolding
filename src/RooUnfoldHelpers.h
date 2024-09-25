@@ -109,11 +109,14 @@ namespace RooUnfolding {
 
   template<class Hist, class AnyHist>  Hist* createHist(const char* name, const char* title, const Variable<AnyHist>& x);
   template<class Hist, class AnyHist>  Hist* createHist(const char* name, const char* title, const std::vector<Variable<AnyHist> >& x);
+  template<class Hist, class AnyHist>  Hist* createHist(const char* name, const char* title, const std::vector<Variable<AnyHist> >& x, const std::vector<Variable<AnyHist> >& y);
   template<class Hist, class AnyHist>  Hist* createHist(const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y);
   template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const std::vector<Variable<AnyHist> >& x, bool overflow = false);
   template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const std::vector<Variable<AnyHist> >& x, bool overflow = false);
   template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y, bool overflow = false);
   template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const Variable<AnyHist>& x, const Variable<AnyHist>& y, bool overflow = false);
+  template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const char* name, const char* title, const std::vector<Variable<AnyHist> >& x, const std::vector<Variable<AnyHist> >& y, bool overflow = false);
+  template<class Hist2D, class AnyHist>  Hist2D* createHist(const TMatrixD& m, const TMatrixD& me, const char* name, const char* title, const std::vector<Variable<AnyHist> >& x, const std::vector<Variable<AnyHist> >& y, bool overflow = false);
   template<class Hist, class AnyHist>  Hist* createHist(const TVectorD& vec, const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, bool overflow = false);
   template<class Hist, class AnyHist>  Hist* createHist(const TVectorD& vec, const char* name, const char* title, const Variable<AnyHist>& x, bool overflow = false);
   template<class Hist, class AnyHist>  Hist* createHist(const TVectorD& vec, const TVectorD& errvec, const char* name, const char* title, const std::vector<Variable<AnyHist>>& x, bool overflow = false);
