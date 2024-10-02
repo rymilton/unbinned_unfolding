@@ -36,6 +36,8 @@ TH1D* Omnifold::BinnedOmnifold()
     // Bringing histogram back to ROOT and correcting for efficiency
     TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
     this->EfficiencyCorrections(unfolded_hist);
+    delete num_iterations_object;
+    
     return unfolded_hist;
 }
 // Divides histogram bin content by efficiency vector from current response
@@ -57,7 +59,6 @@ std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TV
                                                                               Int_t num_iterations)
 {
     TPython::Bind( &MC_entries, "unbinned_MC_entries" );
-    TPython::Exec("print(type(unbinned_MC_entries))");
     TPython::Exec("unbinned_MC_entries = np.array(unbinned_MC_entries)");
     TPython::Bind( &sim_entries, "unbinned_sim_entries" );
     TPython::Exec("unbinned_sim_entries = np.array(unbinned_sim_entries)");
@@ -89,6 +90,9 @@ std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TV
     TVectorD out_MC_test = *MC_test;
     TVectorD out_weights_sim_test = *weights_sim_test;
     TVectorD out_sim_test = *sim_test;
+
+    delete num_iterations_object;
+
     std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> out_tuple = std::make_tuple(out_weights_MC_test,
                                                                                    out_MC_test,
                                                                                    out_weights_sim_test,
@@ -103,8 +107,6 @@ std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> Omnifold::UnbinnedOmnifold(
                                                                                      Int_t num_iterations)
 {
     TPython::Bind( &MC_entries, "unbinned_MC_entries" );
-    TPython::Exec("print(type(unbinned_MC_entries))");
-    TPython::Exec("print(type(unbinned_MC_entries[0]))");
     TPython::Exec("unbinned_MC_entries = np.array(unbinned_MC_entries)");
     TPython::Bind( &sim_entries, "unbinned_sim_entries" );
     TPython::Exec("unbinned_sim_entries = np.array(unbinned_sim_entries)");
@@ -147,5 +149,124 @@ std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> Omnifold::UnbinnedOmnifold(
                                                                                    out_weights_sim_test,
                                                                                    out_sim_test);
     return out_tuple;
+}
+
+// Does unbinned unfolding with std::vectors as input and output
+// Converts the std::vectors to TObjects and then does the unfolding with TPython
+std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vector<Double_t>, std::vector<std::vector<Double_t>>>
+                                               Omnifold::UnbinnedOmnifold(std::vector<std::vector<Double_t>> MC_entries,
+                                                                          std::vector<std::vector<Double_t>> sim_entries,
+                                                                          std::vector<std::vector<Double_t>> measured_entries,
+                                                                          std::vector<Bool_t> pass_reco,
+                                                                          std::vector<Bool_t> pass_truth,
+                                                                          Int_t num_iterations)
+{
+    // Converting the std::vectors to TObjArrays and TVectors
+    TObjArray MC_TObjArray(MC_entries.size());
+    TObjArray sim_TObjArray(sim_entries.size());
+    TObjArray measured_TObjArray(measured_entries.size());
+
+    for (int i = 0; i < MC_entries.size(); i++) {
+        TVectorD *MC_event = new TVectorD(MC_entries[i].size());
+        for(int j = 0; j < MC_entries[i].size(); j++)
+        {
+            (*MC_event)[j] = MC_entries[i][j];
+        }
+        MC_TObjArray[i] = MC_event;
+    }
+
+    for (int i = 0; i < sim_entries.size(); i++) {
+        TVectorD *sim_event = new TVectorD(sim_entries[i].size());
+        for(int j = 0; j < sim_entries[i].size(); j++)
+        {
+            (*sim_event)[j] = sim_entries[i][j];
+        }
+        sim_TObjArray[i] = sim_event;
+    }
+
+    for (int i = 0; i < measured_entries.size(); i++) {
+        TVectorD *measured_event = new TVectorD(measured_entries[i].size());
+        for(int j = 0; j < measured_entries[i].size(); j++)
+        {
+            (*measured_event)[j] = measured_entries[i][j];
+        }
+        measured_TObjArray[i] = measured_event;
+    }
+
+    TVector pass_reco_TVector(pass_reco.size());
+    for (int i = 0; i < pass_reco.size(); i++) {
+        pass_reco_TVector[i] = pass_reco[i];
+    }
+
+    TVector pass_truth_TVector(pass_truth.size());
+    for (int i = 0; i < pass_truth.size(); i++) {
+        pass_truth_TVector[i] = pass_truth[i];
+    }
+
+    // Running unbinned unfolding
+    std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> out_tuple_TObject = this->UnbinnedOmnifold(MC_TObjArray,
+                                                                                                    sim_TObjArray,
+                                                                                                    measured_TObjArray,
+                                                                                                    pass_reco_TVector,
+                                                                                                    pass_truth_TVector,
+                                                                                                    num_iterations);
+
+    TVectorD weights_MC_TObject = std::get<0>(out_tuple_TObject);
+    TObjArray MC_TObject = std::get<1>(out_tuple_TObject);
+    TVectorD weights_sim_TObject = std::get<2>(out_tuple_TObject);
+    TObjArray sim_TObject = std::get<3>(out_tuple_TObject); 
+
+    // Converting TObjects back to std::vectors
+    std::vector<std::vector<Double_t>> MC_vector(MC_TObject.GetEntries());
+    std::vector<std::vector<Double_t>> sim_vector(sim_TObject.GetEntries());
+    for(int i = 0; i < MC_TObject.GetEntries(); i++)
+    {
+        TVectorD event_TVectorD = *(TVectorD*) MC_TObject[i];
+        std::vector<Double_t> event_vector(event_TVectorD.GetNoElements());
+        for(int j = 0; j < event_TVectorD.GetNoElements(); j++)
+        {
+            event_vector[j] = event_TVectorD[j];
+        }
+        MC_vector[i] = event_vector;
+    }
+
+    for(int i = 0; i < sim_TObject.GetEntries(); i++)
+    {
+        TVectorD event_TVectorD = *(TVectorD*) sim_TObject[i];
+        std::vector<Double_t> event_vector(event_TVectorD.GetNoElements());
+        for(int j = 0; j < event_TVectorD.GetNoElements(); j++)
+        {
+            event_vector[j] = event_TVectorD[j];
+        }
+        sim_vector[i] = event_vector;
+    }
+    std::vector<Double_t> weights_MC_vector(weights_MC_TObject.GetNoElements());
+    std::vector<Double_t> weights_sim_vector(weights_sim_TObject.GetNoElements());
+    for(int i = 0; i < weights_MC_TObject.GetNoElements(); i++)
+    {
+        weights_MC_vector[i] = weights_MC_TObject[i];
+    }
+
+    for(int i = 0; i < weights_sim_TObject.GetNoElements(); i++)
+    {
+        weights_sim_vector[i] = weights_sim_TObject[i];
+    }
+
+    for (int i = 0; i < MC_TObjArray.GetEntries(); i++) {
+        delete MC_TObjArray[i];
+    }
+    for (int i = 0; i < sim_TObjArray.GetEntries(); i++) {
+        delete sim_TObjArray[i];
+    }
+    for (int i = 0; i < measured_TObjArray.GetEntries(); i++) {
+        delete measured_TObjArray[i];
+    }
+
+    std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vector<Double_t>, std::vector<std::vector<Double_t>>> out_tuple_vector = std::make_tuple(weights_MC_vector,
+                                                                                                                                                                 MC_vector,
+                                                                                                                                                                 weights_sim_vector,
+                                                                                                                                                                 sim_vector);
+
+    return out_tuple_vector;                                                                                                                                                                   
 }
                                                                        
