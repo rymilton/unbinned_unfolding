@@ -9,41 +9,35 @@ Omnifold::Omnifold()
 {
     TPython::LoadMacro( "../python/omnifold.py" );
 }
-Omnifold::Omnifold(RooUnfoldResponse response, TH1* measured_hist, Int_t num_iterations)
-{
-    this->SetMeasuredHist(measured_hist);
-    this->SetResponseMatrix(response);
-    this->SetIterations(num_iterations);
-    TPython::LoadMacro( "../python/omnifold.py" );
-}
+
 Omnifold::~Omnifold()
 {
 }
 
 // Performs binned unfolding using current response and measured histograms
 // Returns an unfolded TH1* with efficiency corrections applied
-TH1D* Omnifold::BinnedOmnifold()
+TH1D* Omnifold::BinnedOmnifold(RooUnfoldResponse response, TH1* measured_hist, Int_t num_iterations)
 {
-    TH2 *response_hist = this->GetResponseMatrix().HresponseNoOverflow();
+    TH2 *response_hist = response.HresponseNoOverflow();
     // Sending histograms to Python
     TPython::Bind( response_hist, "response_hist" ); 
-    TPython::Bind( this->GetMeasuredHist(), "measured_hist" );
+    TPython::Bind( measured_hist, "measured_hist" );
     // Converting num_iterations to a TObject* to convert to Python
-    TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", this->GetIterations());
+    TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", num_iterations);
     TPython::Bind(num_iterations_object, "num_iterations" );
     // Performing binned Omnifold
     TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations.GetVal())");
     // Bringing histogram back to ROOT and correcting for efficiency
     TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
-    this->EfficiencyCorrections(unfolded_hist);
+    this->EfficiencyCorrections(unfolded_hist, response);
     delete num_iterations_object;
     
     return unfolded_hist;
 }
 // Divides histogram bin content by efficiency vector from current response
-void Omnifold::EfficiencyCorrections(TH1* hist)
+void Omnifold::EfficiencyCorrections(TH1* hist, RooUnfoldResponse response)
 {
-    auto efficiency = this->GetResponseMatrix().Vefficiency();
+    auto efficiency = response.Vefficiency();
     for (Int_t i = 0; i < hist->GetNbinsX(); i++)
     {
         Double_t corrected_content = efficiency[i] > 0 ?
