@@ -162,36 +162,41 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
                                                                           Int_t num_iterations)
 {
     // Converting the std::vectors to TObjArrays and TVectors
-    TObjArray MC_TObjArray(MC_entries.size());
-    TObjArray sim_TObjArray(sim_entries.size());
-    TObjArray measured_TObjArray(measured_entries.size());
-
-    for (int i = 0; i < MC_entries.size(); i++) {
-        TVectorD *MC_event = new TVectorD(MC_entries[i].size());
-        for(int j = 0; j < MC_entries[i].size(); j++)
+    // std::vector<std::vector<Double_t>> to a TObjArray filled with TVectorDs
+    auto nested_vector_to_TObjArray = [](std::vector<std::vector<Double_t>> vec)
+    {
+        TObjArray out_TObjArray(vec.size());
+        for (int i = 0; i < vec.size(); i++)
         {
-            (*MC_event)[j] = MC_entries[i][j];
+            TVectorD *subvec = new TVectorD(vec[i].size());
+            for(int j = 0; j < vec[i].size(); j++)
+            {
+                (*subvec)[j] = vec[i][j];
+            }
+            out_TObjArray[i] = subvec;
         }
-        MC_TObjArray[i] = MC_event;
-    }
+        return out_TObjArray;
+    };
 
-    for (int i = 0; i < sim_entries.size(); i++) {
-        TVectorD *sim_event = new TVectorD(sim_entries[i].size());
-        for(int j = 0; j < sim_entries[i].size(); j++)
+    auto TObjArray_to_nested_vector = [](TObjArray objarray)
+    {
+        std::vector<std::vector<Double_t>> nested_vector(objarray.GetEntries());
+        for (int i = 0; i < objarray.GetEntries(); i++)
         {
-            (*sim_event)[j] = sim_entries[i][j];
+            TVectorD subTVectorD = *(TVectorD*) objarray[i];
+            std::vector<Double_t> subvec(subTVectorD.GetNoElements());
+            for(int j = 0; j < subTVectorD.GetNoElements(); j++)
+            {
+                subvec[j] = subTVectorD[j];
+            }
+            nested_vector[i] = subvec;
         }
-        sim_TObjArray[i] = sim_event;
-    }
+        return nested_vector;
+    };
 
-    for (int i = 0; i < measured_entries.size(); i++) {
-        TVectorD *measured_event = new TVectorD(measured_entries[i].size());
-        for(int j = 0; j < measured_entries[i].size(); j++)
-        {
-            (*measured_event)[j] = measured_entries[i][j];
-        }
-        measured_TObjArray[i] = measured_event;
-    }
+    auto MC_TObjArray = nested_vector_to_TObjArray(MC_entries);
+    auto sim_TObjArray = nested_vector_to_TObjArray(sim_entries);
+    auto measured_TObjArray = nested_vector_to_TObjArray(measured_entries);
 
     TVector pass_reco_TVector(pass_reco.size());
     for (int i = 0; i < pass_reco.size(); i++) {
@@ -211,45 +216,23 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
                                                                                                     pass_truth_TVector,
                                                                                                     num_iterations);
 
-    TVectorD weights_MC_TObject = std::get<0>(out_tuple_TObject);
-    TObjArray MC_TObject = std::get<1>(out_tuple_TObject);
-    TVectorD weights_sim_TObject = std::get<2>(out_tuple_TObject);
-    TObjArray sim_TObject = std::get<3>(out_tuple_TObject); 
+    TVectorD weights_MC_TVectorD = std::get<0>(out_tuple_TObject);
+    TVectorD weights_sim_TVectorD = std::get<2>(out_tuple_TObject);
 
     // Converting TObjects back to std::vectors
-    std::vector<std::vector<Double_t>> MC_vector(MC_TObject.GetEntries());
-    std::vector<std::vector<Double_t>> sim_vector(sim_TObject.GetEntries());
-    for(int i = 0; i < MC_TObject.GetEntries(); i++)
+    auto MC_vector = TObjArray_to_nested_vector(std::get<1>(out_tuple_TObject));
+    auto sim_vector = TObjArray_to_nested_vector(std::get<3>(out_tuple_TObject));
+    
+    std::vector<Double_t> weights_MC_vector(weights_MC_TVectorD.GetNoElements());
+    std::vector<Double_t> weights_sim_vector(weights_sim_TVectorD.GetNoElements());
+    for(int i = 0; i < weights_MC_TVectorD.GetNoElements(); i++)
     {
-        TVectorD event_TVectorD = *(TVectorD*) MC_TObject[i];
-        std::vector<Double_t> event_vector(event_TVectorD.GetNoElements());
-        for(int j = 0; j < event_TVectorD.GetNoElements(); j++)
-        {
-            event_vector[j] = event_TVectorD[j];
-        }
-        MC_vector[i] = event_vector;
+        weights_MC_vector[i] = weights_MC_TVectorD[i];
     }
 
-    for(int i = 0; i < sim_TObject.GetEntries(); i++)
+    for(int i = 0; i < weights_sim_TVectorD.GetNoElements(); i++)
     {
-        TVectorD event_TVectorD = *(TVectorD*) sim_TObject[i];
-        std::vector<Double_t> event_vector(event_TVectorD.GetNoElements());
-        for(int j = 0; j < event_TVectorD.GetNoElements(); j++)
-        {
-            event_vector[j] = event_TVectorD[j];
-        }
-        sim_vector[i] = event_vector;
-    }
-    std::vector<Double_t> weights_MC_vector(weights_MC_TObject.GetNoElements());
-    std::vector<Double_t> weights_sim_vector(weights_sim_TObject.GetNoElements());
-    for(int i = 0; i < weights_MC_TObject.GetNoElements(); i++)
-    {
-        weights_MC_vector[i] = weights_MC_TObject[i];
-    }
-
-    for(int i = 0; i < weights_sim_TObject.GetNoElements(); i++)
-    {
-        weights_sim_vector[i] = weights_sim_TObject[i];
+        weights_sim_vector[i] = weights_sim_TVectorD[i];
     }
 
     for (int i = 0; i < MC_TObjArray.GetEntries(); i++) {
@@ -268,5 +251,56 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
                                                                                                                                                                  sim_vector);
 
     return out_tuple_vector;                                                                                                                                                                   
+}
+
+std::tuple<std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>> 
+                                                         Omnifold::UnbinnedOmnifold(std::vector<Double_t> MC_entries,
+                                                                          std::vector<Double_t> sim_entries,
+                                                                          std::vector<Double_t> measured_entries,
+                                                                          std::vector<Bool_t> pass_reco,
+                                                                          std::vector<Bool_t> pass_truth,
+                                                                          Int_t num_iterations)
+{
+
+    auto nest_vector = [](std::vector<Double_t> vec)
+    {
+        std::vector<std::vector<Double_t>> nested_vector;
+        for(const Double_t& entry: vec)
+        {
+            std::vector<Double_t> dummy_vector{entry};
+            nested_vector.push_back(dummy_vector);
+        }
+        return nested_vector;
+    };
+
+    auto unnest_vector = [](std::vector<std::vector<Double_t>> vec)
+    {
+        std::vector<Double_t> unnested_vector;
+        for(const std::vector<Double_t>& entry: vec)
+        {
+            unnested_vector.push_back(entry[0]);
+        }
+        return unnested_vector;
+    };
+    
+    auto nested_MC_entries = nest_vector(MC_entries);
+    auto nested_sim_entries = nest_vector(sim_entries);
+    auto nested_measured_entries = nest_vector(measured_entries);
+
+    std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vector<Double_t>, std::vector<std::vector<Double_t>>> nested_out_tuple = this->UnbinnedOmnifold(nested_MC_entries,
+                                                                                                                                                                               nested_sim_entries,
+                                                                                                                                                                               nested_measured_entries,
+                                                                                                                                                                               pass_reco,
+                                                                                                                                                                               pass_truth,
+                                                                                                                                                                               num_iterations);
+
+    auto unnested_out_MC_entries = unnest_vector(std::get<1>(nested_out_tuple));
+    auto unnested_out_sim_entries = unnest_vector(std::get<3>(nested_out_tuple));
+    std::tuple<std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>> out_tuple = std::make_tuple(std::get<0>(nested_out_tuple),
+                                                                                                                                       unnested_out_MC_entries,
+                                                                                                                                       std::get<2>(nested_out_tuple),
+                                                                                                                                       unnested_out_sim_entries);
+
+    return out_tuple;                                                                                                                                       
 }
                                                                        
