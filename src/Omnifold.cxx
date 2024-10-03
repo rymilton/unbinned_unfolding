@@ -160,7 +160,7 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
     auto nested_vector_to_TObjArray = [](std::vector<std::vector<Double_t>> vec)
     {
         TObjArray out_TObjArray(vec.size());
-        for (int i = 0; i < vec.size(); i++)
+        for (size_t i = 0; i < vec.size(); i++)
         {
             TVectorD *subvec = new TVectorD(vec[i].size());
             for(int j = 0; j < vec[i].size(); j++)
@@ -175,7 +175,7 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
     auto TObjArray_to_nested_vector = [](TObjArray objarray)
     {
         std::vector<std::vector<Double_t>> nested_vector(objarray.GetEntries());
-        for (int i = 0; i < objarray.GetEntries(); i++)
+        for (size_t i = 0; i < objarray.GetEntries(); i++)
         {
             TVectorD subTVectorD = *(TVectorD*) objarray[i];
             std::vector<Double_t> subvec(subTVectorD.GetNoElements());
@@ -193,12 +193,12 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
     auto measured_TObjArray = nested_vector_to_TObjArray(measured_entries);
 
     TVector pass_reco_TVector(pass_reco.size());
-    for (int i = 0; i < pass_reco.size(); i++) {
+    for (size_t i = 0; i < pass_reco.size(); i++) {
         pass_reco_TVector[i] = pass_reco[i];
     }
 
     TVector pass_truth_TVector(pass_truth.size());
-    for (int i = 0; i < pass_truth.size(); i++) {
+    for (size_t i = 0; i < pass_truth.size(); i++) {
         pass_truth_TVector[i] = pass_truth[i];
     }
 
