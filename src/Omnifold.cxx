@@ -163,7 +163,7 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
         for (size_t i = 0; i < vec.size(); i++)
         {
             TVectorD *subvec = new TVectorD(vec[i].size());
-            for(int j = 0; j < vec[i].size(); j++)
+            for(size_t j = 0; j < vec[i].size(); j++)
             {
                 (*subvec)[j] = vec[i][j];
             }
@@ -175,7 +175,7 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
     auto TObjArray_to_nested_vector = [](TObjArray objarray)
     {
         std::vector<std::vector<Double_t>> nested_vector(objarray.GetEntries());
-        for (size_t i = 0; i < objarray.GetEntries(); i++)
+        for (int i = 0; i < objarray.GetEntries(); i++)
         {
             TVectorD subTVectorD = *(TVectorD*) objarray[i];
             std::vector<Double_t> subvec(subTVectorD.GetNoElements());
