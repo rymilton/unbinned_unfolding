@@ -164,10 +164,10 @@ def binned_omnifold(response_hist, measured_hist, num_iterations):
         unfolded_hist.Fill(MC, weight)
     return unfolded_hist
 def unbinned_omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations):
-    if MC_entries.shape[-1] == len(MC_entries):
+    if MC_entries.ndim == 1:
         MC_entries = np.expand_dims(MC_entries, axis = 1)
-    if sim_entries.shape[-1] == len(sim_entries):
+    if sim_entries.ndim == 1:
         sim_entries = np.expand_dims(sim_entries, axis = 1)
-    if measured_entries.shape[-1] == len(measured_entries):
+    if measured_entries.ndim == 1:
         measured_entries = np.expand_dims(measured_entries, axis = 1)
     return omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations)
