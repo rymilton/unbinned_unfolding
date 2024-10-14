@@ -1,3 +1,39 @@
+/*
+    Implementation of Omnifold using boosted decision trees (BDT)
+    This follows the original Omnifold work (Andreassen et al. PRL 124, 182001 (2020))
+
+    This class has BinnedOmnifold (binned unfolding) and UnbinnedOmnifold (unbinned unfolding).
+
+    BinnedOmnifold is similar to RooUnfoldBayes, where it uses the response matrix and measured histogram to do unfolding 
+    and it returns the unfolded TH1*.
+    UnbinnedOmnifold instead takes a list of Monte Carlo data, reconstructed Monte Carlo data (called sim data), and
+    measured data. It also takes masks that indicate an event passes generation level cuts and reconstruction.
+    UnbinnedOmnifold is overloaded with 4 functions that adjust the data format. The four formats are:
+        - 1D: TVectorD
+        - 1D: std::vector<double>
+        - Any dimension: TObjArray filled with TVectorD
+        - Any dimension: std::vector<std::vector<double>>
+
+    To do the unfolding, the input data is first moved to Python using TPython. This conversion needs TObjects, which
+    is why TVectorD and TObjArray are used in UnbinnedOmnifold. The unfolding procedure is done in Python and the results
+    are brought back to C++.
+
+    BDTs are trained to output sets of weights that are applied to the data. 
+    In BinnedOmnifold, these weights are applied within the function and an unfolded histogram is returned.
+    In UnbinnedOmnifold, these weights are returned within an std::tuple of the form
+    <Monte Carlo weights, Monte Carlo data, simulation/reconstructed weights, simulation/reconstructed data>.
+    Within the std::tuple, there are either TObjects (TVectorD + TObjArray) or std::vectors, matching the input form.
+
+    In both BinnedOmnifold and UnbinnedOmnifold, 50% of the Monte Carlo + simulation/reconstructed data is used for training
+    the BDTs while the other 50% is used as test data to avoid overfitting.
+    For UnbinnedOmnifold, the test data and its associated weights are returned in the std::tuple.
+    
+    To plot the UnbinnedOmnifold results in a histogram, the Monte Carlo data (second tuple entry) should be filled with
+    the Monte Carlo weights (first tuple entry). The resulting histogram is the unfolded distribution. The measured/simulation
+    data (fourth entry) should be filled with the simulation weights (third entry). This will compare to the measured data.
+    The weights are event-by-event weights, so even if you have multi-dimensional data, there is only one weight for a given event.
+    e.g. MC data = [[1, 2], [1.2, 2.5]], MC weights = [.5, .2]. The .5 (.2) is applied to both 1 and 2 (1.2 and 2.5) from [1, 2] ([1.2, 2.5]).
+*/
 #include <iostream>
 #include "Omnifold.h"
 #include "TParameter.h"
@@ -34,6 +70,7 @@ TH1D* Omnifold::BinnedOmnifold(RooUnfoldResponse response, TH1* measured_hist, I
     
     return unfolded_hist;
 }
+
 // Divides histogram bin content by efficiency vector from current response
 void Omnifold::EfficiencyCorrections(TH1* hist, RooUnfoldResponse response)
 {
@@ -45,6 +82,10 @@ void Omnifold::EfficiencyCorrections(TH1* hist, RooUnfoldResponse response)
         hist->SetBinContent(i+1, corrected_content);
     }
 }
+
+// 1D unbinned unfolding using TVectors
+// The function will squeeze the vector from (N, ) to (N, 1) and then unsqueeze it
+// This will return a tuple of MC weights, MC data, sim weights, sim data, all as TVectorD 
 std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TVectorD MC_entries,
                                                                               TVectorD sim_entries,
                                                                               TVectorD measured_entries,
@@ -88,12 +129,17 @@ std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TV
                                                                                    out_sim_test);
     return out_tuple;
 }
+
+// Unbinned unfolding using TVectors for any dimension
+// To pass objects to Python via TPython, we must use TObjects, hence the use of TObjArray
+// Each TObjArray should be filled with a TVectorD of data
+// This will return a tuple of MC weights (TVectorD), MC data (TObjArray), sim weights (TVectorD), sim data (TObjArray)
 std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> Omnifold::UnbinnedOmnifold(TObjArray MC_entries,
-                                                                                     TObjArray sim_entries,
-                                                                                     TObjArray measured_entries,
-                                                                                     TVector pass_reco,
-                                                                                     TVector pass_truth,
-                                                                                     Int_t num_iterations)
+                                                                                TObjArray sim_entries,
+                                                                                TObjArray measured_entries,
+                                                                                TVector pass_reco,
+                                                                                TVector pass_truth,
+                                                                                Int_t num_iterations)
 {
     TPython::Bind( &MC_entries, "unbinned_MC_entries" );
     TPython::Exec("unbinned_MC_entries = np.array(unbinned_MC_entries)");
@@ -141,7 +187,7 @@ std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> Omnifold::UnbinnedOmnifold(
 }
 
 // Does unbinned unfolding with std::vectors as input and output
-// Converts the std::vectors to TObjects and then does the unfolding with TPython
+// Converts the std::vectors to TObjects and then does unfolding with the TObjArray unfolding function
 std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vector<Double_t>, std::vector<std::vector<Double_t>>>
                                                Omnifold::UnbinnedOmnifold(std::vector<std::vector<Double_t>> MC_entries,
                                                                           std::vector<std::vector<Double_t>> sim_entries,
@@ -242,6 +288,8 @@ std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vecto
     return out_tuple_vector;                                                                                                                                                                   
 }
 
+// 1D unbinned unfolding using std::vectors
+// Same as the TVectorD unbinned unfolding function with std::vectors instead of TVectorD
 std::tuple<std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>> 
                                                          Omnifold::UnbinnedOmnifold(std::vector<Double_t> MC_entries,
                                                                           std::vector<Double_t> sim_entries,
