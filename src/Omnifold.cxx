@@ -75,15 +75,10 @@ std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> Omnifold::UnbinnedOmnifold(TV
     TPython::Exec("weights_sim_TVectorD = convert_to_TVectorD(weights_test[-1, 0][pass_reco_test])");
     TPython::Exec("sim_TVectorD = convert_to_TVectorD(sim_test.flatten())");
     
-    TVectorD* weights_MC_test = TPython::Eval("weights_MC_TVectorD");
-    TVectorD* MC_test = TPython::Eval("MC_TVectorD");
-    TVectorD* weights_sim_test = TPython::Eval("weights_sim_TVectorD");
-    TVectorD* sim_test = TPython::Eval("sim_TVectorD");
-
-    TVectorD out_weights_MC_test = *weights_MC_test;
-    TVectorD out_MC_test = *MC_test;
-    TVectorD out_weights_sim_test = *weights_sim_test;
-    TVectorD out_sim_test = *sim_test;
+    TVectorD out_weights_MC_test = *(TVectorD*) TPython::Eval("weights_MC_TVectorD");
+    TVectorD out_MC_test = *(TVectorD*) TPython::Eval("MC_TVectorD");
+    TVectorD out_weights_sim_test = *(TVectorD*) TPython::Eval("weights_sim_TVectorD");
+    TVectorD out_sim_test = *(TVectorD*) TPython::Eval("sim_TVectorD");
 
     delete num_iterations_object;
 
