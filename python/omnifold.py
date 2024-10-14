@@ -64,20 +64,12 @@ def reweight(events, classifier):
 def omnifold(MC_entries, sim_entries, measured_entries, pass_reco_mask, pass_truth_mask, num_iterations):
     verbose = False
     
+    # Removing events that don't pass generation level cuts
     sim_entries = sim_entries[pass_truth_mask]
-    # Want all arrays to be the same size so we can split them simultaneously
-    sim_entries_padded = np.full_like(MC_entries, np.nan)
-    
-    num_pass = 0
-    for i, entry in enumerate(pass_reco_mask):
-        if entry:
-            if num_pass < len(sim_entries):
-                sim_entries_padded[i] = sim_entries[num_pass]
-                num_pass += 1
-            else:
-                break
+    MC_entries = MC_entries[pass_truth_mask]
+    pass_reco_mask = pass_reco_mask[pass_truth_mask]
 
-    MC_train, MC_test, sim_train, sim_test, pass_reco_train, pass_reco_test = train_test_split(MC_entries, sim_entries_padded, pass_reco_mask,  test_size = .5)
+    MC_train, MC_test, sim_train, sim_test, pass_reco_train, pass_reco_test = train_test_split(MC_entries, sim_entries, pass_reco_mask,  test_size = .5)
     
     measured_labels = np.ones(len(measured_entries))
     MC_labels = np.zeros(len(MC_train))
