@@ -20,7 +20,7 @@ option (RooUnfoldGenerateCMakeConfig "generate a RooUnfoldConfig.cmake file for 
 unset(RooUnfoldTests)
 option (RooUnfoldTests "enable testing" OFF)
 
-find_package( ROOT COMPONENTS Tree Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser REQUIRED)
+find_package( ROOT COMPONENTS Tree Matrix Hist RIO MathCore Physics RooFitCore RooFit HistFactory Graf Postscript Gpad XMLParser ROOTTPython REQUIRED)
 
 set(ROOUNFOLD_SOURCE_DIR src)
 set(ROOUNFOLD_HEADER_DIR src)
