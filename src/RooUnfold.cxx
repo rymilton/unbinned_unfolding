@@ -93,6 +93,7 @@
 #include "RooUnfoldBinByBin.h"
 #include "RooUnfoldGP.h"
 #include "RooUnfoldPoisson.h"
+#include "RooUnfoldOmnifold.h"
 #ifndef NOTUNFOLD
 #include "RooUnfoldTUnfold.h"
 #endif
@@ -119,6 +120,7 @@ template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algori
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kIDS = RooUnfolding::kIDS;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kGP = RooUnfolding::kGP; 
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kPoisson = RooUnfolding::kPoisson;
+template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::Algorithm RooUnfoldT<Hist,Hist2D>::kOmnifold = RooUnfolding::kOmnifold;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kNoError = RooUnfolding::kNoError;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kErrors = RooUnfolding::kErrors;
 template<class Hist,class Hist2D> const typename RooUnfoldT<Hist,Hist2D>::ErrorTreatment RooUnfoldT<Hist,Hist2D>::kCovariance = RooUnfolding::kCovariance;
@@ -206,7 +208,9 @@ RooUnfoldT<Hist,Hist2D>::New (RooUnfolding::Algorithm alg, const RooUnfoldRespon
   case kIDS:
     unfold= new RooUnfoldIdsT<Hist,Hist2D>      (res, meas);
     break;
-
+  case kOmnifold:
+    unfold = new RooUnfoldOmnifoldT<Hist, Hist2D> (res, meas);
+    break;
   default: 
     throw std::runtime_error(TString::Format("Unknown RooUnfold method %d",(int)alg).Data());
   }
@@ -517,6 +521,7 @@ RooUnfoldT<Hist,Hist2D>::Unfold() const
   for (Int_t i= 0; i < nb; i++) {
     _cache._rec(i)= vmeas(i);
   }
+  
   _cache._unfolded= true;
 
 }

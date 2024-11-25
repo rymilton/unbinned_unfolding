@@ -36,6 +36,7 @@ public:
   static const Algorithm kIDS;
   static const Algorithm kGP;
   static const Algorithm kPoisson;
+  static const Algorithm kOmnifold;
   static const ErrorTreatment kNoError;
   static const ErrorTreatment kErrors;
   static const ErrorTreatment kCovariance;

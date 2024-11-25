@@ -18,6 +18,7 @@
 #pragma link C++ class TUnfoldDensityV17+;
 #pragma link C++ class TUnfoldBinningXMLV17+;
 #pragma link C++ class TUnfoldIterativeEMV17+;
+#pragma link C++ class RooUnfoldOmnifold+;
 #ifndef NOTUNFOLD
 #pragma link C++ class RooUnfoldTUnfold+;
 #endif
@@ -38,11 +39,11 @@
 #pragma link C++ class RooUnfoldBinByBinT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>+;
 #pragma link C++ class RooUnfoldIdsT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>+;
 #pragma link C++ class RooUnfoldTUnfoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>+;
+#pragma link C++ class RooUnfoldOmnifoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>+;
 #pragma link C++ class RooFitUnfoldResponse+;
 #endif
 #pragma link C++ class RooUnfoldErrors+;
 #pragma link C++ class RooUnfoldParms+;
 #pragma link C++ class RooUnfoldInvert+;
-#pragma link C++ class Omnifold+;
 
 #endif
