@@ -6,7 +6,11 @@
 #include "RooUnfoldTH1Helpers.h"
 #include "RooUnfoldFitHelpers.h"
 #include "RooHistFunc.h"
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,12,0)
 #include "RooRealSumFunc.h"
+#else
+#pragma message("RooFitUnfold requires ROOT version 6.12 or later (missing RooRealSumFunc.h)")
+#endif
 #include "RooPrintable.h"
 #include "RooHistPdf.h"
 #include "RooExtendPdf.h"
@@ -463,9 +467,7 @@ namespace {
     binWidth->setConstant(true);
     RooArgList functions;
     RooArgList coefs;
-    RooFIter itr(contributions.fwdIterator());
-    RooAbsArg* obj;
-    while((obj = itr.next())){
+    for(RooAbsArg* obj: contributions){
       functions.add(*obj);
       coefs.add(*binWidth);
     }
@@ -546,9 +548,7 @@ RooUnfolding::RooFitHist* RooUnfoldSpec::makeHistogram(const HistContainer& sour
   if(this->_obs_all.getSize() < 1){
     throw std::runtime_error("in RooUnfoldSpec::makeHistogram: no observables known!");
   }
-  RooFIter itr(this->_obs_all.fwdIterator());
-  RooAbsArg* arg = NULL;
-  while((arg = itr.next())){
+  for(RooAbsArg* arg : this->_obs_all){
     if(!arg) continue;
     if(!hf->dependsOn(*arg)) continue;
     obs.push_back(arg);
@@ -860,12 +860,14 @@ void RooUnfoldSpec::registerSystematic(Contribution c, const char* name, double 
 
 
 
+#ifdef NO_WRAPPERPDF
 RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
-  //! create an unfolding pdf
-  #ifdef NO_WRAPPERPDF
   throw std::runtime_error("need RooWrapperPdf to create unfolding Pdfs, upgrade ROOT version!");
   return NULL;
-  #else
+}
+#else
+RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm alg, Double_t regparam){
+  //! create an unfolding pdf
   RooUnfoldFunc* func = static_cast<RooUnfoldFunc*>(this->makeFunc(alg,regparam));
   func->setDensity(true);
   RooWrapperPdf* pdf = new RooWrapperPdf(TString::Format("%s_pdf",func->GetName()),TString::Format("%s Pdf",func->GetTitle()),*func);
@@ -877,8 +879,8 @@ RooAbsPdf* RooUnfoldSpec::makePdf(Algorithm /*alg*/, Double_t /*regparam*/){
   RooProdPdf* prod = new RooProdPdf(TString::Format("%s_x_constraints",this->GetName()),"Unfolding pdf, including constraints",comps);
   prod->setStringAttribute("source",func->GetName());
   return prod;
-  #endif
 }
+#endif
 
 
 RooAbsReal* RooUnfoldSpec::makeFunc(Algorithm alg, Double_t regparam){

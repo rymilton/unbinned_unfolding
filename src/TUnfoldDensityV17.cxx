@@ -152,7 +152,7 @@ final choice of tau should sit right in the minimum</li>
   along with TUnfold.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "TUnfoldDensity.h"
+#include "RooUnfold/TUnfold/TUnfoldDensity.h"
 #include <TMath.h>
 #include <TVectorD.h>
 #include <TObjString.h>
