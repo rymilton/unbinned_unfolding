@@ -30,6 +30,7 @@ public:
     RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter= 4,
                         const char* name= 0, const char* title= 0);
 
+    virtual RooUnfolding::Algorithm GetAlgorithm() const override;
 
     // std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries,
     //                                                                     TVectorD sim_entries,

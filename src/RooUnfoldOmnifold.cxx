@@ -41,6 +41,8 @@
 #include "TPython.h"
 #include "TObjArray.h"
 
+using namespace RooUnfolding;
+
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
   : RooUnfoldT<Hist,Hist2D>()
@@ -93,12 +95,12 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Unfold() const
 // // {
 // // }
 
-// // template<class Hist,class Hist2D> RooUnfolding::Algorithm
-// // RooUnfoldOmnifoldT<Hist,Hist2D>::GetAlgorithm () const
-// // {
-// //   //! return the unfolding algorithm used
-// //   return kOmnifold;
-// // }
+template<class Hist,class Hist2D> RooUnfolding::Algorithm
+RooUnfoldOmnifoldT<Hist,Hist2D>::GetAlgorithm () const
+{
+  //! return the unfolding algorithm used
+  return kOmnifold;
+}
 
 // // Performs binned unfolding using current response and measured histograms
 // // Returns an unfolded TH1* with efficiency corrections applied
