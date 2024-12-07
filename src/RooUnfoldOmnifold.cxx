@@ -42,6 +42,7 @@
 #include "TObjArray.h"
 #include "TSystem.h"
 #include "ROOT/StringUtils.hxx"
+#include <any>
 using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
@@ -84,6 +85,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hi
 template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
 {
+  std::cout<<"In init"<<std::endl;
   auto dynamic_paths = ROOT::Split(gSystem->GetDynamicPath(), ":");
   TString RooUnfold_install_path;
   for(auto &path : dynamic_paths)
@@ -103,7 +105,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
                                 " and check whether /RooUnfold/omnifold.py is in that directory.");
     }
     else
-      TPython::LoadMacro(omnifold_path);
+    {
+      TPython::Exec(Form("omnifold_path = '%s'", omnifold_path.Data()));
+      TPython::Exec("exec(open(omnifold_path).read())");
+    }
   }
   else
     throw std::runtime_error("Cannot find RooUnfold install directory. Did you source setup.sh?");
