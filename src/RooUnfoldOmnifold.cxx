@@ -40,7 +40,8 @@
 #include "TH1.h"
 #include "TPython.h"
 #include "TObjArray.h"
-
+#include "TSystem.h"
+#include "ROOT/StringUtils.hxx"
 using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
@@ -76,13 +77,36 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hi
 
   //! Constructor with response matrix object and measured unfolding input histogram.
   //! The regularisation parameter is niter (number of iterations).
-    Init();
+  Init();
 }
 
+// Loading the omnifold.py script
 template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
 {
-    TPython::LoadMacro( "../python/omnifold.py" );
+  auto dynamic_paths = ROOT::Split(gSystem->GetDynamicPath(), ":");
+  TString RooUnfold_install_path;
+  for(auto &path : dynamic_paths)
+  {
+    TString RooUnfold_library_name = "libRooUnfold.so";
+    if(gSystem->FindFile(path.c_str(), RooUnfold_library_name))
+        RooUnfold_install_path = path;
+  }
+  TString omnifold_path;
+  if (!RooUnfold_install_path.IsNull())
+  {
+    TString omnifold_script = "RooUnfold/omnifold.py";
+    omnifold_path = gSystem->FindFile(RooUnfold_install_path, omnifold_script);
+    if (omnifold_path.IsNull())
+    {
+      throw std::runtime_error("Cannot find omnifold.py. Please check your RooUnfold PATH environment variable directory,"
+                                " and check whether /RooUnfold/omnifold.py is in that directory.");
+    }
+    else
+      TPython::LoadMacro(omnifold_path);
+  }
+  else
+    throw std::runtime_error("Cannot find RooUnfold install directory. Did you source setup.sh?");
 }
 
 template<class Hist,class Hist2D> void
