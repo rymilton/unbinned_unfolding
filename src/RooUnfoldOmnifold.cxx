@@ -41,8 +41,7 @@
 #include "TPython.h"
 #include "TObjArray.h"
 #include "TSystem.h"
-#include "ROOT/StringUtils.hxx"
-#include <any>
+#include <ROOT/RDataFrame.hxx>
 using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
@@ -85,8 +84,25 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hi
 template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
 {
-  std::cout<<"In init"<<std::endl;
-  auto dynamic_paths = ROOT::Split(gSystem->GetDynamicPath(), ":");
+  // A copy of ROOT/StringUtils.h since it's only available in ROOT 6.26 and later
+  auto string_split = [](std::string str, std::string delims, bool skipEmpty /* =false */)
+  {
+    std::vector<std::string> out;
+
+    std::size_t beg = 0;
+    std::size_t end = 0;
+    while ((end = str.find_first_of(delims, beg)) != std::string::npos) {
+      if (!skipEmpty || end > beg)
+          out.emplace_back(str.substr(beg, end - beg));
+      beg = end + 1;
+    }
+    if (!skipEmpty || str.size() > beg)
+      out.emplace_back(str.substr(beg, str.size() - beg));
+
+   return out;
+  };
+
+  auto dynamic_paths = string_split(gSystem->GetDynamicPath(), ":", false);
   TString RooUnfold_install_path;
   for(auto &path : dynamic_paths)
   {
@@ -117,7 +133,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
 template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::Unfold() const
 {
-    BinnedOmnifold();
+  BinnedOmnifold();
 }
 
 // // RooUnfoldOmnifoldT::~RooUnfoldOmnifoldT()
@@ -136,38 +152,38 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::GetAlgorithm () const
 template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
 {
-    auto response = this->response();
-    TH2D *response_hist = (TH2D*) response->HresponseNoOverflow();
-    TH1D *measured_hist = (TH1D*) this->Hmeasured();
-    // Sending histograms to Python
-    TPython::Bind( response_hist, "response_hist" ); 
-    TPython::Bind( measured_hist, "measured_hist" );
-    // Converting num_iterations to a TObject* to convert to Python
-    TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", _niter);
-    TPython::Bind(num_iterations_object, "num_iterations" );
-    // Performing binned Omnifold
-    TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations.GetVal())");
-    // Bringing histogram back to ROOT and correcting for efficiency
-    TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
-    // this->EfficiencyCorrections(unfolded_hist, response);
-    auto efficiency = response->Vefficiency();
-    for (Int_t i = 0; i < unfolded_hist->GetNbinsX(); i++)
-    {
-        Double_t corrected_content = efficiency[i] > 0 ?
-            unfolded_hist->GetBinContent(i+1)/efficiency[i] : unfolded_hist->GetBinContent(i+1);
-        unfolded_hist->SetBinContent(i+1, corrected_content);
-    }
-    delete num_iterations_object;
-    
-    const int num_bins = unfolded_hist->GetNbinsX();
-    TVectorD unfolded_content(num_bins);
-    for(int i = 0; i < num_bins; i++)
-    {
-        unfolded_content[i] = unfolded_hist->GetBinContent(i+1);
-    }
-    this->_cache._rec.ResizeTo(unfolded_content);
-    this->_cache._rec = unfolded_content;
-    this->_cache._unfolded= true;
+  auto response = this->response();
+  TH2D *response_hist = (TH2D*) response->HresponseNoOverflow();
+  TH1D *measured_hist = (TH1D*) this->Hmeasured();
+  // Sending histograms to Python
+  TPython::Bind( response_hist, "response_hist" ); 
+  TPython::Bind( measured_hist, "measured_hist" );
+  // Converting num_iterations to a TObject* to convert to Python
+  TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", _niter);
+  TPython::Bind(num_iterations_object, "num_iterations" );
+  // Performing binned Omnifold
+  TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations.GetVal())");
+  // Bringing histogram back to ROOT and correcting for efficiency
+  TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
+  // this->EfficiencyCorrections(unfolded_hist, response);
+  auto efficiency = response->Vefficiency();
+  for (Int_t i = 0; i < unfolded_hist->GetNbinsX(); i++)
+  {
+      Double_t corrected_content = efficiency[i] > 0 ?
+          unfolded_hist->GetBinContent(i+1)/efficiency[i] : unfolded_hist->GetBinContent(i+1);
+      unfolded_hist->SetBinContent(i+1, corrected_content);
+  }
+  delete num_iterations_object;
+  
+  const int num_bins = unfolded_hist->GetNbinsX();
+  TVectorD unfolded_content(num_bins);
+  for(int i = 0; i < num_bins; i++)
+  {
+      unfolded_content[i] = unfolded_hist->GetBinContent(i+1);
+  }
+  this->_cache._rec.ResizeTo(unfolded_content);
+  this->_cache._rec = unfolded_content;
+  this->_cache._unfolded= true;
 }
 
 // // Divides histogram bin content by efficiency vector from current response
