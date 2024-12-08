@@ -46,7 +46,7 @@ using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
-  : RooUnfoldT<Hist,Hist2D>()
+  : RooUnfoldT<Hist,Hist2D>(), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0), _MCPassTruth(0), _MeasuredPassReco(0)
 {
 
   //! Default constructor. Use Setup() to prepare for unfolding.]
@@ -55,7 +55,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D>(name,title)
+  : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0), _MCPassTruth(0), _MeasuredPassReco(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -63,7 +63,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const cha
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
-  : RooUnfoldT<Hist,Hist2D>(name,title)
+  : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0), _MCPassTruth(0), _MeasuredPassReco(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -72,7 +72,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter,
                         const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter)
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0), _MCPassTruth(0), _MeasuredPassReco(0)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -185,6 +185,110 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   this->_cache._rec = unfolded_content;
   this->_cache._unfolded= true;
 }
+
+template<class Hist,class Hist2D> std::tuple<TVectorD, TVectorD>
+RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
+{
+  auto DataFrame_to_python = [](ROOT::RDataFrame df, TString data_type)
+  {
+    TPython::Exec(Form("data_type = '%s'", data_type.Data()));
+    TPython::Exec("data_dict[data_type] = np.array([])");
+    for(const auto& column_name : df.GetColumnNames())
+    {
+      std::string column_type = df.GetColumnType(column_name);
+      std::cout<<column_type<<std::endl;
+      TVectorD vector(*(df.Count()));
+      if (column_type == "double")
+      {
+        auto column_values = *(df.Take<double>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("MC_vector = np.asarray(column_vector)");
+        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+      }
+      else if (column_type == "float")
+      {
+        auto column_values = *(df.Take<float>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+      }
+      else if (column_type == "Long64_t")
+      {
+        auto column_values = *(df.Take<Long64_t>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+      }
+      else if (column_type == "long")
+      {
+        auto column_values = *(df.Take<long>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+      }
+      else
+        throw std::runtime_error("Please make sure RDataFrame columns are type double, float, or int");
+    }
+  };
+  TPython::Exec("data_dict = {}");
+  DataFrame_to_python(this->_MCDataFrame, "MC");
+  DataFrame_to_python(this->_SimDataFrame, "sim");
+  DataFrame_to_python(this->_MeasuredDataFrame, "measured");
+
+  TPython::Exec(Form("num_iterations = '%d'", this->_niter));
+
+  DataFrame_to_python(this->_MCPassReco, "MC_pass_reco");
+  TPython::Exec("data_dict['MC_pass_reco'] = data_dict['MC_pass_reco'].flatten()");
+  DataFrame_to_python(this->_MCPassTruth, "sim_pass_truth");
+  TPython::Exec("data_dict['sim_pass_truth'] = data_dict['sim_pass_truth'].flatten()");
+  DataFrame_to_python(this->_MeasuredPassReco, "measured_pass_reco");
+  TPython::Exec("data_dict['measured_pass_reco'] = data_dict['measured_pass_reco'].flatten()");
+  TPython::Exec("print(data_dict['MC_pass_reco'])");
+  TPython::Exec("weights, test_MC, test_sim, pass_reco_test = unbinned_omnifold(data_dict['MC'],\
+                                                                                data_dict['sim'],\
+                                                                                data_dict['measured'],\
+                                                                                num_iterations,\
+                                                                                data_dict['MC_pass_reco'],\
+                                                                                data_dict['sim_pass_truth'],\
+                                                                                data_dict['measured_pass_reco'])");
+  TPython::Exec("weights_MC_TVectorD = convert_to_TVectorD(weights[-1, 1])");
+  TPython::Exec("MC_TVectorD = convert_to_TVectorD(test_MC.flatten())");
+  TPython::Exec("weights_sim_TVectorD = convert_to_TVectorD(weights[-1, 0][pass_reco_test])");
+  TPython::Exec("sim_TVectorD = convert_to_TVectorD(test_sim.flatten())");
+    
+  TVectorD out_weights_MC_test = *(TVectorD*) TPython::Eval("weights_MC_TVectorD");
+  TVectorD out_MC_test = *(TVectorD*) TPython::Eval("MC_TVectorD");
+  TVectorD out_weights_sim_test = *(TVectorD*) TPython::Eval("weights_sim_TVectorD");
+  TVectorD out_sim_test = *(TVectorD*) TPython::Eval("sim_TVectorD");
+
+  std::tuple<TVectorD, TVectorD> out_tuple = std::make_tuple(out_weights_MC_test, out_MC_test);
+  return out_tuple;
+}
+
+template<class Hist,class Hist2D> std::tuple<TVectorD, TVectorD>
+RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold(ROOT::RDataFrame MC_dataframe,
+                                                  ROOT::RDataFrame sim_dataframe,
+                                                  ROOT::RDataFrame measured_dataframe)
+{
+  this->SetMCDataFrame(MC_dataframe);
+  this->SetSimDataFrame(sim_dataframe);
+  this->SetMeasuredDataFrame(measured_dataframe);
+  return this->UnbinnedOmnifold();
+}
+
 
 // // Divides histogram bin content by efficiency vector from current response
 // template<class Hist,class Hist2D> void
@@ -415,7 +519,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
 //                                                                           Int_t num_iterations)
 // {
 
-//     auto nest_vector = [](std::vector<Double_t> vec)
+//     auto nest_vector = [](std::vector< Double_t> vec)
 //     {
 //         std::vector<std::vector<Double_t>> nested_vector;
 //         for(const Double_t& entry: vec)

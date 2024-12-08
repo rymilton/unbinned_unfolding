@@ -15,9 +15,11 @@
 
 #include "RooUnfoldResponse.h"
 #include "TObjArray.h"
+#include <ROOT/RDataFrame.hxx>
 
 class TH1;
 class TH2;
+
 template<class Hist, class Hist2D>
 class RooUnfoldOmnifoldT : public RooUnfoldT<Hist,Hist2D> {
 public:
@@ -31,6 +33,25 @@ public:
                         const char* name= 0, const char* title= 0);
 
     virtual RooUnfolding::Algorithm GetAlgorithm() const override;
+
+    std::tuple<TVectorD, TVectorD> UnbinnedOmnifold();
+    std::tuple<TVectorD, TVectorD> UnbinnedOmnifold(ROOT::RDataFrame MC_dataframe,
+                          ROOT::RDataFrame sim_dataframe,
+                          ROOT::RDataFrame measured_dataframe);
+    
+    void SetMCDataFrame(ROOT::RDataFrame& MC){this->_MCDataFrame = MC;}
+    void SetSimDataFrame(ROOT::RDataFrame& Sim){this->_SimDataFrame = Sim;};
+    void SetMeasuredDataFrame(ROOT::RDataFrame& Measured){this->_MeasuredDataFrame = Measured;};
+    void SetMCPassReco(ROOT::RDataFrame& MC_pass_reco){this->_MCPassReco = MC_pass_reco;}
+    void SetMCPassTruth(ROOT::RDataFrame& MC_pass_truth){this->_MCPassTruth = MC_pass_truth;};
+    void SetMeasuredPassReco(ROOT::RDataFrame& measured_pass_reco){this->_MeasuredPassReco = measured_pass_reco;};
+
+    ROOT::RDataFrame GetMCDataFrame() { return this->_MCDataFrame;};
+    ROOT::RDataFrame GetSimDataFrame()  { return this->_SimDataFrame;};
+    ROOT::RDataFrame GetMeasuredDataFrame() { return this->_MeasuredDataFrame;};
+    ROOT::RDataFrame GetMCPassReco() { return this->_MCPassReco;};
+    ROOT::RDataFrame GetMCPassTruth()  { return this->_MCPassTruth;};
+    ROOT::RDataFrame GetMeasuredPassReco() { return this->_MeasuredPassReco;};
 
     // std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries,
     //                                                                     TVectorD sim_entries,
@@ -69,7 +90,13 @@ protected:
 
 private:
     void Init();
-    
+    ROOT::RDataFrame _MCDataFrame;
+    ROOT::RDataFrame _SimDataFrame;
+    ROOT::RDataFrame _MeasuredDataFrame;
+    ROOT::RDataFrame _MCPassReco;
+    ROOT::RDataFrame _MCPassTruth;
+    ROOT::RDataFrame _MeasuredPassReco;
+
 protected:
     mutable int _niter;
 public:
