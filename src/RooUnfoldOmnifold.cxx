@@ -196,7 +196,6 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
     for(const auto& column_name : df.GetColumnNames())
     {
       std::string column_type = df.GetColumnType(column_name);
-      std::cout<<column_type<<std::endl;
       TVectorD vector(*(df.Count()));
       if (column_type == "double")
       {
@@ -206,8 +205,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
           vector[i] = column_values[i];
         }
         TPython::Bind(&vector, "column_vector");
-        TPython::Exec("MC_vector = np.asarray(column_vector)");
-        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+        TPython::Exec("column_vector = np.asarray(column_vector)");
+        TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
       else if (column_type == "float")
       {
@@ -217,27 +216,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
           vector[i] = column_values[i];
         }
         TPython::Bind(&vector, "column_vector");
-        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
-      }
-      else if (column_type == "Long64_t")
-      {
-        auto column_values = *(df.Take<Long64_t>(column_name));
-        for (size_t i = 0; i < column_values.size(); i++)
-        {
-          vector[i] = column_values[i];
-        }
-        TPython::Bind(&vector, "column_vector");
-        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
-      }
-      else if (column_type == "long")
-      {
-        auto column_values = *(df.Take<long>(column_name));
-        for (size_t i = 0; i < column_values.size(); i++)
-        {
-          vector[i] = column_values[i];
-        }
-        TPython::Bind(&vector, "column_vector");
-        TPython::Exec("data_dict[data_type] = np.vstack([data_dict[data_type], column_vector] if data_dict[data_type].size else np.array([column_vector]))");
+        TPython::Exec("column_vector = np.asarray(column_vector)");
+        TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
       else
         throw std::runtime_error("Please make sure RDataFrame columns are type double, float, or int");
@@ -248,22 +228,20 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   DataFrame_to_python(this->_SimDataFrame, "sim");
   DataFrame_to_python(this->_MeasuredDataFrame, "measured");
 
-  TPython::Exec(Form("num_iterations = '%d'", this->_niter));
-
-  DataFrame_to_python(this->_MCPassReco, "MC_pass_reco");
-  TPython::Exec("data_dict['MC_pass_reco'] = data_dict['MC_pass_reco'].flatten()");
-  DataFrame_to_python(this->_MCPassTruth, "sim_pass_truth");
-  TPython::Exec("data_dict['sim_pass_truth'] = data_dict['sim_pass_truth'].flatten()");
-  DataFrame_to_python(this->_MeasuredPassReco, "measured_pass_reco");
-  TPython::Exec("data_dict['measured_pass_reco'] = data_dict['measured_pass_reco'].flatten()");
-  TPython::Exec("print(data_dict['MC_pass_reco'])");
+  TPython::Exec(Form("num_iterations = %d", this->_niter));
+  TPython::Bind(&(this->_MCPassReco), "MC_pass_reco");
+  TPython::Exec("MC_pass_reco = np.array(MC_pass_reco, dtype=bool)");
+  TPython::Bind(&(this->_MCPassTruth), "MC_pass_truth");
+  TPython::Exec("MC_pass_truth = np.array(MC_pass_truth, dtype=bool)");
+  TPython::Bind(&(this->_MeasuredPassReco), "measured_pass_reco");
+  TPython::Exec("measured_pass_reco = np.array(measured_pass_reco, dtype=bool)");
   TPython::Exec("weights, test_MC, test_sim, pass_reco_test = unbinned_omnifold(data_dict['MC'],\
                                                                                 data_dict['sim'],\
                                                                                 data_dict['measured'],\
                                                                                 num_iterations,\
-                                                                                data_dict['MC_pass_reco'],\
-                                                                                data_dict['sim_pass_truth'],\
-                                                                                data_dict['measured_pass_reco'])");
+                                                                                MC_pass_reco,\
+                                                                                MC_pass_truth,\
+                                                                                measured_pass_reco)");
   TPython::Exec("weights_MC_TVectorD = convert_to_TVectorD(weights[-1, 1])");
   TPython::Exec("MC_TVectorD = convert_to_TVectorD(test_MC.flatten())");
   TPython::Exec("weights_sim_TVectorD = convert_to_TVectorD(weights[-1, 0][pass_reco_test])");

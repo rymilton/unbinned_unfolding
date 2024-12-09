@@ -134,7 +134,7 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
         weights_push_test = reweight(MC_test, step2_classifier)
         weights_train[i, 0], weights_train[i, 1] = weights_pull_train, weights_push_train
         weights_test[i, 0], weights_test[i, 1] = weights_pull_test, weights_push_test
-    return weights_test, MC_test, sim_test[pass_reco_test], pass_reco_test
+    return weights_test, MC_test, sim_test, pass_reco_test
 
 
 def binned_omnifold(response_hist, measured_hist, num_iterations):
@@ -169,5 +169,4 @@ def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations,
         MC_pass_truth_mask = np.full(MC_entries.shape[0], True, dtype=bool)
     if measured_pass_reco_mask is None:
         measured_pass_reco_mask = np.full(measured_entries.shape[0], True, dtype=bool)
-    print(MC_pass_reco_mask)
     return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations)

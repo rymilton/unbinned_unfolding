@@ -39,19 +39,21 @@ public:
                           ROOT::RDataFrame sim_dataframe,
                           ROOT::RDataFrame measured_dataframe);
     
+    void SetNumIterations(int num_iterations){this->_niter = num_iterations;}
     void SetMCDataFrame(ROOT::RDataFrame& MC){this->_MCDataFrame = MC;}
     void SetSimDataFrame(ROOT::RDataFrame& Sim){this->_SimDataFrame = Sim;};
     void SetMeasuredDataFrame(ROOT::RDataFrame& Measured){this->_MeasuredDataFrame = Measured;};
-    void SetMCPassReco(ROOT::RDataFrame& MC_pass_reco){this->_MCPassReco = MC_pass_reco;}
-    void SetMCPassTruth(ROOT::RDataFrame& MC_pass_truth){this->_MCPassTruth = MC_pass_truth;};
-    void SetMeasuredPassReco(ROOT::RDataFrame& measured_pass_reco){this->_MeasuredPassReco = measured_pass_reco;};
+    void SetMCPassReco(TVector& MC_pass_reco){this->_MCPassReco.ResizeTo(MC_pass_reco);this->_MCPassReco = MC_pass_reco;}
+    void SetMCPassTruth(TVector& MC_pass_truth){this->_MCPassTruth.ResizeTo(MC_pass_truth); this->_MCPassTruth = MC_pass_truth;};
+    void SetMeasuredPassReco(TVector& measured_pass_reco){this->_MeasuredPassReco.ResizeTo(measured_pass_reco); this->_MeasuredPassReco = measured_pass_reco;};
 
+    int GetNumIterations() {return this->_niter;}
     ROOT::RDataFrame GetMCDataFrame() { return this->_MCDataFrame;};
     ROOT::RDataFrame GetSimDataFrame()  { return this->_SimDataFrame;};
     ROOT::RDataFrame GetMeasuredDataFrame() { return this->_MeasuredDataFrame;};
-    ROOT::RDataFrame GetMCPassReco() { return this->_MCPassReco;};
-    ROOT::RDataFrame GetMCPassTruth()  { return this->_MCPassTruth;};
-    ROOT::RDataFrame GetMeasuredPassReco() { return this->_MeasuredPassReco;};
+    TVector GetMCPassReco() { return this->_MCPassReco;};
+    TVector GetMCPassTruth()  { return this->_MCPassTruth;};
+    TVector GetMeasuredPassReco() { return this->_MeasuredPassReco;};
 
     // std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries,
     //                                                                     TVectorD sim_entries,
@@ -93,9 +95,11 @@ private:
     ROOT::RDataFrame _MCDataFrame;
     ROOT::RDataFrame _SimDataFrame;
     ROOT::RDataFrame _MeasuredDataFrame;
-    ROOT::RDataFrame _MCPassReco;
-    ROOT::RDataFrame _MCPassTruth;
-    ROOT::RDataFrame _MeasuredPassReco;
+    TVector _MCPassReco;
+    TVector _MCPassTruth;
+    TVector _MeasuredPassReco;
+    // ROOT::RDataFrame _MCPassTruth;
+    // ROOT::RDataFrame _MeasuredPassReco;
 
 protected:
     mutable int _niter;
