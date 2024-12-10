@@ -54,36 +54,8 @@ public:
     TVector GetMCPassReco() { return this->_MCPassReco;};
     TVector GetMCPassTruth()  { return this->_MCPassTruth;};
     TVector GetMeasuredPassReco() { return this->_MeasuredPassReco;};
-
-    // std::tuple<TVectorD, TVectorD, TVectorD, TVectorD> UnbinnedOmnifold(TVectorD MC_entries,
-    //                                                                     TVectorD sim_entries,
-    //                                                                     TVectorD measured_entries,
-    //                                                                     TVector pass_reco,
-    //                                                                     TVector pass_truth,
-    //                                                                     Int_t num_iterations);
-    // std::tuple<TVectorD, TObjArray, TVectorD, TObjArray> UnbinnedOmnifold(TObjArray MC_entries,
-    //                                                                       TObjArray sim_entries,
-    //                                                                       TObjArray measured_entries,
-    //                                                                       TVector pass_reco,
-    //                                                                       TVector pass_truth,
-    //                                                                       Int_t num_iterations);
-
-    // std::tuple<std::vector<Double_t>, std::vector<std::vector<Double_t>>, std::vector<Double_t>, std::vector<std::vector<Double_t>>> 
-    //                                                      UnbinnedOmnifold(std::vector<std::vector<Double_t>> MC_entries,
-    //                                                                       std::vector<std::vector<Double_t>> sim_entries,
-    //                                                                       std::vector<std::vector<Double_t>> measured_entries,
-    //                                                                       std::vector<Bool_t> pass_reco,
-    //                                                                       std::vector<Bool_t> pass_truth,
-    //                                                                       Int_t num_iterations);
-
-    // std::tuple<std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>, std::vector<Double_t>> 
-    //                                                      UnbinnedOmnifold(std::vector<Double_t> MC_entries,
-    //                                                                       std::vector<Double_t> sim_entries,
-    //                                                                       std::vector<Double_t> measured_entries,
-    //                                                                       std::vector<Bool_t> pass_reco,
-    //                                                                       std::vector<Bool_t> pass_truth,
-    //                                                                       Int_t num_iterations);
-    // void EfficiencyCorrections(TH1* hist, RooUnfoldResponse response);
+    TVectorD GetUnbinnedStep1Weights() {return this->_unbinned_step1_weights;};
+    TVectorD GetUnbinnedStep2Weights() {return this->_unbinned_step2_weights;};
 
 protected:
     virtual void Unfold() const override;
@@ -98,8 +70,8 @@ private:
     TVector _MCPassReco;
     TVector _MCPassTruth;
     TVector _MeasuredPassReco;
-    // ROOT::RDataFrame _MCPassTruth;
-    // ROOT::RDataFrame _MeasuredPassReco;
+    TVectorD _unbinned_step1_weights;
+    TVectorD _unbinned_step2_weights;
 
 protected:
     mutable int _niter;
