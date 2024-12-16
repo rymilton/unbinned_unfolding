@@ -38,6 +38,8 @@ public:
     std::tuple<TVectorD, TVectorD> UnbinnedOmnifold(ROOT::RDataFrame MC_dataframe,
                           ROOT::RDataFrame sim_dataframe,
                           ROOT::RDataFrame measured_dataframe);
+    std::tuple<TVectorD, TVectorD> TestUnbinnedOmnifold();
+
     
     void SetNumIterations(int num_iterations){this->_niter = num_iterations;}
     void SetMCDataFrame(ROOT::RDataFrame& MC){this->_MCDataFrame = MC;}
@@ -46,7 +48,13 @@ public:
     void SetMCPassReco(TVector& MC_pass_reco){this->_MCPassReco.ResizeTo(MC_pass_reco);this->_MCPassReco = MC_pass_reco;}
     void SetMCPassTruth(TVector& MC_pass_truth){this->_MCPassTruth.ResizeTo(MC_pass_truth); this->_MCPassTruth = MC_pass_truth;};
     void SetMeasuredPassReco(TVector& measured_pass_reco){this->_MeasuredPassReco.ResizeTo(measured_pass_reco); this->_MeasuredPassReco = measured_pass_reco;};
-
+    void SetModelSaving(bool option){this->_SaveUnbinnedModels = option;};
+    void SetSaveDirectory(TString save_dir){this->_UnbinnedModelSaveDir = save_dir;};
+    void SetModelName(TString model_name){this->_UnbinnedModelName = model_name;};
+    void SetTestMCDataFrame(ROOT::RDataFrame& MC){this->_TestMCDataFrame = MC;}
+    void SetTestSimDataFrame(ROOT::RDataFrame& Sim){this->_TestSimDataFrame = Sim;};
+    void SetTestMCPassReco(TVector& MC_pass_reco){this->_TestMCPassReco.ResizeTo(MC_pass_reco);this->_TestMCPassReco = MC_pass_reco;}
+    
     int GetNumIterations() {return this->_niter;}
     ROOT::RDataFrame GetMCDataFrame() { return this->_MCDataFrame;};
     ROOT::RDataFrame GetSimDataFrame()  { return this->_SimDataFrame;};
@@ -59,7 +67,6 @@ public:
 
 protected:
     virtual void Unfold() const override;
-    // void EfficiencyCorrections(TH1* hist, RooUnfoldResponseT<Hist, Hist2D>* response);
     void BinnedOmnifold() const;
 
 private:
@@ -72,6 +79,15 @@ private:
     TVector _MeasuredPassReco;
     TVectorD _unbinned_step1_weights;
     TVectorD _unbinned_step2_weights;
+    bool _SaveUnbinnedModels;
+    TString _UnbinnedModelSaveDir;
+    TString _UnbinnedModelName;
+    ROOT::RDataFrame _TestMCDataFrame;
+    ROOT::RDataFrame _TestSimDataFrame;
+    TVector _TestMCPassReco;
+    TVectorD _unbinned_step1_test_weights;
+    TVectorD _unbinned_step2_test_weights;
+
 
 protected:
     mutable int _niter;

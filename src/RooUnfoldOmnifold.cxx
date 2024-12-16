@@ -47,7 +47,8 @@ using namespace RooUnfolding;
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
   : RooUnfoldT<Hist,Hist2D>(), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
-    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0)
+    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
 {
 
   //! Default constructor. Use Setup() to prepare for unfolding.]
@@ -57,7 +58,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
-    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0)
+    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -66,7 +68,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const cha
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
-    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0)
+    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -76,7 +79,8 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter,
                         const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
-    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0)
+    _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -234,13 +238,21 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   TPython::Exec("MC_pass_truth = np.array(MC_pass_truth, dtype=bool)");
   TPython::Bind(&(this->_MeasuredPassReco), "measured_pass_reco");
   TPython::Exec("measured_pass_reco = np.array(measured_pass_reco, dtype=bool)");
+
+  TPython::Exec(Form("save_models = %d", this->_SaveUnbinnedModels? 1 : 0));
+  TPython::Exec("save_models = True if save_models == 1 else False");
+  TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
+  TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
+  TPython::Exec("model_save_dict = {'save_models':save_models, 'save_dir':model_save_dir, 'model_name':model_name}");
+
   TPython::Exec("step1_weights, step2_weights = unbinned_omnifold(data_dict['MC'],\
                                                                    data_dict['sim'],\
                                                                    data_dict['measured'],\
                                                                    num_iterations,\
                                                                    MC_pass_reco,\
                                                                    MC_pass_truth,\
-                                                                   measured_pass_reco)");
+                                                                   measured_pass_reco,\
+                                                                   model_save_dict)");
 
   TPython::Exec("step1_weights_TVectorD = convert_to_TVectorD(step1_weights)");
   TPython::Exec("step2_weights_TVectorD = convert_to_TVectorD(step2_weights)");
@@ -266,6 +278,74 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold(ROOT::RDataFrame MC_dataframe,
   this->SetSimDataFrame(sim_dataframe);
   this->SetMeasuredDataFrame(measured_dataframe);
   return this->UnbinnedOmnifold();
+}
+
+template<class Hist,class Hist2D> std::tuple<TVectorD, TVectorD>
+RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
+{
+  auto DataFrame_to_python = [](ROOT::RDataFrame df, TString data_type)
+  {
+    TPython::Exec(Form("data_type = '%s'", data_type.Data()));
+    TPython::Exec("data_dict[data_type] = np.array([])");
+    for(const auto& column_name : df.GetColumnNames())
+    {
+      std::string column_type = df.GetColumnType(column_name);
+      TVectorD vector(*(df.Count()));
+      if (column_type == "double")
+      {
+        auto column_values = *(df.Take<double>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("column_vector = np.asarray(column_vector)");
+        TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
+      }
+      else if (column_type == "float")
+      {
+        auto column_values = *(df.Take<float>(column_name));
+        for (size_t i = 0; i < column_values.size(); i++)
+        {
+          vector[i] = column_values[i];
+        }
+        TPython::Bind(&vector, "column_vector");
+        TPython::Exec("column_vector = np.asarray(column_vector)");
+        TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
+      }
+      else
+        throw std::runtime_error("Please make sure RDataFrame columns are type double, float, or int");
+    }
+  };
+  TPython::Exec("data_dict = {}");
+  DataFrame_to_python(this->_TestMCDataFrame, "test_MC");
+  DataFrame_to_python(this->_TestSimDataFrame, "test_sim");
+
+  TPython::Bind(&(this->_TestMCPassReco), "test_MC_pass_reco");
+  TPython::Exec("test_MC_pass_reco = np.array(test_MC_pass_reco, dtype=bool)");
+
+  TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
+  TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
+  TPython::Exec("model_info_dict = {'save_dir':model_save_dir, 'model_name':model_name}");
+  TPython::Exec("step1_test_weights = get_step1_predictions(data_dict['test_MC'],\
+                                                            data_dict['test_sim'],\
+                                                            model_info_dict,\
+                                                            test_MC_pass_reco)");
+  TPython::Exec("step1_test_weights_TVectorD = convert_to_TVectorD(step1_test_weights)");
+  TPython::Exec("step2_test_weights = get_step2_predictions(data_dict['test_MC'], model_info_dict)");
+
+  TPython::Exec("step2_test_weights_TVectorD = convert_to_TVectorD(step2_test_weights)");
+    
+  TVectorD step1_test_weights = *(TVectorD*) TPython::Eval("step1_test_weights_TVectorD");
+  TVectorD step2_test_weights = *(TVectorD*) TPython::Eval("step2_test_weights_TVectorD");
+
+  this->_unbinned_step1_test_weights.ResizeTo(step1_test_weights);
+  this->_unbinned_step1_test_weights = step1_test_weights;
+  this->_unbinned_step2_test_weights.ResizeTo(step2_test_weights);
+  this->_unbinned_step2_test_weights = step2_test_weights;
+
+  std::tuple<TVectorD, TVectorD> out_tuple = std::make_tuple(this->_unbinned_step1_test_weights, this->_unbinned_step2_test_weights);
+  return out_tuple;
 }
 
 template class RooUnfoldOmnifoldT<TH1,TH2>;

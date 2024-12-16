@@ -2,6 +2,8 @@ import ROOT
 import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
+import pickle
+import os
 
 def TH1_to_numpy(hist):
     num_bins = hist.GetNbinsX()
@@ -61,7 +63,7 @@ def reweight(events, classifier):
     weights = data_probability / (1. - data_probability)
     return np.squeeze(np.nan_to_num(weights))
 
-def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_truth_mask, num_iterations):
+def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_truth_mask, num_iterations, model_save_dict = None):
     # Removing events that don't pass generation level cuts
     sim_entries = sim_entries[MC_pass_truth_mask]
     MC_entries = MC_entries[MC_pass_truth_mask]
@@ -78,6 +80,9 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
 
     step1_classifier = GradientBoostingClassifier()
     step2_classifier = GradientBoostingClassifier()
+    use_regressor =  any(~pass_reco_train)
+    if use_regressor:
+        step1_regressor = GradientBoostingRegressor()
     for i in range(num_iterations):
         print(f"Starting iteration {i}") 
         step1_data = np.concatenate((sim_train[pass_reco_train], measured_entries[measured_pass_truth_mask]))
@@ -90,10 +95,9 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
         new_weights_train[pass_reco_train] = reweight(sim_train[pass_reco_train], step1_classifier)
         
         # Training a regression model to predict the weights of the events that don't pass reconstruction
-        if len(sim_train[~pass_reco_train]) > 0:
-            regressor_train = GradientBoostingRegressor()
-            regressor_train.fit(MC_train[pass_reco_train], new_weights_train[pass_reco_train])
-            new_weights_train[~pass_reco_train] = regressor_train.predict(MC_train[~pass_reco_train])
+        if use_regressor:
+            step1_regressor.fit(MC_train[pass_reco_train], new_weights_train[pass_reco_train])
+            new_weights_train[~pass_reco_train] = step1_regressor.predict(MC_train[~pass_reco_train])
         weights_pull_train = np.multiply(weights_push_train, new_weights_train)
             
         # Training step 2 classifier
@@ -105,6 +109,18 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
         # Getting step 2 weights and storing iteration weights
         weights_push_train = reweight(MC_train, step2_classifier)
         weights_train[i, 0], weights_train[i, 1] = weights_pull_train, weights_push_train
+
+    # Saving the models if the user wants to (saved by default)
+    if model_save_dict is not None and model_save_dict['save_models']:
+        base_path = model_save_dict['save_dir']
+        os.makedirs(os.path.dirname(base_path ), exist_ok=True)
+        models = {"step1_classifier": step1_classifier,
+                  "step2_classifier": step2_classifier
+                }
+        if use_regressor:
+            models['step1_regressor'] = step1_regressor
+        with open(f"{model_save_dict['model_name']}_models.pkl", "wb") as outfile:
+            pickle.dump(models, outfile)
 
     return weights_pull_train, weights_push_train
 
@@ -128,7 +144,7 @@ def binned_omnifold(response_hist, measured_hist, num_iterations):
     for (weight, MC) in zip(step2_weights, MC_entries.flatten()):
         unfolded_hist.Fill(MC, weight)
     return unfolded_hist
-def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None):
+def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None, model_save_dict = None):
     if MC_entries.ndim == 1:
         MC_entries = np.expand_dims(MC_entries, axis = 1)
     if sim_entries.ndim == 1:
@@ -141,4 +157,18 @@ def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations,
         MC_pass_truth_mask = np.full(MC_entries.shape[0], True, dtype=bool)
     if measured_pass_reco_mask is None:
         measured_pass_reco_mask = np.full(measured_entries.shape[0], True, dtype=bool)
-    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations)
+    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, model_save_dict)
+
+def get_step1_predictions(MC_data, sim_data, model_info_dict, pass_reco = None):
+    with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:
+        loaded_models = pickle.load(infile)
+    step1_test_weights = np.ones(len(sim_data))
+    step1_test_weights[pass_reco] = reweight(sim_data[pass_reco], loaded_models['step1_classifier'])
+    step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MC_data[~pass_reco])
+    return step1_test_weights
+
+def get_step2_predictions(MC_data, model_info_dict):
+    with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:
+        loaded_models = pickle.load(infile)
+    step2_test_weights = reweight(MC_data, loaded_models['step2_classifier'])
+    return step2_test_weights
