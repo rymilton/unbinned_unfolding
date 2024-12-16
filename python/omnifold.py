@@ -63,7 +63,7 @@ def reweight(events, classifier):
     weights = data_probability / (1. - data_probability)
     return np.squeeze(np.nan_to_num(weights))
 
-def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_truth_mask, num_iterations, model_save_dict = None):
+def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_truth_mask, num_iterations, model_save_dict = None, classifier1_params = None, classifier2_params = None, regressor_params = None):
     # Removing events that don't pass generation level cuts
     sim_entries = sim_entries[MC_pass_truth_mask]
     MC_entries = MC_entries[MC_pass_truth_mask]
@@ -78,11 +78,40 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
     weights_push_train = np.ones(len(MC_train))
     weights_train = np.empty(shape=(num_iterations, 2, len(MC_train)))
 
-    step1_classifier = GradientBoostingClassifier()
-    step2_classifier = GradientBoostingClassifier()
+    def convert_to_dict(dict):
+        params = {}
+        for key, value in dict.items():
+            if any(char.isdigit() for char in value):
+                number = float(value)
+                if number.is_integer():
+                    number = int(number)
+                params[key] = number
+            elif value == "True" or value == "False":
+                params[key] = bool(value)
+            elif value == "None":
+                params[key] = None
+            else:
+                params[key] = value
+        return params
+    if classifier1_params is not None:
+        classifier1_params = convert_to_dict(classifier1_params)
+    else:
+        classifier1_params = {}
+
+    if classifier2_params is not None:
+        classifier2_params = convert_to_dict(classifier2_params)
+    else:
+        classifier2_params = {}
+
+    if regressor_params is not None:
+        regressor_params = convert_to_dict(regressor_params)
+    else:
+        regressor_params = {}
+    step1_classifier = GradientBoostingClassifier(**classifier1_params)
+    step2_classifier = GradientBoostingClassifier(**classifier2_params)
     use_regressor =  any(~pass_reco_train)
     if use_regressor:
-        step1_regressor = GradientBoostingRegressor()
+        step1_regressor = GradientBoostingRegressor(**regressor_params)
     for i in range(num_iterations):
         print(f"Starting iteration {i}") 
         step1_data = np.concatenate((sim_train[pass_reco_train], measured_entries[measured_pass_truth_mask]))
@@ -144,7 +173,7 @@ def binned_omnifold(response_hist, measured_hist, num_iterations):
     for (weight, MC) in zip(step2_weights, MC_entries.flatten()):
         unfolded_hist.Fill(MC, weight)
     return unfolded_hist
-def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None, model_save_dict = None):
+def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None, model_save_dict = None, classifier1_params=None, classifier2_params=None, regressor_params=None):
     if MC_entries.ndim == 1:
         MC_entries = np.expand_dims(MC_entries, axis = 1)
     if sim_entries.ndim == 1:
@@ -157,7 +186,7 @@ def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations,
         MC_pass_truth_mask = np.full(MC_entries.shape[0], True, dtype=bool)
     if measured_pass_reco_mask is None:
         measured_pass_reco_mask = np.full(measured_entries.shape[0], True, dtype=bool)
-    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, model_save_dict)
+    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, model_save_dict, classifier1_params, classifier2_params, regressor_params)
 
 def get_step1_predictions(MC_data, sim_data, model_info_dict, pass_reco = None):
     with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:

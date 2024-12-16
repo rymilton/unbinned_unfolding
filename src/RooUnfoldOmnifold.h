@@ -16,6 +16,7 @@
 #include "RooUnfoldResponse.h"
 #include "TObjArray.h"
 #include <ROOT/RDataFrame.hxx>
+#include <TMap.h>
 
 class TH1;
 class TH2;
@@ -54,7 +55,10 @@ public:
     void SetTestMCDataFrame(ROOT::RDataFrame& MC){this->_TestMCDataFrame = MC;}
     void SetTestSimDataFrame(ROOT::RDataFrame& Sim){this->_TestSimDataFrame = Sim;};
     void SetTestMCPassReco(TVector& MC_pass_reco){this->_TestMCPassReco.ResizeTo(MC_pass_reco);this->_TestMCPassReco = MC_pass_reco;}
-    
+    void SetStep1ClassifierParameters(TMap* parameters){this->_Step1ClassifierParameters=parameters;};
+    void SetStep2ClassifierParameters(TMap* parameters){this->_Step2ClassifierParameters=parameters;};
+    void SetStep1RegressorParameters(TMap* parameters){this->_Step1RegressorParameters=parameters;};
+
     int GetNumIterations() {return this->_niter;}
     ROOT::RDataFrame GetMCDataFrame() { return this->_MCDataFrame;};
     ROOT::RDataFrame GetSimDataFrame()  { return this->_SimDataFrame;};
@@ -87,6 +91,9 @@ private:
     TVector _TestMCPassReco;
     TVectorD _unbinned_step1_test_weights;
     TVectorD _unbinned_step2_test_weights;
+    TMap* _Step1ClassifierParameters;
+    TMap* _Step2ClassifierParameters;
+    TMap* _Step1RegressorParameters;
 
 
 protected:

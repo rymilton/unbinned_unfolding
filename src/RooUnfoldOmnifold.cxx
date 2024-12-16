@@ -42,13 +42,16 @@
 #include "TObjArray.h"
 #include "TSystem.h"
 #include <ROOT/RDataFrame.hxx>
+#include <TMap.h>
+#include <TObjString.h>
 using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
   : RooUnfoldT<Hist,Hist2D>(), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
 {
 
   //! Default constructor. Use Setup() to prepare for unfolding.]
@@ -59,7 +62,8 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -69,7 +73,8 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -80,7 +85,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hi
                         const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -245,6 +251,67 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
   TPython::Exec("model_save_dict = {'save_models':save_models, 'save_dir':model_save_dir, 'model_name':model_name}");
 
+  if(this->_Step1ClassifierParameters)
+  {
+    TPython::Bind(this->_Step1ClassifierParameters, "step1classifier_params_map");
+    TString dict_script = Form(
+      "step1classifier_params = {}\n"
+      "iter = step1classifier_params_map.MakeIterator()\n"
+      "num_keys = step1classifier_params_map.GetSize()\n"
+      "counter = 0\n"
+      "while counter < num_keys:\n"
+      "\tkey = iter.Next()\n"
+      "\tstep1classifier_params[str(key)]=str(step1classifier_params_map.GetValue(key))\n"
+      "\tcounter += 1\n"
+    );
+    TPython::Exec(dict_script.Data());
+  }
+  else 
+  {
+    TPython::Exec("step1classifier_params = {}");
+  }
+
+  if(this->_Step2ClassifierParameters)
+  {
+    TPython::Bind(this->_Step2ClassifierParameters, "step2classifier_params_map");
+    TString dict_script = Form(
+      "step2classifier_params = {}\n"
+      "iter = step2classifier_params_map.MakeIterator()\n"
+      "num_keys = step2classifier_params_map.GetSize()\n"
+      "counter = 0\n"
+      "while counter < num_keys:\n"
+      "\tkey = iter.Next()\n"
+      "\tstep2classifier_params[str(key)]=str(step2classifier_params_map.GetValue(key))\n"
+      "\tcounter += 1\n"
+    );
+    TPython::Exec(dict_script.Data());
+  }
+  else 
+  {
+    TPython::Exec("step2classifier_params = {}");
+  }
+
+  if(this->_Step1RegressorParameters)
+  {
+    TPython::Bind(this->_Step1RegressorParameters, "step1regressor_params_map");
+    TString dict_script = Form(
+      "step1regressor_params = {}\n"
+      "iter = step1regressor_params_map.MakeIterator()\n"
+      "num_keys = step1regressor_params_map.GetSize()\n"
+      "counter = 0\n"
+      "while counter < num_keys:\n"
+      "\tkey = iter.Next()\n"
+      "\tstep1regressor_params[str(key)]=str(step1regressor_params_map.GetValue(key))\n"
+      "\tcounter += 1\n"
+    );
+    TPython::Exec(dict_script.Data());
+  }
+  else 
+  {
+    TPython::Exec("step1regressor_params = {}");
+  }
+	
+    // Execute the Python script
   TPython::Exec("step1_weights, step2_weights = unbinned_omnifold(data_dict['MC'],\
                                                                    data_dict['sim'],\
                                                                    data_dict['measured'],\
@@ -252,7 +319,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
                                                                    MC_pass_reco,\
                                                                    MC_pass_truth,\
                                                                    measured_pass_reco,\
-                                                                   model_save_dict)");
+                                                                   model_save_dict,\
+                                                                   classifier1_params=step1classifier_params,\
+                                                                   classifier2_params=step2classifier_params,\
+                                                                   regressor_params=step1regressor_params)");
 
   TPython::Exec("step1_weights_TVectorD = convert_to_TVectorD(step1_weights)");
   TPython::Exec("step2_weights_TVectorD = convert_to_TVectorD(step2_weights)");
