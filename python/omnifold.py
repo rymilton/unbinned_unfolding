@@ -9,40 +9,51 @@ def TH1_to_numpy(hist):
     num_bins = hist.GetNbinsX()
     hist_counts = np.empty(num_bins)
     bin_centers = np.empty(num_bins)
+    bin_widths = np.empty(num_bins)
     for i in range(num_bins):
         hist_counts[i] = hist.GetBinContent(i+1)
         bin_centers[i] = hist.GetBinCenter(i+1)
-    return hist_counts, bin_centers
+        bin_widths[i] = hist.GetBinWidth(i+1)
+    return hist_counts, bin_centers, bin_widths
 
 def TH2_to_numpy(hist):
     num_X_bins = hist.GetNbinsX()
     num_Y_bins = hist.GetNbinsY()
     hist_counts = np.empty(shape=(num_X_bins, num_Y_bins))
     bin_centers = np.empty(shape=(num_X_bins, num_Y_bins), dtype=object)
+    bin_widths = np.empty(shape=(num_X_bins, num_Y_bins), dtype=object)
     for i in range(num_X_bins):
         for j in range(num_Y_bins):
             hist_counts[i, j] = hist.GetBinContent(i+1, j+1)
             bin_center_tuple = (hist.GetXaxis().GetBinCenter(i+1), hist.GetYaxis().GetBinCenter(j+1))
             bin_centers[i, j] = bin_center_tuple
-    return hist_counts, bin_centers
+            bin_width_tuple = (hist.GetXaxis().GetBinWidth(i+1), hist.GetYaxis().GetBinWidth(j+1))
+            bin_widths[i, j] = bin_width_tuple
+    return hist_counts, bin_centers, bin_widths
 
-def prepare_hist_data(counts, bin_centers):
+def prepare_hist_data(counts, bin_centers, bin_widths):
     out_array = np.empty(shape=(int(np.sum(counts)), 1))
+    out_weights = np.empty(shape=(int(np.sum(counts)), 1))
     entry_tracker = 0
-    for (count, bin_center) in zip(counts, bin_centers):
+    for (count, bin_center, bin_width) in zip(counts, bin_centers, bin_widths):
         out_array[entry_tracker:int(entry_tracker+count)] = bin_center
+        out_weights[entry_tracker:int(entry_tracker+count)] = bin_width
         entry_tracker += int(count)
-    return out_array
+    return out_array, out_weights
 
-def prepare_response_data(counts, bin_centers):
+def prepare_response_data(counts, bin_centers, bin_widths):
     truth_array = np.empty(shape=(int(np.sum(counts)), 1))
     sim_array = np.empty(shape=(int(np.sum(counts)), 1))
+    truth_weights = np.empty(shape=(int(np.sum(counts)), 1))
+    sim_weights = np.empty(shape=(int(np.sum(counts)), 1))
     entry_tracker = 0
-    for (count, bin_center) in zip(counts, bin_centers):
+    for (count, bin_center, bin_width) in zip(counts, bin_centers, bin_widths):
         sim_array[entry_tracker:int(entry_tracker+count)] = bin_center[0]
         truth_array[entry_tracker:int(entry_tracker+count)] = bin_center[1]
+        sim_weights[entry_tracker:int(entry_tracker+count)] = bin_width[0]
+        truth_weights[entry_tracker:int(entry_tracker+count)] = bin_width[1]
         entry_tracker += int(count)
-    return truth_array, sim_array
+    return truth_array, sim_array, truth_weights, sim_weights
 
 def convert_to_TVectorD(array):
     vector = ROOT.TVectorD(len(array))
@@ -63,15 +74,24 @@ def reweight(events, classifier):
     weights = data_probability / (1. - data_probability)
     return np.squeeze(np.nan_to_num(weights))
 
-def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_truth_mask, num_iterations, model_save_dict = None, classifier1_params = None, classifier2_params = None, regressor_params = None):
+def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, MC_weights = None, sim_weights = None, measured_weights = None, model_save_dict = None, classifier1_params = None, classifier2_params = None, regressor_params = None):
     # Removing events that don't pass generation level cuts
     sim_entries = sim_entries[MC_pass_truth_mask]
     MC_entries = MC_entries[MC_pass_truth_mask]
     MC_pass_reco_mask = MC_pass_reco_mask[MC_pass_truth_mask]
-    
+    if MC_weights is not None:
+        MC_weights = MC_weights[MC_pass_truth_mask]
+    else:
+        MC_weights = np.ones(len(MC_entries))
+    if sim_weights is not None:
+        sim_weights = sim_weights[MC_pass_truth_mask]
+    else:
+        sim_weights = np.ones(len(sim_entries))
+    if measured_weights is None:
+        measured_weights = np.ones(len(measured_entries))
     MC_train, sim_train, pass_reco_train = MC_entries, sim_entries, MC_pass_reco_mask
     
-    measured_labels = np.ones(len(measured_entries[measured_pass_truth_mask]))
+    measured_labels = np.ones(len(measured_entries[measured_pass_reco_mask]))
     MC_labels = np.zeros(len(MC_train))
 
     weights_pull_train = np.ones(len(MC_train))
@@ -112,11 +132,12 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
     use_regressor =  any(~pass_reco_train)
     if use_regressor:
         step1_regressor = GradientBoostingRegressor(**regressor_params)
+    
     for i in range(num_iterations):
         print(f"Starting iteration {i}") 
-        step1_data = np.concatenate((sim_train[pass_reco_train], measured_entries[measured_pass_truth_mask]))
+        step1_data = np.concatenate((sim_train[pass_reco_train], measured_entries[measured_pass_reco_mask]))
         step1_labels = np.concatenate((np.zeros(len(sim_train[pass_reco_train])), measured_labels))
-        step1_weights = np.concatenate((weights_push_train[pass_reco_train], np.ones(len(measured_entries[measured_pass_truth_mask]))))
+        step1_weights = np.concatenate((weights_push_train[pass_reco_train]*sim_weights[pass_reco_train], np.ones(len(measured_entries[measured_pass_reco_mask]))*measured_weights[measured_pass_reco_mask]))
         
         # Training step 1 classifier and getting weights
         step1_classifier.fit(step1_data, step1_labels, sample_weight = step1_weights)
@@ -132,7 +153,7 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
         # Training step 2 classifier
         step2_data = np.concatenate((MC_train, MC_train))
         step2_labels = np.concatenate((MC_labels, np.ones(len(MC_train))))
-        step2_weights = np.concatenate((np.ones(len(MC_train)), weights_pull_train))
+        step2_weights = np.concatenate((np.ones(len(MC_train))*MC_weights, weights_pull_train*MC_weights))
         step2_classifier.fit(step2_data, step2_labels, sample_weight = step2_weights)
 
         # Getting step 2 weights and storing iteration weights
@@ -154,15 +175,28 @@ def omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pa
     return weights_pull_train, weights_push_train
 
 
-def binned_omnifold(response_hist, measured_hist, num_iterations):
-    measured_counts, measured_bin_centers = TH1_to_numpy(measured_hist)
-    response_counts, response_bin_centers = TH2_to_numpy(response_hist)
-    MC_entries, sim_entries = prepare_response_data(response_counts.flatten(), response_bin_centers.flatten())
-    measured_entries = prepare_hist_data(measured_counts, measured_bin_centers)
+def binned_omnifold(response_hist, measured_hist, num_iterations, use_density):
+    measured_counts, measured_bin_centers, measured_bin_widths = TH1_to_numpy(measured_hist)
+    response_counts, response_bin_centers, response_bin_widths = TH2_to_numpy(response_hist)
+    MC_entries, sim_entries, MC_weights, sim_weights = prepare_response_data(response_counts.flatten(), response_bin_centers.flatten(), response_bin_widths.flatten())
+    measured_entries, measured_weights = prepare_hist_data(measured_counts, measured_bin_centers, measured_bin_widths)
+    if not use_density:
+        MC_weights = np.ones_like(MC_weights)
+        sim_weights = np.ones_like(sim_weights)
+        measured_weights = np.ones_like(measured_weights)
     MC_pass_reco_mask = np.full(MC_entries.shape[0], True)
     MC_pass_truth_mask = np.full(sim_entries.shape[0], True)
-    MC_pass_measured_mask = np.full(measured_entries.shape[0], True)
-    _, step2_weights = omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, MC_pass_measured_mask, num_iterations)
+    measured_pass_reco_mask = np.full(measured_entries.shape[0], True)
+    _, step2_weights = omnifold(MC_entries,
+                                sim_entries,
+                                measured_entries,
+                                MC_pass_reco_mask,
+                                MC_pass_truth_mask,
+                                measured_pass_reco_mask,
+                                num_iterations,
+                                MC_weights = MC_weights.flatten(),
+                                sim_weights = sim_weights.flatten(),
+                                measured_weights = measured_weights.flatten())
     unfolded_hist = ROOT.TH1D("unfolded_hist",
                               "unfolded_hist",
                               response_hist.GetNbinsY(),
@@ -173,7 +207,7 @@ def binned_omnifold(response_hist, measured_hist, num_iterations):
     for (weight, MC) in zip(step2_weights, MC_entries.flatten()):
         unfolded_hist.Fill(MC, weight)
     return unfolded_hist
-def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None, model_save_dict = None, classifier1_params=None, classifier2_params=None, regressor_params=None):
+def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations, MC_pass_reco_mask = None, MC_pass_truth_mask = None, measured_pass_reco_mask = None, MC_weights = None, sim_weights = None, measured_weights = None, model_save_dict = None, classifier1_params=None, classifier2_params=None, regressor_params=None):
     if MC_entries.ndim == 1:
         MC_entries = np.expand_dims(MC_entries, axis = 1)
     if sim_entries.ndim == 1:
@@ -186,7 +220,7 @@ def unbinned_omnifold(MC_entries, sim_entries, measured_entries, num_iterations,
         MC_pass_truth_mask = np.full(MC_entries.shape[0], True, dtype=bool)
     if measured_pass_reco_mask is None:
         measured_pass_reco_mask = np.full(measured_entries.shape[0], True, dtype=bool)
-    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, model_save_dict, classifier1_params, classifier2_params, regressor_params)
+    return omnifold(MC_entries, sim_entries, measured_entries, MC_pass_reco_mask, MC_pass_truth_mask, measured_pass_reco_mask, num_iterations, MC_weights, sim_weights, measured_weights, model_save_dict, classifier1_params, classifier2_params, regressor_params)
 
 def get_step1_predictions(MC_data, sim_data, model_info_dict, pass_reco = None):
     with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:

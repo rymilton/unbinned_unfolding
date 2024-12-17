@@ -35,6 +35,8 @@
     e.g. MC data = [[1, 2], [1.2, 2.5]], MC weights = [.5, .2]. The .5 (.2) is applied to both 1 and 2 (1.2 and 2.5) from [1, 2] ([1.2, 2.5]).
 */
 #include <iostream>
+#include "RooUnfoldHelpers.h"
+#include "RooUnfoldTH1Helpers.h"
 #include "RooUnfoldOmnifold.h"
 #include "TParameter.h"
 #include "TH1.h"
@@ -48,10 +50,10 @@ using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
-  : RooUnfoldT<Hist,Hist2D>(), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
     _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
 {
 
   //! Default constructor. Use Setup() to prepare for unfolding.]
@@ -60,10 +62,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
     _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -71,22 +73,22 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const cha
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
-  : RooUnfoldT<Hist,Hist2D>(name,title), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
     _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
 }
 
 template<class Hist,class Hist2D>
-RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter,
+RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter, bool useDensity,
                         const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _useDensity(useDensity), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
     _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0)
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -163,16 +165,21 @@ template<class Hist,class Hist2D> void
 RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
 {
   auto response = this->response();
-  TH2D *response_hist = (TH2D*) response->HresponseNoOverflow();
+  
+  const Hist2D* res = response->Hresponse();
+  TVectorD vals(h2v<Hist>(res,false, false));
+  TVectorD errs(h2ve<Hist>(res,false,false));
+  TH2D *response_hist = (TH2D*) createHist<Hist2D>(vals,errs,name(res),title(res),vars(res),false);
   TH1D *measured_hist = (TH1D*) this->Hmeasured();
   // Sending histograms to Python
   TPython::Bind( response_hist, "response_hist" ); 
   TPython::Bind( measured_hist, "measured_hist" );
   // Converting num_iterations to a TObject* to convert to Python
-  TParameter<Int_t>* num_iterations_object = new TParameter<Int_t>("num_iterations", _niter);
-  TPython::Bind(num_iterations_object, "num_iterations" );
+  TPython::Exec(Form("num_iterations = %d", _niter));
+  TPython::Exec(Form("binned_use_density = %d", this->_useDensity));
+  TPython::Exec("binned_use_density = bool(binned_use_density)");
   // Performing binned Omnifold
-  TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations.GetVal())");
+  TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density)");
   // Bringing histogram back to ROOT and correcting for efficiency
   TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
   auto efficiency = response->Vefficiency();
@@ -182,7 +189,6 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
           unfolded_hist->GetBinContent(i+1)/efficiency[i] : unfolded_hist->GetBinContent(i+1);
       unfolded_hist->SetBinContent(i+1, corrected_content);
   }
-  delete num_iterations_object;
   
   const int num_bins = unfolded_hist->GetNbinsX();
   TVectorD unfolded_content(num_bins);
@@ -238,19 +244,60 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   DataFrame_to_python(this->_MeasuredDataFrame, "measured");
 
   TPython::Exec(Form("num_iterations = %d", this->_niter));
-  TPython::Bind(&(this->_MCPassReco), "MC_pass_reco");
-  TPython::Exec("MC_pass_reco = np.array(MC_pass_reco, dtype=bool)");
-  TPython::Bind(&(this->_MCPassTruth), "MC_pass_truth");
-  TPython::Exec("MC_pass_truth = np.array(MC_pass_truth, dtype=bool)");
-  TPython::Bind(&(this->_MeasuredPassReco), "measured_pass_reco");
-  TPython::Exec("measured_pass_reco = np.array(measured_pass_reco, dtype=bool)");
+  if(this->_MCPassReco.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_MCPassReco), "MC_pass_reco");
+    TPython::Exec("MC_pass_reco = np.array(MC_pass_reco, dtype=bool)");
+  }
+  else
+    TPython::Exec("MC_pass_reco = None");
+  
+  if(this->_MCPassTruth.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_MCPassTruth), "MC_pass_truth");
+    TPython::Exec("MC_pass_truth = np.array(MC_pass_truth, dtype=bool)");
+  }
+  else
+    TPython::Exec("MC_pass_truth = None");
 
+  if(this->_MeasuredPassReco.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_MeasuredPassReco), "measured_pass_reco");
+    TPython::Exec("measured_pass_reco = np.array(measured_pass_reco, dtype=bool)");
+  }
+  else
+    TPython::Exec("measured_pass_reco = None");
+
+  if(this->_MCWeights.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_MCWeights), "MC_weights");
+    TPython::Exec("MC_weights = np.array(MC_weights, dtype=float)");
+  }
+  else
+    TPython::Exec("MC_weights = None");
+  if(this->_SimWeights.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_SimWeights), "sim_weights");
+    TPython::Exec("sim_weights = np.array(sim_weights, dtype=float)");
+  }
+  else
+    TPython::Exec("sim_weights = None");
+  if(this->_MeasuredWeights.GetNoElements() != 0)
+  {
+    TPython::Bind(&(this->_MeasuredWeights), "measured_weights");
+    TPython::Exec("measured_weights = np.array(measured_weights, dtype=float)");
+  }
+  else
+    TPython::Exec("measured_weights = None");
+
+  // Moving save model info to Python
   TPython::Exec(Form("save_models = %d", this->_SaveUnbinnedModels? 1 : 0));
   TPython::Exec("save_models = True if save_models == 1 else False");
   TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
   TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
   TPython::Exec("model_save_dict = {'save_models':save_models, 'save_dir':model_save_dir, 'model_name':model_name}");
-
+  
+  // Moving model parameter info to Python
   if(this->_Step1ClassifierParameters)
   {
     TPython::Bind(this->_Step1ClassifierParameters, "step1classifier_params_map");
@@ -319,7 +366,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
                                                                    MC_pass_reco,\
                                                                    MC_pass_truth,\
                                                                    measured_pass_reco,\
-                                                                   model_save_dict,\
+                                                                   MC_weights=MC_weights,\
+                                                                   sim_weights=sim_weights,\
+                                                                   measured_weights=measured_weights,\
+                                                                   model_save_dict=model_save_dict,\
                                                                    classifier1_params=step1classifier_params,\
                                                                    classifier2_params=step2classifier_params,\
                                                                    regressor_params=step1regressor_params)");

@@ -30,8 +30,8 @@ public:
     RooUnfoldOmnifoldT (const RooUnfoldOmnifoldT<Hist,Hist2D>& rhs); // copy constructor
     RooUnfoldOmnifoldT& operator= (const RooUnfoldOmnifoldT<Hist,Hist2D>& rhs); // assignment operator
 
-    RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter= 4,
-                        const char* name= 0, const char* title= 0);
+    RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter= 4, bool useDensity=false,
+                        const char* name= 0, const char* title= 0 );
 
     virtual RooUnfolding::Algorithm GetAlgorithm() const override;
 
@@ -49,6 +49,9 @@ public:
     void SetMCPassReco(TVector& MC_pass_reco){this->_MCPassReco.ResizeTo(MC_pass_reco);this->_MCPassReco = MC_pass_reco;}
     void SetMCPassTruth(TVector& MC_pass_truth){this->_MCPassTruth.ResizeTo(MC_pass_truth); this->_MCPassTruth = MC_pass_truth;};
     void SetMeasuredPassReco(TVector& measured_pass_reco){this->_MeasuredPassReco.ResizeTo(measured_pass_reco); this->_MeasuredPassReco = measured_pass_reco;};
+    void SetMCWeights(TVectorD& MC_weights){this->_MCWeights.ResizeTo(MC_weights);this->_MCWeights = MC_weights;}
+    void SetSimWeights(TVectorD& sim_weights){this->_SimWeights.ResizeTo(sim_weights);this->_SimWeights = sim_weights;}
+    void SetMeasuredWeights(TVectorD& measured_weights){this->_MeasuredWeights.ResizeTo(measured_weights);this->_MeasuredWeights = measured_weights;}
     void SetModelSaving(bool option){this->_SaveUnbinnedModels = option;};
     void SetSaveDirectory(TString save_dir){this->_UnbinnedModelSaveDir = save_dir;};
     void SetModelName(TString model_name){this->_UnbinnedModelName = model_name;};
@@ -66,6 +69,10 @@ public:
     TVector GetMCPassReco() { return this->_MCPassReco;};
     TVector GetMCPassTruth()  { return this->_MCPassTruth;};
     TVector GetMeasuredPassReco() { return this->_MeasuredPassReco;};
+    TVectorD GetMCWeights() { return this->_MCWeights;};
+    TVectorD GetSimWeights()  { return this->_SimWeights;};
+    TVectorD GetMeasuredWeights() { return this->_MeasuredWeights;};
+
     TVectorD GetUnbinnedStep1Weights() {return this->_unbinned_step1_weights;};
     TVectorD GetUnbinnedStep2Weights() {return this->_unbinned_step2_weights;};
 
@@ -75,6 +82,7 @@ protected:
 
 private:
     void Init();
+    bool _useDensity;
     ROOT::RDataFrame _MCDataFrame;
     ROOT::RDataFrame _SimDataFrame;
     ROOT::RDataFrame _MeasuredDataFrame;
@@ -94,6 +102,9 @@ private:
     TMap* _Step1ClassifierParameters;
     TMap* _Step2ClassifierParameters;
     TMap* _Step1RegressorParameters;
+    TVectorD _MCWeights;
+    TVectorD _SimWeights;
+    TVectorD _MeasuredWeights;
 
 
 protected:
