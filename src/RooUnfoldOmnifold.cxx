@@ -118,13 +118,21 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
    return out;
   };
 
+  // Getting the directory of the RooUnfold installation so we can load the omnifold.py script
   auto dynamic_paths = string_split(gSystem->GetDynamicPath(), ":", false);
   TString RooUnfold_install_path;
   for(auto &path : dynamic_paths)
   {
     TString RooUnfold_library_name = "libRooUnfold.so";
     if(gSystem->FindFile(path.c_str(), RooUnfold_library_name))
-        RooUnfold_install_path = path;
+    {
+      if(!RooUnfold_install_path.IsNull())
+      {
+        std::cerr<<"WARNING: Multiple RooUnfold installations detected in PATH"<<"\n"
+        "Previously found "<<RooUnfold_install_path<<". Will now use "<<path<<" for OmniFold."<<std::endl;
+      }
+      RooUnfold_install_path = path;
+    }
   }
   TString omnifold_path;
   if (!RooUnfold_install_path.IsNull())
