@@ -6,8 +6,8 @@
 
     BinnedOmnifold is similar to RooUnfoldBayes, where it uses the response matrix and measured histogram to do unfolding 
     and it returns the unfolded TH1*.
-    UnbinnedOmnifold instead takes a list of Monte Carlo data, reconstructed Monte Carlo data (called sim data), and
-    measured data. It also takes masks that indicate an event passes generation level cuts and reconstruction.
+    UnbinnedOmnifold instead takes a RDataFrame of Monte Carlo data, reconstructed Monte Carlo data (called sim data), and
+    measured data. It also takes masks (in forms of TVectors) that indicate an event passes generation level cuts and reconstruction.
     UnbinnedOmnifold is overloaded with 4 functions that adjust the data format. The four formats are:
         - 1D: TVectorD
         - 1D: std::vector<double>
@@ -220,7 +220,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
     {
       std::string column_type = df.GetColumnType(column_name);
       TVectorD vector(*(df.Count()));
-      if (column_type == "double")
+      if (column_type == "double" || column_type == "Double_t")
       {
         auto column_values = *(df.Take<double>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
@@ -231,7 +231,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
         TPython::Exec("column_vector = np.asarray(column_vector)");
         TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
-      else if (column_type == "float")
+      else if (column_type == "float" || column_type == "Float_t")
       {
         auto column_values = *(df.Take<float>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
@@ -243,7 +243,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
         TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
       else
-        throw std::runtime_error("Please make sure RDataFrame columns are type double, float, or int");
+        throw std::runtime_error("Please make sure RDataFrame columns are type double/Double_t or float/Float_t");
     }
   };
   TPython::Exec("data_dict = {}");
@@ -419,7 +419,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
     {
       std::string column_type = df.GetColumnType(column_name);
       TVectorD vector(*(df.Count()));
-      if (column_type == "double")
+      if (column_type == "double" || column_type == "Double_t"))
       {
         auto column_values = *(df.Take<double>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
@@ -430,7 +430,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
         TPython::Exec("column_vector = np.asarray(column_vector)");
         TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
-      else if (column_type == "float")
+      else if (column_type == "float" || column_type == "Float_t"))
       {
         auto column_values = *(df.Take<float>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
@@ -442,7 +442,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
         TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
       else
-        throw std::runtime_error("Please make sure RDataFrame columns are type double, float, or int");
+        throw std::runtime_error("Please make sure RDataFrame columns are type double/Double_t or float/Float_t");
     }
   };
   TPython::Exec("data_dict = {}");
