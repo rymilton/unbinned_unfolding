@@ -419,7 +419,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
     {
       std::string column_type = df.GetColumnType(column_name);
       TVectorD vector(*(df.Count()));
-      if (column_type == "double" || column_type == "Double_t"))
+      if (column_type == "double" || column_type == "Double_t")
       {
         auto column_values = *(df.Take<double>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
@@ -430,7 +430,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
         TPython::Exec("column_vector = np.asarray(column_vector)");
         TPython::Exec("data_dict[data_type] = column_vector.reshape(-1, 1) if data_dict[data_type].size == 0 else np.hstack([data_dict[data_type], column_vector.reshape(-1, 1)])");
       }
-      else if (column_type == "float" || column_type == "Float_t"))
+      else if (column_type == "float" || column_type == "Float_t")
       {
         auto column_values = *(df.Take<float>(column_name));
         for (size_t i = 0; i < column_values.size(); i++)
