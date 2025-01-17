@@ -6,33 +6,31 @@
 
     BinnedOmnifold is similar to RooUnfoldBayes, where it uses the response matrix and measured histogram to do unfolding 
     and it returns the unfolded TH1*.
-    UnbinnedOmnifold instead takes a RDataFrame of Monte Carlo data, reconstructed Monte Carlo data (called sim data), and
+    UnbinnedOmnifold instead takes a RDataFrames of Monte Carlo data, reconstructed Monte Carlo data, and
     measured data. It also takes masks (in forms of TVectors) that indicate an event passes generation level cuts and reconstruction.
-    UnbinnedOmnifold is overloaded with 4 functions that adjust the data format. The four formats are:
-        - 1D: TVectorD
-        - 1D: std::vector<double>
-        - Any dimension: TObjArray filled with TVectorD
-        - Any dimension: std::vector<std::vector<double>>
-
+    
     To do the unfolding, the input data is first moved to Python using TPython. This conversion needs TObjects, which
-    is why TVectorD and TObjArray are used in UnbinnedOmnifold. The unfolding procedure is done in Python and the results
+    is why RDataFrames are used in UnbinnedOmnifold. The unfolding procedure is done in Python and the results
     are brought back to C++.
 
     BDTs are trained to output sets of weights that are applied to the data. 
     In BinnedOmnifold, these weights are applied within the function and an unfolded histogram is returned.
-    In UnbinnedOmnifold, these weights are returned within an std::tuple of the form
-    <Monte Carlo weights, Monte Carlo data, simulation/reconstructed weights, simulation/reconstructed data>.
-    Within the std::tuple, there are either TObjects (TVectorD + TObjArray) or std::vectors, matching the input form.
-
-    In both BinnedOmnifold and UnbinnedOmnifold, 50% of the Monte Carlo + simulation/reconstructed data is used for training
-    the BDTs while the other 50% is used as test data to avoid overfitting.
-    For UnbinnedOmnifold, the test data and its associated weights are returned in the std::tuple.
+    In UnbinnedOmnifold, these weights are returned within an std::tuple of the form <step 1 weights, step 2 weights>,
+    where each set of weights is a TVector.
     
-    To plot the UnbinnedOmnifold results in a histogram, the Monte Carlo data (second tuple entry) should be filled with
-    the Monte Carlo weights (first tuple entry). The resulting histogram is the unfolded distribution. The measured/simulation
-    data (fourth entry) should be filled with the simulation weights (third entry). This will compare to the measured data.
+    To plot the UnbinnedOmnifold results in a histogram, the Monte Carlo data at the gen level should be filled with
+    the step 2 weights. The resulting histogram is the unfolded distribution. The Monte Carlo at reco level should be filled 
+    with the step 1 weights. For the weights from the first iteration, this should closely match the measured distribution.
     The weights are event-by-event weights, so even if you have multi-dimensional data, there is only one weight for a given event.
     e.g. MC data = [[1, 2], [1.2, 2.5]], MC weights = [.5, .2]. The .5 (.2) is applied to both 1 and 2 (1.2 and 2.5) from [1, 2] ([1.2, 2.5]).
+
+    The parameters of the BDTs can be adjusted using TMaps and the SetParameter functions (SetStep1ClassifierParameters,
+    SetStep2ClassifierParameters, and SetStep1RegressorParameters).
+
+    The trained models will be saved by default and they can be used to predict the weights of a new dataset using
+    TestUnbinnedOmnifold.
+
+    A notebook showing how to run this class is in the examples directory (examples/OmniFold_example.ipynb)
 */
 #include <iostream>
 #include "RooUnfoldHelpers.h"
@@ -50,10 +48,10 @@ using namespace RooUnfolding;
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
-  : RooUnfoldT<Hist,Hist2D>(), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
 
   //! Default constructor. Use Setup() to prepare for unfolding.]
@@ -62,10 +60,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -73,10 +71,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const cha
 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
-  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
   Init();
@@ -85,10 +83,10 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const 
 template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, Int_t niter, bool useDensity,
                         const char* name, const char* title)
-  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _useDensity(useDensity), _niter(niter), _MCDataFrame(0), _SimDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
+  : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _useDensity(useDensity), _niter(niter), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCDataFrame(0), _TestSimDataFrame(0), _TestMCPassReco(0),
-    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCWeights(0), _SimWeights(0), _MeasuredWeights(0)
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
 
   //! Constructor with response matrix object and measured unfolding input histogram.
@@ -247,8 +245,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
     }
   };
   TPython::Exec("data_dict = {}");
-  DataFrame_to_python(this->_MCDataFrame, "MC");
-  DataFrame_to_python(this->_SimDataFrame, "sim");
+  DataFrame_to_python(this->_MCgenDataFrame, "MCgen");
+  DataFrame_to_python(this->_MCrecoDataFrame, "MCreco");
   DataFrame_to_python(this->_MeasuredDataFrame, "measured");
 
   TPython::Exec(Form("num_iterations = %d", this->_niter));
@@ -276,20 +274,20 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   else
     TPython::Exec("measured_pass_reco = None");
 
-  if(this->_MCWeights.GetNoElements() != 0)
+  if(this->_MCgenWeights.GetNoElements() != 0)
   {
-    TPython::Bind(&(this->_MCWeights), "MC_weights");
-    TPython::Exec("MC_weights = np.array(MC_weights, dtype=float)");
+    TPython::Bind(&(this->_MCgenWeights), "MCgen_weights");
+    TPython::Exec("MCgen_weights = np.array(MCgen_weights, dtype=float)");
   }
   else
-    TPython::Exec("MC_weights = None");
-  if(this->_SimWeights.GetNoElements() != 0)
+    TPython::Exec("MCgen_weights = None");
+  if(this->_MCrecoWeights.GetNoElements() != 0)
   {
-    TPython::Bind(&(this->_SimWeights), "sim_weights");
-    TPython::Exec("sim_weights = np.array(sim_weights, dtype=float)");
+    TPython::Bind(&(this->_MCrecoWeights), "MCreco_weights");
+    TPython::Exec("MCreco_weights = np.array(MCreco_weights, dtype=float)");
   }
   else
-    TPython::Exec("sim_weights = None");
+    TPython::Exec("MCreco_weights = None");
   if(this->_MeasuredWeights.GetNoElements() != 0)
   {
     TPython::Bind(&(this->_MeasuredWeights), "measured_weights");
@@ -367,15 +365,15 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   }
 	
     // Execute the Python script
-  TPython::Exec("step1_weights, step2_weights = unbinned_omnifold(data_dict['MC'],\
-                                                                   data_dict['sim'],\
+  TPython::Exec("step1_weights, step2_weights = unbinned_omnifold(data_dict['MCgen'],\
+                                                                   data_dict['MCreco'],\
                                                                    data_dict['measured'],\
                                                                    num_iterations,\
                                                                    MC_pass_reco,\
                                                                    MC_pass_truth,\
                                                                    measured_pass_reco,\
-                                                                   MC_weights=MC_weights,\
-                                                                   sim_weights=sim_weights,\
+                                                                   MCgen_weights=MCgen_weights,\
+                                                                   MCreco_weights=MCreco_weights,\
                                                                    measured_weights=measured_weights,\
                                                                    model_save_dict=model_save_dict,\
                                                                    classifier1_params=step1classifier_params,\
@@ -398,12 +396,12 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
 }
 
 template<class Hist,class Hist2D> std::tuple<TVectorD, TVectorD>
-RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold(ROOT::RDataFrame MC_dataframe,
-                                                  ROOT::RDataFrame sim_dataframe,
+RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold(ROOT::RDataFrame MCgen_dataframe,
+                                                  ROOT::RDataFrame MCreco_dataframe,
                                                   ROOT::RDataFrame measured_dataframe)
 {
-  this->SetMCDataFrame(MC_dataframe);
-  this->SetSimDataFrame(sim_dataframe);
+  this->SetMCgenDataFrame(MCgen_dataframe);
+  this->SetMCrecoDataFrame(MCreco_dataframe);
   this->SetMeasuredDataFrame(measured_dataframe);
   return this->UnbinnedOmnifold();
 }
@@ -446,8 +444,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
     }
   };
   TPython::Exec("data_dict = {}");
-  DataFrame_to_python(this->_TestMCDataFrame, "test_MC");
-  DataFrame_to_python(this->_TestSimDataFrame, "test_sim");
+  DataFrame_to_python(this->_TestMCgenDataFrame, "test_MCgen");
+  DataFrame_to_python(this->_TestMCrecoDataFrame, "test_MCreco");
 
   TPython::Bind(&(this->_TestMCPassReco), "test_MC_pass_reco");
   TPython::Exec("test_MC_pass_reco = np.array(test_MC_pass_reco, dtype=bool)");
@@ -455,12 +453,12 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
   TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
   TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
   TPython::Exec("model_info_dict = {'save_dir':model_save_dir, 'model_name':model_name}");
-  TPython::Exec("step1_test_weights = get_step1_predictions(data_dict['test_MC'],\
-                                                            data_dict['test_sim'],\
+  TPython::Exec("step1_test_weights = get_step1_predictions(data_dict['test_MCgen'],\
+                                                            data_dict['test_MCreco'],\
                                                             model_info_dict,\
                                                             test_MC_pass_reco)");
   TPython::Exec("step1_test_weights_TVectorD = convert_to_TVectorD(step1_test_weights)");
-  TPython::Exec("step2_test_weights = get_step2_predictions(data_dict['test_MC'], model_info_dict)");
+  TPython::Exec("step2_test_weights = get_step2_predictions(data_dict['test_MCgen'], model_info_dict)");
 
   TPython::Exec("step2_test_weights_TVectorD = convert_to_TVectorD(step2_test_weights)");
     
@@ -483,5 +481,3 @@ ClassImp (RooUnfoldOmnifold)
 template class RooUnfoldOmnifoldT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist>;
 ClassImp (RooFitUnfoldOmnifold)
 #endif
-
-                                                                       
