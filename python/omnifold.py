@@ -178,13 +178,18 @@ def omnifold(
     # Saving the models if the user wants to (saved by default)
     if model_save_dict is not None and model_save_dict['save_models']:
         base_path = model_save_dict['save_dir']
-        os.makedirs(os.path.dirname(base_path ), exist_ok=True)
+        if not os.path.exists(os.path.dirname(base_path)):
+            print(f"Path {os.path.dirname(base_path)} not found. This path will be created.")
+            os.makedirs(os.path.dirname(base_path ), exist_ok=True)
+        else:
+            print(f"Saving models to existing path {os.path.dirname(base_path)}")
         models = {"step1_classifier": step1_classifier,
                   "step2_classifier": step2_classifier
                 }
         if use_regressor:
             models['step1_regressor'] = step1_regressor
-        with open(f"{model_save_dict['model_name']}_models.pkl", "wb") as outfile:
+        file = os.path.join(base_path, f"{model_save_dict['model_name']}_models.pkl")
+        with open(file, "wb") as outfile:
             pickle.dump(models, outfile)
 
     return weights_pull, weights_push
@@ -268,7 +273,12 @@ def unbinned_omnifold(
     )
 
 def get_step1_predictions(MCgen_data, MCreco_data, model_info_dict, pass_reco = None):
-    with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:
+    file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    if os.path.isfile(file):
+        print(f"Opening {file} for step 1 predictions.")
+    else:
+        raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+    with open(file, "rb") as infile:
         loaded_models = pickle.load(infile)
     step1_test_weights = np.ones(len(MCreco_data))
     step1_test_weights[pass_reco] = reweight(MCreco_data[pass_reco], loaded_models['step1_classifier'])
@@ -276,7 +286,12 @@ def get_step1_predictions(MCgen_data, MCreco_data, model_info_dict, pass_reco = 
     return step1_test_weights
 
 def get_step2_predictions(MCgen_data, model_info_dict):
-    with open(f"{model_info_dict['model_name']}_models.pkl", "rb") as infile:
+    file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    if os.path.isfile(file):
+        print(f"Opening {file} for step 2 predictions.")
+    else:
+        raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+    with open(file, "rb") as infile:
         loaded_models = pickle.load(infile)
     step2_test_weights = reweight(MCgen_data, loaded_models['step2_classifier'])
     return step2_test_weights
