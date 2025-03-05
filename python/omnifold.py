@@ -282,7 +282,8 @@ def get_step1_predictions(MCgen_data, MCreco_data, model_info_dict, pass_reco = 
         loaded_models = pickle.load(infile)
     step1_test_weights = np.ones(len(MCreco_data))
     step1_test_weights[pass_reco] = reweight(MCreco_data[pass_reco], loaded_models['step1_classifier'])
-    step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MCgen_data[~pass_reco])
+    if any(~pass_reco):
+        step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MCgen_data[~pass_reco])
     return step1_test_weights
 
 def get_step2_predictions(MCgen_data, model_info_dict):
