@@ -178,11 +178,11 @@ def omnifold(
     # Saving the models if the user wants to (saved by default)
     if model_save_dict is not None and model_save_dict['save_models']:
         base_path = model_save_dict['save_dir']
-        if not os.path.exists(os.path.dirname(base_path)):
-            print(f"Path {os.path.dirname(base_path)} not found. This path will be created.")
-            os.makedirs(os.path.dirname(base_path ), exist_ok=True)
+        if not os.path.exists(base_path):
+            print(f"Path {base_path} not found. This path will be created.")
+            os.makedirs(base_path, exist_ok=True)
         else:
-            print(f"Saving models to existing path {os.path.dirname(base_path)}")
+            print(f"Saving models to existing path {base_path}")
         models = {"step1_classifier": step1_classifier,
                   "step2_classifier": step2_classifier
                 }
