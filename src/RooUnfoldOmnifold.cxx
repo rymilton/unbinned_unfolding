@@ -144,8 +144,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
     }
     else
     {
-      TPython::Exec(Form("omnifold_path = '%s'", omnifold_path.Data()));
-      TPython::Exec("exec(open(omnifold_path).read())");
+      TPython::Exec(Form("exec(open('%s').read())", omnifold_path.Data()));
     }
   }
   else
@@ -188,6 +187,13 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   TPython::Exec("unfolded_hist = binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density)");
   // Bringing histogram back to ROOT and correcting for efficiency
   TH1D *unfolded_hist = TPython::Eval("unfolded_hist");
+  
+  // Delete everything on Python side
+  TPython::Exec("del unfolded_hist");
+  TPython::Exec("del num_iterations");
+  TPython::Exec("del binned_use_density");
+  TPython::Exec("gc.collect()");
+
   auto efficiency = response->Vefficiency();
   for (Int_t i = 0; i < unfolded_hist->GetNbinsX(); i++)
   {
@@ -383,8 +389,28 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   TPython::Exec("step1_weights_TVectorD = convert_to_TVectorD(step1_weights)");
   TPython::Exec("step2_weights_TVectorD = convert_to_TVectorD(step2_weights)");
     
-  TVectorD step1_weights = *(TVectorD*) TPython::Eval("step1_weights_TVectorD");
-  TVectorD step2_weights = *(TVectorD*) TPython::Eval("step2_weights_TVectorD");
+  TVectorD step1_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("step1_weights_TVectorD");
+  TVectorD step2_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("step2_weights_TVectorD");
+  
+  // Deleting objects made in Python
+  TPython::Exec("del step1_weights");
+  TPython::Exec("del step2_weights");
+  TPython::Exec("del step1_weights_TVectorD");
+  TPython::Exec("del step2_weights_TVectorD");
+  TPython::Exec("del data_dict");
+  TPython::Exec("del MC_pass_reco");
+  TPython::Exec("del MC_pass_truth");
+  TPython::Exec("del measured_pass_reco");
+  TPython::Exec("del MCgen_weights");
+  TPython::Exec("del MCreco_weights");
+  TPython::Exec("del measured_weights");
+  TPython::Exec("del model_save_dict");
+  TPython::Exec("del step1classifier_params");
+  TPython::Exec("del step2classifier_params");
+  TPython::Exec("del step1regressor_params");
+  TPython::Exec("del column_vector");
+  TPython::Exec("del num_iterations, data_type, save_models, model_save_dir, model_name");
+  TPython::Exec("gc.collect()");
 
   this->_unbinned_step1_weights.ResizeTo(step1_weights);
   this->_unbinned_step1_weights = step1_weights;
@@ -462,8 +488,20 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
 
   TPython::Exec("step2_test_weights_TVectorD = convert_to_TVectorD(step2_test_weights)");
     
-  TVectorD step1_test_weights = *(TVectorD*) TPython::Eval("step1_test_weights_TVectorD");
-  TVectorD step2_test_weights = *(TVectorD*) TPython::Eval("step2_test_weights_TVectorD");
+  TVectorD step1_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("step1_test_weights_TVectorD");
+  TVectorD step2_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("step2_test_weights_TVectorD");
+
+  // Deleting ROOT objects made in Python
+  TPython::Exec("del step1_test_weights");
+  TPython::Exec("del step2_test_weights");
+  TPython::Exec("del step1_test_weights_TVectorD");
+  TPython::Exec("del step2_test_weights_TVectorD");
+  TPython::Exec("del data_dict");
+  TPython::Exec("del model_info_dict");
+  TPython::Exec("del test_MC_pass_reco");
+  TPython::Exec("del column_vector");
+  TPython::Exec("del data_type");
+  TPython::Exec("gc.collect()");
 
   this->_unbinned_step1_test_weights.ResizeTo(step1_test_weights);
   this->_unbinned_step1_test_weights = step1_test_weights;
