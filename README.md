@@ -52,6 +52,7 @@ The jet data can be obtained using the [preprocess_omnifold.py script from the O
 
 `modplot.py` contains plotting functions used in the notebooks.
 
+The PET and DNN models can be installed from the [PyPI omnifold module](https://pypi.org/project/omnifold/) using `pip install omnifold`.
 
 Bugs/Issues
 ---
