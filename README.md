@@ -1,6 +1,6 @@
 OmniFold Boosted Decision Tree implementation in RooUnfold
 ===
-This repository contains the RooUnfoldOmnifold class that is an implementation of Omnifold using boosted decision trees (BDTs) within the RooUnfold framework. RooUnfold itself and associated details can be found in its [GitLab repository](https://gitlab.cern.ch/RooUnfold/RooUnfold). Thank you to Lydia Brenner and Vincent Croft of the RooUnfold team for providing guidance with making this implementation.
+This repository contains the RooUnfoldOmnifold class that is an implementation of Omnifold using boosted decision trees (BDTs) within a fork of the RooUnfold framework. RooUnfold itself and associated details can be found in its [GitLab repository](https://gitlab.cern.ch/RooUnfold/RooUnfold). Thank you to Lydia Brenner and Vincent Croft of the RooUnfold team for providing guidance with making this implementation.
 
 
 Building the library
