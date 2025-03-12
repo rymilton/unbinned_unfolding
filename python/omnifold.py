@@ -3,8 +3,6 @@ import numpy as np
 from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 import pickle
 import os
-import gc
-
 
 def TH1_to_numpy(hist):
     num_bins = hist.GetNbinsX()
@@ -229,8 +227,6 @@ def binned_omnifold(response_hist, measured_hist, num_iterations, use_density):
     for (weight, MC) in zip(step2_weights, MCgen_entries.flatten()):
         unfolded_hist.Fill(MC, weight)
 
-    del measured_hist, response_hist
-    gc.collect()
 
     return unfolded_hist
 def unbinned_omnifold(

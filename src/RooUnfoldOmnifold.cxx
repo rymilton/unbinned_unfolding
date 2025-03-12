@@ -186,11 +186,6 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   // Performing binned Omnifold and bringing histogram back to ROOT and correcting for efficiency
   TH1D *unfolded_hist = TPython::Eval("binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density)");
   
-  // Delete everything on Python side
-  TPython::Exec("del num_iterations");
-  TPython::Exec("del binned_use_density");
-  TPython::Exec("gc.collect()");
-
   auto efficiency = response->Vefficiency();
   for (Int_t i = 0; i < unfolded_hist->GetNbinsX(); i++)
   {
@@ -386,24 +381,6 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
     
   TVectorD step1_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("convert_to_TVectorD(step1_weights)");
   TVectorD step2_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("convert_to_TVectorD(step2_weights)");
-  
-  // Deleting objects made in Python
-  TPython::Exec("del step1_weights");
-  TPython::Exec("del step2_weights");
-  TPython::Exec("del data_dict");
-  TPython::Exec("del MC_pass_reco");
-  TPython::Exec("del MC_pass_truth");
-  TPython::Exec("del measured_pass_reco");
-  TPython::Exec("del MCgen_weights");
-  TPython::Exec("del MCreco_weights");
-  TPython::Exec("del measured_weights");
-  TPython::Exec("del model_save_dict");
-  TPython::Exec("del step1classifier_params");
-  TPython::Exec("del step2classifier_params");
-  TPython::Exec("del step1regressor_params");
-  TPython::Exec("del column_vector");
-  TPython::Exec("del num_iterations, data_type, save_models, model_save_dir, model_name");
-  TPython::Exec("gc.collect()");
 
   this->_unbinned_step1_weights.ResizeTo(step1_weights);
   this->_unbinned_step1_weights = step1_weights;
@@ -480,16 +457,6 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
 
   TVectorD step1_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("convert_to_TVectorD(step1_test_weights)");
   TVectorD step2_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("convert_to_TVectorD(step2_test_weights)");
-
-  // Deleting ROOT objects made in Python
-  TPython::Exec("del step1_test_weights");
-  TPython::Exec("del step2_test_weights");
-  TPython::Exec("del data_dict");
-  TPython::Exec("del model_info_dict");
-  TPython::Exec("del test_MC_pass_reco");
-  TPython::Exec("del column_vector");
-  TPython::Exec("del data_type");
-  TPython::Exec("gc.collect()");
 
   this->_unbinned_step1_test_weights.ResizeTo(step1_test_weights);
   this->_unbinned_step1_test_weights = step1_test_weights;
