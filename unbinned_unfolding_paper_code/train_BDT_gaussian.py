@@ -18,7 +18,7 @@ def parse_arguments():
     parser.add_argument("--data_dir", type=str, default="/home/ryan/unfolding_paper/unfolding/", help="Folder containing input files")
     parser.add_argument("--model_save_dir", type=str, default="/home/ryan/github_omnifold/BDT_models/", help="Folder to store trained model weights")
     parser.add_argument("--model_save_name", type=str, default="BDT_gaussian", help="Name of saved models")
-    parser.add_argument("--unfolding_type", type=str, default="multifold", help="unifold/multifold/binned")
+    parser.add_argument("--unfolding_type", type=str, default="unbinned", help="unbinned/binned")
     parser.add_argument("--num_train_data", type=int, default=1_000_000, help="Number of data to train with")
     parser.add_argument("--num_iterations", type=int, default=5, help="Number of iterations to use during training")
     args = parser.parse_args()
