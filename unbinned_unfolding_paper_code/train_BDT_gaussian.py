@@ -74,8 +74,8 @@ def main():
     sim_train = unbinned_sim_data[:num_train_data]
     pass_reco_train = sim_pass_reco[:num_train_data]
     # Only use 75% of the measured data during training
-    measured_train = unbinned_measured_data[:1000]
-    measured_pass_reco_train = measured_pass_reco[:1000] 
+    measured_train = unbinned_measured_data[:375000]
+    measured_pass_reco_train = measured_pass_reco[:375000] 
     
     if flags.unfolding_type == "unbinned":
         df_MCgen = ROOT.RDF.FromNumpy({"MCgen": MC_train})
