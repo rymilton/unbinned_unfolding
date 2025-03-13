@@ -7,9 +7,9 @@ import pickle
 import gzip
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Train a PET model using Pythia and Herwig data.")
+    parser = argparse.ArgumentParser(description="Train a BDT using Pythia and Herwig data.")
     parser.add_argument("--data_dir", type=str, default="/media/miguel/Elements_2024/unfolding_data/Z+jets/", help="Folder containing input files")
-    parser.add_argument("--model_save_dir", type=str, default="/home/ryan/unfolding_paper/unfolding/BDT_models/", help="Folder to store trained model weights")
+    parser.add_argument("--model_save_dir", type=str, default="/home/ryan/github_omnifold/BDT_models/", help="Folder to store trained model weights")
     parser.add_argument("--model_save_name", type=str, default="BDT_5iterations_test", help="Name of saved models")
     parser.add_argument("--unfolding_type", type=str, default="multifold", help="unifold/multifold/binned")
     parser.add_argument("--num_train_data", type=int, default=-1, help="Number of data to train with")
@@ -245,8 +245,6 @@ def main():
         multifold_bdt.SetMeasuredPassReco(measured_pass_reco_vector)
         multifold_bdt.SetNumIterations(itnum)
         _ = multifold_bdt.UnbinnedOmnifold()
-        del multifold_bdt, df_MCgen_multi_train, df_MCreco_multi_train, df_measured_multi_train
-        gc.collect()
     elif flags.unfolding_type == "unifold":
         unifold_bdt = ROOT.RooUnfoldOmnifold()
 
@@ -266,8 +264,6 @@ def main():
             unifold_bdt.SetMeasuredPassReco(measured_pass_reco_vector)
             unifold_bdt.SetNumIterations(itnum)
             _ = unifold_bdt.UnbinnedOmnifold()
-            del df_MCgen_single, df_MCreco_single, df_measured_single
-            gc.collect()
     elif flags.unfolding_type == "binned":
         # Binning the data
         sim_data_mass, sim_data_width, sim_data_mult, sim_data_lnrho, sim_data_zgs, sim_data_tau21 = [], [], [], [], [], []
@@ -425,8 +421,6 @@ def main():
             bin_edges = [h_unfolded.GetBinLowEdge(bin) for bin in range(1, h_unfolded.GetNbinsX() + 2)]
             bin_errors = [h_unfolded.GetBinError(bin) for bin in range(1, h_unfolded.GetNbinsX() + 1)]
             
-            del h_unfolded, BDT_binned
-            gc.collect()
             
             # Calculate the density-normalized histogram using np.histogram
             density_counts, _ = np.histogram(bin_centers, bins=bin_edges, weights=counts, density=True)
@@ -439,8 +433,5 @@ def main():
                 pickle.dump(data_to_save, f)
     
     print("Done")
-    # Deleting extra ROOT objects
-    del MC_pass_reco_vector_train, MC_pass_gen_vector_train, measured_pass_reco_vector
-    gc.collect()
 if __name__ == '__main__':
     main()

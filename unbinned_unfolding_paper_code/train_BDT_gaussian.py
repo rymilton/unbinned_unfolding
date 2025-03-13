@@ -14,9 +14,9 @@ MC_low    = -10
 MC_high   = 10
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Train a PET model using Gaussian data.")
+    parser = argparse.ArgumentParser(description="Train a BDT using Gaussian data.")
     parser.add_argument("--data_dir", type=str, default="/home/ryan/unfolding_paper/unfolding/", help="Folder containing input files")
-    parser.add_argument("--model_save_dir", type=str, default="/home/ryan/unfolding_paper/unfolding/BDT_models/", help="Folder to store trained model weights")
+    parser.add_argument("--model_save_dir", type=str, default="/home/ryan/github_omnifold/BDT_models/", help="Folder to store trained model weights")
     parser.add_argument("--model_save_name", type=str, default="BDT_gaussian", help="Name of saved models")
     parser.add_argument("--unfolding_type", type=str, default="multifold", help="unifold/multifold/binned")
     parser.add_argument("--num_train_data", type=int, default=1_000_000, help="Number of data to train with")
@@ -96,8 +96,6 @@ def main():
         unbinned_BDT.SetMeasuredPassReco(measured_pass_reco_vector)
         unbinned_BDT.SetNumIterations(itnum)
         _ = unbinned_BDT.UnbinnedOmnifold()
-        del unbinned_BDT, df_MCgen, df_MCreco, df_measured, MC_pass_reco_vector, measured_pass_reco_vector
-        gc.collect()
     elif flags.unfolding_type == "binned":
         BDT_binned = ROOT.RooUnfoldOmnifold(response, measured_hist, itnum)
         h_unfolded = BDT_binned.Hunfold()
@@ -114,8 +112,6 @@ def main():
         output_file = f"./saved_binnedBDT_weights_gaussian.pickle.gz"
         with gzip.open(output_file, 'wb') as f:
             pickle.dump(data_to_save, f)
-        del BDT_binned, h_unfolded
-        gc.collect()
     else:
         raise ValueError("The only unfolding types available are binned and unbinned")
 if __name__ == '__main__':
