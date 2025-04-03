@@ -121,15 +121,13 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::Init()
   TString RooUnfold_install_path;
   for(auto &path : dynamic_paths)
   {
+    // Looking for RooUnfold installations in the path
+    // Uses the first installation found
     TString RooUnfold_library_name = "libRooUnfold.so";
     if(gSystem->FindFile(path.c_str(), RooUnfold_library_name))
     {
-      if(!RooUnfold_install_path.IsNull())
-      {
-        std::cerr<<"WARNING: Multiple RooUnfold installations detected in PATH"<<"\n"
-        "Previously found "<<RooUnfold_install_path<<". Will now use "<<path<<" for OmniFold."<<std::endl;
-      }
       RooUnfold_install_path = path;
+      break;
     }
   }
   TString omnifold_path;
