@@ -26,6 +26,8 @@ Build with `cmake`, using
     make -j4
     cd ..
     source build/setup.sh
+    
+Please make sure that you source the setup.sh script before using this class. The RooUnfoldOmnifold class looks for a RooUnfold installation in the PATH variables and will use choose the installation that is most recently sourced. 
 
 Usage
 ---
@@ -54,6 +56,12 @@ The jet data can be obtained using the [preprocess_omnifold.py script from the O
 
 The PET and DNN models can be installed from the [PyPI omnifold module](https://pypi.org/project/omnifold/) using `pip install omnifold`.
 
+Common issues
+---
+1. `AttributeError: Failed to get attribute RooUnfoldOmnifold from ROOT`
+   
+   This likely means that the RooUnfold being used isn't the one installed from this repository. This typically happens if a different RooUnfold version's setup.sh script is used before using the RooUnfoldOmnifold class. To fix this, please source the setup.sh associated with this repository again.
+   
 Bugs/Issues
 ---
 
