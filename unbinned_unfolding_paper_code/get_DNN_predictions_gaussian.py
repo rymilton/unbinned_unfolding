@@ -11,7 +11,7 @@ hvd.init()
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train a PET model using Pythia and Herwig data.")
     parser.add_argument("--data_dir", type=str, default="/global/homes/r/rmilton/m3246/rmilton/omnifold_paper_plots/datasets/", help="Folder containing input files")
-    parser.add_argument("--model_dir", type=str, default="/global/homes/r/rmilton/m3246/rmilton/omnifold_paper_plots/unfolding/final_weights", help="Folder where the model is saved")
+    parser.add_argument("--model_dir", type=str, default="/global/homes/r/rmilton/m3246/rmilton/omnifold_paper_plots/unfolding/final_weights/", help="Folder where the model is saved")
     parser.add_argument("--output_dir", type=str, default="/global/homes/r/rmilton/m3246/rmilton/omnifold_paper_plots/unfolding/weights/", help="Folder to store predictions ")
     args = parser.parse_args()
     return args
@@ -52,6 +52,7 @@ def main():
     gen_model = MLP(1)
     gen_model.load_weights(flags.model_dir + "OmniFold_test_iter1_step2.weights.h5")
 
+    MC_test = unbinned_MC_data[1500000:]
     MC_test = np.expand_dims(MC_test, axis=1)
     unfolded_weights = reweight(MC_test,gen_model)
     normalized_MC_test = (MC_test - np.mean(MC_test, axis=0))/np.std(MC_test, axis=0)
