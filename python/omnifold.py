@@ -284,6 +284,8 @@ class OmniFold_helper_functions:
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
         step1_test_weights = np.ones(len(MCreco_data))
+        if pass_reco is None or len(pass_reco)==0:
+            pass_reco = np.full_like(step1_test_weights, True, dtype=bool)
         step1_test_weights[pass_reco] = OmniFold_helper_functions.reweight(MCreco_data[pass_reco], loaded_models['step1_classifier'])
         if any(~pass_reco):
             step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MCgen_data[~pass_reco])
