@@ -3,6 +3,11 @@ OmniFold Boosted Decision Tree implementation in RooUnfold
 This repository contains the RooUnfoldOmnifold class that is an implementation of Omnifold using boosted decision trees (BDTs) within a fork of the RooUnfold framework. RooUnfold itself and associated details can be found in its [GitLab repository](https://gitlab.cern.ch/RooUnfold/RooUnfold). Thank you to Lydia Brenner and Vincent Croft of the RooUnfold team for providing guidance with making this implementation.
 
 
+### Prerequisites
+- [ROOT](https://root.cern/install/) (>= 6.10). This code has been tested with ROOT 6.32-6.36.
+- [scikit-learn](https://scikit-learn.org/stable/install.html) (`pip install scikit-learn`)
+- NumPy (`pip install numpy`)
+  
 Building the library
 ---
 

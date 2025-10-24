@@ -182,8 +182,15 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   TPython::Exec(Form("binned_use_density = %d", this->_useDensity));
   TPython::Exec("binned_use_density = bool(binned_use_density)");
   // Performing binned Omnifold and bringing histogram back to ROOT and correcting for efficiency
-  TH1D *unfolded_hist = TPython::Eval("OmniFold_helper_functions.binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density)");
-  
+  #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 34, 0)
+    std::any any_unfolded_hist;
+    TPython::Exec("_anyresult = ROOT.std.make_any['TH1D'](OmniFold_helper_functions.binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density))", &any_unfolded_hist);
+    TH1D temp_unfolded_hist = std::any_cast<TH1D>(any_unfolded_hist);
+    TH1D *unfolded_hist = &temp_unfolded_hist;
+  #else
+    TH1D *unfolded_hist = TPython::Eval("OmniFold_helper_functions.binned_omnifold(response_hist, measured_hist, num_iterations, binned_use_density)");
+  #endif
+
   auto efficiency = response->Vefficiency();
   for (Int_t i = 0; i < unfolded_hist->GetNbinsX(); i++)
   {
@@ -376,9 +383,18 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
                                                                    classifier2_params=step2classifier_params,\
                                                                    regressor_params=step1regressor_params)");
 
+  #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 34, 0)
+    std::any any_step1weights;
+    TPython::Exec("_anyresult = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step1_weights))", &any_step1weights);
+    TVectorD step1_weights = std::any_cast<TVectorD>(any_step1weights);
     
-  TVectorD step1_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step1_weights)");
-  TVectorD step2_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step2_weights)");
+    std::any any_step2weights;
+    TPython::Exec("_anyresult = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step2_weights))", &any_step2weights);
+    TVectorD step2_weights = std::any_cast<TVectorD>(any_step2weights);
+  #else
+    TVectorD step1_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step1_weights)");
+    TVectorD step2_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step2_weights)");
+  #endif
 
   this->_unbinned_step1_weights.ResizeTo(step1_weights);
   this->_unbinned_step1_weights = step1_weights;
@@ -452,10 +468,19 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
                                                             model_info_dict,\
                                                             test_MC_pass_reco)");
   TPython::Exec("step2_test_weights = OmniFold_helper_functions.get_step2_predictions(data_dict['test_MCgen'], model_info_dict)");
-
-  TVectorD step1_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights)");
-  TVectorD step2_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step2_test_weights)");
-
+  
+  #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 34, 0)
+    std::any any_step1_test_weights;
+    TPython::Exec("_any_step1_test_weights = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights))", &any_step1_test_weights);
+    TVectorD step1_test_weights = std::any_cast<TVectorD>(any_step1_test_weights);
+    
+    std::any any_step2_test_weights;
+    TPython::Exec("_any_step2_test_weights = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step2_test_weights))", &any_step2_test_weights);
+    TVectorD step2_test_weights = std::any_cast<TVectorD>(any_step2_test_weights);
+  #else
+    TVectorD step1_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights)");
+    TVectorD step2_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step2_test_weights)");
+  #endif
   this->_unbinned_step1_test_weights.ResizeTo(step1_test_weights);
   this->_unbinned_step1_test_weights = step1_test_weights;
   this->_unbinned_step2_test_weights.ResizeTo(step2_test_weights);
