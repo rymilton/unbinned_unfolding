@@ -471,11 +471,11 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
   
   #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 34, 0)
     std::any any_step1_test_weights;
-    TPython::Exec("_any_step1_test_weights = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights))", &any_step1_test_weights);
+    TPython::Exec("_anyresult = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights))", &any_step1_test_weights);
     TVectorD step1_test_weights = std::any_cast<TVectorD>(any_step1_test_weights);
     
     std::any any_step2_test_weights;
-    TPython::Exec("_any_step2_test_weights = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step2_test_weights))", &any_step2_test_weights);
+    TPython::Exec("_anyresult = ROOT.std.make_any['TVectorD'](OmniFold_helper_functions.convert_to_TVectorD(step2_test_weights))", &any_step2_test_weights);
     TVectorD step2_test_weights = std::any_cast<TVectorD>(any_step2_test_weights);
   #else
     TVectorD step1_test_weights = *(std::unique_ptr<TVectorD>) TPython::Eval("OmniFold_helper_functions.convert_to_TVectorD(step1_test_weights)");
