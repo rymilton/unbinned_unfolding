@@ -283,7 +283,7 @@ class OmniFold_helper_functions:
         if os.path.isfile(file):
             print(f"Opening {file} for step 1 predictions.")
         else:
-            raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+            raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
         step1_test_weights = np.ones(len(MCreco_data))
@@ -299,7 +299,7 @@ class OmniFold_helper_functions:
         if os.path.isfile(file):
             print(f"Opening {file} for step 2 predictions.")
         else:
-            raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+            raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
         step2_test_weights = OmniFold_helper_functions.reweight(MCgen_data, loaded_models['step2_classifier'])
