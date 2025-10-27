@@ -95,7 +95,7 @@ private:
     bool _SaveUnbinnedModels;
     TString _UnbinnedModelSaveDir;
     TString _UnbinnedModelSaveName;
-    TSring _UnbinnedModelLoadPath;
+    TString _UnbinnedModelLoadPath;
     ROOT::RDataFrame _TestMCgenDataFrame;
     ROOT::RDataFrame _TestMCrecoDataFrame;
     TVector _TestMCPassReco;
