@@ -50,7 +50,7 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT()
   : RooUnfoldT<Hist,Hist2D>(), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelSaveName("RooUnfoldOmnifold"), _UnbinnedModelLoadPath(""), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
     _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
 
@@ -62,7 +62,7 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelSaveName("RooUnfoldOmnifold"), _UnbinnedModelLoadPath(""), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
     _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
@@ -73,7 +73,7 @@ template<class Hist,class Hist2D>
 RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const TString& name, const TString& title)
   : RooUnfoldT<Hist,Hist2D>(name,title), _useDensity(0), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelSaveName("RooUnfoldOmnifold"), _UnbinnedModelLoadPath(""), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
     _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
   //! Basic named constructor. Use Setup() to prepare for unfolding.
@@ -85,7 +85,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::RooUnfoldOmnifoldT (const RooUnfoldResponseT<Hi
                         const char* name, const char* title)
   : RooUnfoldT<Hist,Hist2D> (res, meas, name, title), _useDensity(useDensity), _niter(niter), _MCgenDataFrame(0), _MCrecoDataFrame(0), _MeasuredDataFrame(0), _MCPassReco(0),
     _MCPassTruth(0), _MeasuredPassReco(0),_unbinned_step1_weights(0), _unbinned_step2_weights(0), _SaveUnbinnedModels(true),
-    _UnbinnedModelSaveDir("./"), _UnbinnedModelName("RooUnfoldOmnifold"), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
+    _UnbinnedModelSaveDir("./"), _UnbinnedModelSaveName("RooUnfoldOmnifold"), _UnbinnedModelLoadPath(""), _TestMCgenDataFrame(0), _TestMCrecoDataFrame(0), _TestMCPassReco(0),
     _Step1ClassifierParameters(0), _Step2ClassifierParameters(0), _Step1RegressorParameters(0), _MCgenWeights(0), _MCrecoWeights(0), _MeasuredWeights(0)
 {
 
@@ -303,8 +303,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::UnbinnedOmnifold()
   TPython::Exec(Form("save_models = %d", this->_SaveUnbinnedModels? 1 : 0));
   TPython::Exec("save_models = True if save_models == 1 else False");
   TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
-  TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
-  TPython::Exec("model_save_dict = {'save_models':save_models, 'save_dir':model_save_dir, 'model_name':model_name}");
+  TPython::Exec(Form("model_save_name = '%s'", this->_UnbinnedModelSaveName.Data()));
+  TPython::Exec("model_save_dict = {'save_models':save_models, 'save_dir':model_save_dir, 'model_save_name':model_save_name}");
   
   // Moving model parameter info to Python
   if(this->_Step1ClassifierParameters)
@@ -460,14 +460,12 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::TestUnbinnedOmnifold()
   TPython::Bind(&(this->_TestMCPassReco), "test_MC_pass_reco");
   TPython::Exec("test_MC_pass_reco = np.array(test_MC_pass_reco, dtype=bool)");
 
-  TPython::Exec(Form("model_save_dir = '%s'", this->_UnbinnedModelSaveDir.Data()));
-  TPython::Exec(Form("model_name = '%s'", this->_UnbinnedModelName.Data()));
-  TPython::Exec("model_info_dict = {'save_dir':model_save_dir, 'model_name':model_name}");
+  TPython::Exec(Form("model_to_load_path = '%s'", this->_UnbinnedModelLoadPath.Data()));
   TPython::Exec("step1_test_weights = OmniFold_helper_functions.get_step1_predictions(data_dict['test_MCgen'],\
                                                             data_dict['test_MCreco'],\
-                                                            model_info_dict,\
+                                                            model_to_load_path,\
                                                             test_MC_pass_reco)");
-  TPython::Exec("step2_test_weights = OmniFold_helper_functions.get_step2_predictions(data_dict['test_MCgen'], model_info_dict)");
+  TPython::Exec("step2_test_weights = OmniFold_helper_functions.get_step2_predictions(data_dict['test_MCgen'], model_to_load_path)");
   
   #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 34, 0)
     std::any any_step1_test_weights;

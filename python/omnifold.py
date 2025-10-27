@@ -176,22 +176,25 @@ class OmniFold_helper_functions:
             # Getting step 2 weights and storing iteration weights
             weights_push = OmniFold_helper_functions.reweight(MCgen_entries, step2_classifier)
 
-        # Saving the models if the user wants to (saved by default)
-        if model_save_dict is not None and model_save_dict['save_models']:
-            base_path = model_save_dict['save_dir']
-            if not os.path.exists(base_path):
-                print(f"Path {base_path} not found. This path will be created.")
-                os.makedirs(base_path, exist_ok=True)
-            else:
-                print(f"Saving models to existing path {base_path}")
-            models = {"step1_classifier": step1_classifier,
+            if model_save_dict is not None and model_save_dict['save_models']:
+                base_path = model_save_dict['save_dir']
+                if not os.path.exists(base_path):
+                    print(f"Path {base_path} not found. Creating it.")
+                    os.makedirs(base_path, exist_ok=True)
+
+                model_name = f"{model_save_dict['model_save_name']}_iteration_{i}.pkl"
+                file_path = os.path.join(base_path, model_name)
+
+                models_to_save = {
+                    "step1_classifier": step1_classifier,
                     "step2_classifier": step2_classifier
-                    }
-            if use_regressor:
-                models['step1_regressor'] = step1_regressor
-            file = os.path.join(base_path, f"{model_save_dict['model_name']}_models.pkl")
-            with open(file, "wb") as outfile:
-                pickle.dump(models, outfile)
+                }
+                if use_regressor:
+                    models_to_save["step1_regressor"] = step1_regressor
+
+                with open(file_path, "wb") as outfile:
+                    pickle.dump(models_to_save, outfile)
+                print(f"Saved models for iteration {i} to {file_path}")
 
         return weights_pull, weights_push
 
@@ -275,12 +278,12 @@ class OmniFold_helper_functions:
             regressor_params
         )
 
-    def get_step1_predictions(MCgen_data, MCreco_data, model_info_dict, pass_reco = None):
-        file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    def get_step1_predictions(MCgen_data, MCreco_data, path_to_model, pass_reco = None):
+        file = path_to_model
         if os.path.isfile(file):
             print(f"Opening {file} for step 1 predictions.")
         else:
-            raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+            raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
         step1_test_weights = np.ones(len(MCreco_data))
@@ -291,12 +294,12 @@ class OmniFold_helper_functions:
             step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MCgen_data[~pass_reco])
         return step1_test_weights
 
-    def get_step2_predictions(MCgen_data, model_info_dict):
-        file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    def get_step2_predictions(MCgen_data, path_to_model):
+        file = path_to_model
         if os.path.isfile(file):
             print(f"Opening {file} for step 2 predictions.")
         else:
-            raise ValueError(f"{file} does not exist! Make sure functions SetSaveDirectory and SetModelName are used correctly.")
+            raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
         step2_test_weights = OmniFold_helper_functions.reweight(MCgen_data, loaded_models['step2_classifier'])
