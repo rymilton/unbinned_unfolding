@@ -54,7 +54,8 @@ public:
     void SetMeasuredWeights(TVectorD& measured_weights){this->_MeasuredWeights.ResizeTo(measured_weights);this->_MeasuredWeights = measured_weights;}
     void SetModelSaving(bool option){this->_SaveUnbinnedModels = option;};
     void SetSaveDirectory(TString save_dir){this->_UnbinnedModelSaveDir = save_dir;};
-    void SetModelName(TString model_name){this->_UnbinnedModelName = model_name;};
+    void SetModelSaveName(TString model_save_name){this->_UnbinnedModelSaveName = model_save_name;};
+    void SetLoadModelPath(TString loaded_model_path){this->_UnbinnedModelLoadPath = loaded_model_path;};
     void SetTestMCgenDataFrame(ROOT::RDataFrame& MCgen){this->_TestMCgenDataFrame = MCgen;}
     void SetTestMCrecoDataFrame(ROOT::RDataFrame& MCreco){this->_TestMCrecoDataFrame = MCreco;};
     void SetTestMCPassReco(TVector& MC_pass_reco){this->_TestMCPassReco.ResizeTo(MC_pass_reco);this->_TestMCPassReco = MC_pass_reco;}
@@ -93,7 +94,8 @@ private:
     TVectorD _unbinned_step2_weights;
     bool _SaveUnbinnedModels;
     TString _UnbinnedModelSaveDir;
-    TString _UnbinnedModelName;
+    TString _UnbinnedModelSaveName;
+    TSring _UnbinnedModelLoadPath;
     ROOT::RDataFrame _TestMCgenDataFrame;
     ROOT::RDataFrame _TestMCrecoDataFrame;
     TVector _TestMCPassReco;

@@ -182,7 +182,7 @@ class OmniFold_helper_functions:
                     print(f"Path {base_path} not found. Creating it.")
                     os.makedirs(base_path, exist_ok=True)
 
-                model_name = f"{model_save_dict['model_name']}_iteration_{i}_models.pkl"
+                model_name = f"{model_save_dict['model_save_name']}_iteration_{i}.pkl"
                 file_path = os.path.join(base_path, model_name)
 
                 models_to_save = {
@@ -278,8 +278,8 @@ class OmniFold_helper_functions:
             regressor_params
         )
 
-    def get_step1_predictions(MCgen_data, MCreco_data, model_info_dict, pass_reco = None):
-        file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    def get_step1_predictions(MCgen_data, MCreco_data, path_to_model, pass_reco = None):
+        file = path_to_model
         if os.path.isfile(file):
             print(f"Opening {file} for step 1 predictions.")
         else:
@@ -294,8 +294,8 @@ class OmniFold_helper_functions:
             step1_test_weights[~pass_reco] = loaded_models['step1_regressor'].predict(MCgen_data[~pass_reco])
         return step1_test_weights
 
-    def get_step2_predictions(MCgen_data, model_info_dict):
-        file = os.path.join(model_info_dict["save_dir"], f"{model_info_dict['model_name']}_models.pkl")
+    def get_step2_predictions(MCgen_data, path_to_model):
+        file = path_to_model
         if os.path.isfile(file):
             print(f"Opening {file} for step 2 predictions.")
         else:
