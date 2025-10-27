@@ -88,7 +88,8 @@ class OmniFold_helper_functions:
             model_save_dict = None,
             classifier1_params = None,
             classifier2_params = None,
-            regressor_params = None
+            regressor_params = None,
+            parameter_format = "TMap",
         ):
         # Removing events that don't pass generation level cuts
         MCreco_entries = MCreco_entries[MC_pass_truth_mask]
@@ -127,17 +128,17 @@ class OmniFold_helper_functions:
                 else:
                     params[key] = value
             return params
-        if classifier1_params is not None:
+        if classifier1_params is not None and parameter_format == "TMap":
             classifier1_params = convert_to_dict(classifier1_params)
         else:
             classifier1_params = {}
 
-        if classifier2_params is not None:
+        if classifier2_params is not None and parameter_format == "TMap":
             classifier2_params = convert_to_dict(classifier2_params)
         else:
             classifier2_params = {}
 
-        if regressor_params is not None:
+        if regressor_params is not None and parameter_format == "TMap":
             regressor_params = convert_to_dict(regressor_params)
         else:
             regressor_params = {}
