@@ -128,18 +128,21 @@ class OmniFold_helper_functions:
                 else:
                     params[key] = value
             return params
-        if classifier1_params is not None and parameter_format == "TMap":
-            classifier1_params = convert_to_dict(classifier1_params)
+        if classifier1_params is not None:
+            if parameter_format == "TMap":
+                classifier1_params = convert_to_dict(classifier1_params)
         else:
             classifier1_params = {}
 
-        if classifier2_params is not None and parameter_format == "TMap":
-            classifier2_params = convert_to_dict(classifier2_params)
+        if classifier2_params is not None:
+            if parameter_format == "TMap":
+                classifier2_params = convert_to_dict(classifier2_params)
         else:
             classifier2_params = {}
 
-        if regressor_params is not None and parameter_format == "TMap":
-            regressor_params = convert_to_dict(regressor_params)
+        if regressor_params is not None:
+            if parameter_format == "TMap":
+                regressor_params = convert_to_dict(regressor_params)
         else:
             regressor_params = {}
         step1_classifier = GradientBoostingClassifier(**classifier1_params)
@@ -248,7 +251,8 @@ class OmniFold_helper_functions:
             model_save_dict = None,
             classifier1_params=None,
             classifier2_params=None,
-            regressor_params=None
+            regressor_params=None,
+            parameter_format = "TMap",
         ):
         if MCgen_entries.ndim == 1:
             MCgen_entries = np.expand_dims(MCgen_entries, axis = 1)
@@ -276,7 +280,8 @@ class OmniFold_helper_functions:
             model_save_dict,
             classifier1_params,
             classifier2_params,
-            regressor_params
+            regressor_params,
+            parameter_format
         )
 
     def get_step1_predictions(MCgen_data, MCreco_data, path_to_model, pass_reco = None):
@@ -287,6 +292,12 @@ class OmniFold_helper_functions:
             raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
+
+        if MCgen_data.ndim == 1:
+            MCgen_data = np.expand_dims(MCgen_data, axis = 1)
+        if MCreco_data.ndim == 1:
+            MCreco_data = np.expand_dims(MCreco_data, axis = 1)
+        
         step1_test_weights = np.ones(len(MCreco_data))
         if pass_reco is None or len(pass_reco)==0:
             pass_reco = np.full_like(step1_test_weights, True, dtype=bool)
@@ -303,5 +314,9 @@ class OmniFold_helper_functions:
             raise ValueError(f"{file} does not exist! Please input a valid model .pkl path through SetLoadModelPath().")
         with open(file, "rb") as infile:
             loaded_models = pickle.load(infile)
+        
+        if MCgen_data.ndim == 1:
+            MCgen_data = np.expand_dims(MCgen_data, axis = 1)
+            
         step2_test_weights = OmniFold_helper_functions.reweight(MCgen_data, loaded_models['step2_classifier'])
         return step2_test_weights
