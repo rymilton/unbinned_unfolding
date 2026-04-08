@@ -225,13 +225,19 @@ class OmniFold_helper_functions:
                                     MCgen_weights = MCgen_weights.flatten(),
                                     MCreco_weights = MCreco_weights.flatten(),
                                     measured_weights = measured_weights.flatten())
+        
+        truth_axis = response_hist.GetYaxis()
+        num_truth_bins = truth_axis.GetNbins()
+        truth_bin_edges = [
+            truth_axis.GetBinLowEdge(i) for i in range(1, num_truth_bins + 1)
+        ]
+        truth_bin_edges.append(truth_axis.GetBinUpEdge(num_truth_bins))
+        
+
         unfolded_hist = ROOT.TH1D("unfolded_hist",
-                                "unfolded_hist",
-                                response_hist.GetNbinsY(),
-                                response_hist.GetYaxis().GetBinLowEdge(1),
-                                response_hist.GetYaxis().GetBinLowEdge(response_hist.GetNbinsY())
-                                +response_hist.GetYaxis().GetBinWidth(response_hist.GetNbinsY())
-                                )
+                                  "unfolded_hist",
+                                  num_truth_bins,
+                                  np.array(truth_bin_edges))
         for (weight, MC) in zip(step2_weights, MCgen_entries.flatten()):
             unfolded_hist.Fill(MC, weight)
 

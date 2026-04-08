@@ -174,8 +174,49 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   TVectorD errs(h2ve<Hist>(res,false,false));
   TH2D *response_hist = (TH2D*) createHist<Hist2D>(vals,errs,name(res),title(res),vars(res),false);
   TH1D *measured_hist = (TH1D*) this->Hmeasured();
+  TH1D *MCtruth_hist = (TH1D*) response->Htruth();
+  TH1D *MCreco_hist = (TH1D*) response->Hmeasured();
+
+  int nBinsX = MCreco_hist->GetNbinsX();
+  std::vector<double> xEdges(nBinsX + 1);
+  for (int i = 1; i <= nBinsX; ++i) {
+      xEdges[i-1] = MCreco_hist->GetXaxis()->GetBinLowEdge(i);
+  }
+  xEdges[nBinsX] = MCreco_hist->GetXaxis()->GetBinUpEdge(nBinsX);
+
+  // Y axis from MCtruth
+  int nBinsY = MCtruth_hist->GetNbinsX();
+  std::vector<double> yEdges(nBinsY + 1);
+  for (int i = 1; i <= nBinsY; ++i) {
+      yEdges[i-1] = MCtruth_hist->GetXaxis()->GetBinLowEdge(i);
+  }
+  yEdges[nBinsY] = MCtruth_hist->GetXaxis()->GetBinUpEdge(nBinsY);
+
+  // --- Create new TH2D with variable-width bins ---
+  TH2D* response_hist_new = new TH2D(
+      Form("%s_rebinned", response_hist->GetName()),
+      response_hist->GetTitle(),
+      nBinsX, xEdges.data(),
+      nBinsY, yEdges.data()
+  );
+
+  // --- Refill new histogram using old bin centers ---
+  for (int ix = 1; ix <= response_hist->GetNbinsX(); ++ix) {
+      for (int iy = 1; iy <= response_hist->GetNbinsY(); ++iy) {
+          double content = response_hist->GetBinContent(ix, iy);
+          double error   = response_hist->GetBinError(ix, iy);
+
+          response_hist_new->SetBinContent(ix, iy, content);
+          response_hist_new->SetBinError(ix, iy, error);
+      }
+  }
+
+  // --- Replace old histogram ---
+  delete response_hist;
+
+
   // Sending histograms to Python
-  TPython::Bind( response_hist, "response_hist" ); 
+  TPython::Bind( response_hist_new, "response_hist" ); 
   TPython::Bind( measured_hist, "measured_hist" );
   // Converting num_iterations to a TObject* to convert to Python
   TPython::Exec(Form("num_iterations = %d", _niter));
