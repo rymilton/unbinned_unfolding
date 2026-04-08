@@ -1132,7 +1132,10 @@ RooUnfoldResponse::Fill (Double_t xr, Double_t xt, Double_t w)
   if (bin_m == bin_t){
     fill(_mestru,xr,w);
   }
-  return fill(_res,xr,xt,w);
+  return fill(_res,
+    binCenter(_res, bin_m, RooUnfolding::X),
+    binCenter(_res, bin_t, RooUnfolding::Y),
+    w);
 }
 
  Int_t
