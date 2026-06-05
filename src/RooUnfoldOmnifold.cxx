@@ -170,9 +170,9 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   auto response = this->response();
   
   const Hist2D* res = response->Hresponse();
-  TVectorD vals(h2v<Hist>(res,false, false));
-  TVectorD errs(h2ve<Hist>(res,false,false));
-  TH2D *response_hist = (TH2D*) createHist<Hist2D>(vals,errs,name(res),title(res),vars(res),false);
+  auto vals(h2m<Hist2D>(res, false, false));
+  auto errs(h2me<Hist2D>(res, false, false));
+  TH2 *response_hist = createHist<TH2>(vals,errs,name(res),title(res),vars(res),false);
   TH1D *measured_hist = (TH1D*) this->Hmeasured();
   // Sending histograms to Python
   TPython::Bind( response_hist, "response_hist" ); 

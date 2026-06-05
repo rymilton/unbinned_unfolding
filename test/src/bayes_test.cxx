@@ -1,3 +1,18 @@
+/*===========================================================================*/
+/*
+ * BEGIN ROOUNFOLD COPYRIGHT
+ * RooUnfold — Unfolding library for particle-physics inverse problems
+ *
+ * Copyright © 2021–2025 CERN and the authors’ respective research institutions
+ * Please refer to the CONTRIBUTORS file for details.
+ *
+ * License: BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * END ROOUNFOLD COPYRIGHT
+ */
+/*===========================================================================*/
+
 //=====================================================================-*-C++-*-
 // File and Version Information:
 //      $Id$
@@ -18,37 +33,37 @@
 #include <iostream>
 #include <fstream>
 
-TVector BuildRooUnfoldBayes(int mode=0)
+TVector BuildRooUnfoldBayes(int mode = 0)
 {
-    const char* filename=0;
-    if (mode==0)
-        filename = "response.root";
-    else if (mode==1)
-        filename = "response_var.root";
-    TFile* f = new TFile(filename, "OPEN");
-    TH1D* h_meas = (TH1D*)f->Get("meas");
-    RooUnfoldResponse response = BuildRooUnfoldResponse(filename);
-    RooUnfoldBayes unfold(&response, h_meas, 4);
-    TH1D* h_unfolded = (TH1D*)unfold.Hunfold();
-    TVector u(h_unfolded->GetNbinsX());
-    for (int i=0; i<h_unfolded->GetNbinsX(); i++){
-        u[i] = h_unfolded->GetBinContent(i+1);
-    }
-    return u;
+   const char *filename = 0;
+   if (mode == 0)
+      filename = "response.root";
+   else if (mode == 1)
+      filename = "response_var.root";
+   TFile *f = new TFile(filename, "OPEN");
+   TH1D *h_meas = (TH1D *)f->Get("meas");
+   RooUnfoldResponse response = BuildRooUnfoldResponse(filename);
+   RooUnfoldBayes unfold(&response, h_meas, 4);
+   TH1D *h_unfolded = (TH1D *)unfold.Hunfold();
+   TVector u(h_unfolded->GetNbinsX());
+   for (int i = 0; i < h_unfolded->GetNbinsX(); i++) {
+      u[i] = h_unfolded->GetBinContent(i + 1);
+   }
+   return u;
 }
 
-void WriteRooUnfoldBayes(int mode=0)
+void WriteRooUnfoldBayes(int mode = 0)
 {
-    TVector u = BuildRooUnfoldBayes(mode);
-    std::ofstream ref;
-    const char* filename=0;
-    if (mode==0)
-        filename = "../ref/bayes.ref";
-    else if (mode==1)
-        filename = "../ref/bayes_var.ref";
-    ref.open(filename);
-    for (int i=0;i<u.GetNrows();i++){
-        ref << u[i]<<std::endl;
-    }
-    ref.close();
+   TVector u = BuildRooUnfoldBayes(mode);
+   std::ofstream ref;
+   const char *filename = 0;
+   if (mode == 0)
+      filename = "../ref/bayes.ref";
+   else if (mode == 1)
+      filename = "../ref/bayes_var.ref";
+   ref.open(filename);
+   for (int i = 0; i < u.GetNrows(); i++) {
+      ref << u[i] << std::endl;
+   }
+   ref.close();
 }

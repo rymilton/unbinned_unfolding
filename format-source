@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+###############################################################################
+# (c) Copyright 2018 CERN                                                     #
+#                                                                             #
+# This file is distributed under the terms of the GNU General Public          #
+# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+"""
+Helpers to manipulate source files
+Check that each git tracked source file in the current directory contains a
+copyright statement.
+"""
+
+import os
+import re
+from datetime import date
+from itertools import islice
+from shutil import which
+from pathlib import PurePath
+
+COPYRIGHT_SIGNATURE = re.compile(r"\bcopyright\b", re.IGNORECASE)
+CHECKED_FILES = re.compile(r".*(\.(i?[ch](pp|xx|c)?|cc|hh|py))")
+
+# see https://www.python.org/dev/peps/pep-0263 for the regex
+ENCODING_DECLARATION = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*([-_.a-zA-Z0-9]+)")
+
+CLANG_FORMAT_VERSION = "19"
+RUFF_VERSION = "0.9.3"
+FORMATTABLE_LANGUAGES = ["c", "py"]
+
+
+def is_script(path):
+    """
+    Check if a given file starts with the magic sequence '#!'.
+    """
+    with open(path, "rb") as f:
+        return f.read(2) == b"#!"
+
+
+def to_check(path):
+    """
+    Check if path is meant to contain a copyright statement.
+    """
+    skip_patterns = ("T*Unfold*",)
+    return (
+        os.path.isfile(path)
+        and (bool(CHECKED_FILES.match(path)) or is_script(path))
+        and not any(PurePath(path).match(pat) for pat in skip_patterns)
+    )
+
+
+def is_empty(path):
+    """
+    Check if file is empty or virtually empty (only spaces).
+    """
+
+    def only_blanks():
+        with open(path) as f:
+            for l in f:
+                if l.strip():
+                    return False
+        return True
+
+    zero_size = os.stat(path).st_size == 0
+    return zero_size or only_blanks()
+
+
+def get_files(reference=None):
+    """
+    Return iterable with the list of names of files to check.
+    """
+    from subprocess import check_output
+
+    if reference is None:
+        all = (path.decode() for path in check_output(["git", "ls-files", "-z"]).rstrip(b"\x00").split(b"\x00"))
+    else:
+        prefix_len = len(check_output(["git", "rev-parse", "--show-prefix"]).strip())
+        all = (
+            path[prefix_len:].decode()
+            for path in check_output(
+                [
+                    "git",
+                    "diff",
+                    "--name-only",
+                    "--no-renames",
+                    "--diff-filter=MA",
+                    "-z",
+                    reference + "...",
+                    ".",
+                ]
+            )
+            .rstrip(b"\x00")
+            .split(b"\x00")
+        )
+    return (path for path in all if to_check(path))
+
+
+def lang_family(path):
+    """
+    Detect language family of a file.
+    """
+    if re.match(r".*\.(xml|xsd|dtd|html?|qm[ts]|ent)$", path):
+        return "xml"
+    if re.match(r"(.*\.(i?[ch](pp|xx|c)?|cuh?|cc|hh|C|opts|js|jsx|css)|" r"Jenkinsfile)$", path):
+        return "c"
+    if re.match(r".*\.py$", path) or re.match(r"^#!.*python", open(path).readline(120)):
+        return "py"
+    return "#"
+
+
+def find_encoding_declaration_line(lines, limit=2):
+    """
+    Look for encoding declaration line (PEP-263) in a file and return the index
+    of the line containing it, or None if not found.
+    """
+    for i, l in enumerate(islice(lines, limit)):
+        if ENCODING_DECLARATION.match(l):
+            return i
+    return None
+
+
+def call_formatter(cmd, input):
+    """
+    Return the formatted version of the given file.
+    """
+    import logging
+    from subprocess import PIPE, CalledProcessError, Popen
+
+    logging.debug("calling %r", cmd)
+    p = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    out, err = p.communicate(input)
+    if p.returncode:
+        raise CalledProcessError(p.returncode, cmd, err)
+    return out
+
+
+def get_git_root(path):
+    from subprocess import PIPE, Popen
+
+    if not os.path.isdir(path):
+        path = os.path.dirname(path)
+    p = Popen(["git", "rev-parse", "--show-toplevel"], cwd=path, stdout=PIPE, stderr=PIPE)
+    out, _ = p.communicate()
+    if p.returncode == 0:
+        return out.strip()
+    return None
+
+
+def find_clang_format(path):
+    while not os.path.isdir(path):
+        path = os.path.dirname(path)
+    while True:
+        parent = os.path.dirname(path)
+        if os.path.exists(os.path.join(path, ".clang-format")):
+            return path
+        if parent != path:
+            path = parent
+        else:
+            return None  # root dir reached
+
+
+_found_clang_format_dirs = []
+
+
+def ensure_clang_format_style(path):
+    from logging import debug
+
+    path = os.path.abspath(path)
+    global _found_clang_format_dirs
+    if not any(os.path.commonprefix([d, path]) for d in _found_clang_format_dirs):
+        base = find_clang_format(path)
+        if base:
+            debug("found .clang-format in %s", base)
+            _found_clang_format_dirs.append(base)
+        else:
+            base = get_git_root(path).decode()
+            debug("found .git top dir in %s", base)
+            if base:
+                from LbDevTools import createClangFormat
+
+                createClangFormat(os.path.join(base, ".clang-format"))
+                _found_clang_format_dirs.append(base)
+
+
+def find_command(names):
+    try:
+        return next(path for path in (which(name) for name in names) if path)
+    except StopIteration:
+        return None
+
+
+class CommandNotFound(RuntimeError):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+def get_clang_format_cmd(version=CLANG_FORMAT_VERSION):
+    from subprocess import check_output
+
+    cmd = find_command(
+        cmd.format(version)
+        for cmd in [
+            "clang-format-{}",
+            "clang-format",
+        ]
+    )
+    if cmd == "clang-format":
+        found_version = check_output([cmd, "--version"]).split()[-1].decode()
+        if found_version != version:
+            msg = f"wrong clang-format version {found_version} ({version} required)"
+        raise CommandNotFound(msg)
+    elif not cmd:
+        msg = f"clang-format-{version} not found"
+        raise CommandNotFound(msg)
+    return cmd
+
+
+def get_ruff_cmd(version=RUFF_VERSION):
+    from subprocess import check_output
+
+    cmd = find_command(["ruff"])
+    if not cmd:
+        msg = "ruff not found"
+        raise CommandNotFound(msg)
+    found_version = check_output([cmd, "--version"]).split()[-1].decode()
+    if found_version != version:
+        msg = f"wrong ruff version {found_version} ({version} required)"
+        raise CommandNotFound(msg)
+    return cmd
+
+
+class Formatter:
+    def __init__(self, clang_format_cmd, ruff_cmd):
+        self.clang_format_cmd = clang_format_cmd
+        self.ruff_cmd = ruff_cmd
+
+    def cmd(self, path, lang):
+        """
+        Return the command to run to format the file 'path' for language
+        'lang'.
+        """
+        if lang == "c":
+            assert self.clang_format_cmd, "tried to format C/C++ file but clang-format is not available"
+            ensure_clang_format_style(path)
+            return [
+                self.clang_format_cmd,
+                "-style=file",
+                "-fallback-style=none",
+                "-assume-filename=" + path,
+            ]
+        if lang == "py":
+            assert self.ruff_cmd, "tried to format Python file but ruff is not available"
+            return [self.ruff_cmd, "format", "-"]
+        msg = f"invalid language {lang!r}"
+        raise AssertionError(msg)
+
+    def __call__(self, input, path, lang, retry=True):
+        """
+        Apply formatting rules to a file.
+
+        :param input: content of the file to format
+        :param path: name of the file
+        :param lang: language ('c' or 'py')
+        :param retry: boolean flag to tell if we have to retry the formatting
+                      with a slightly modified name (see
+                      https://gitlab.cern.ch/lhcb-core/LbDevTools/issues/20)
+
+        :return: modified file, exception in case of problems
+        """
+        import logging
+        from subprocess import CalledProcessError
+
+        try:
+            return call_formatter(self.cmd(path, lang), input)
+
+        except CalledProcessError:
+            if lang == "c" and path.endswith(".h") and retry:
+                # this is a workaround for cases where clang-format does
+                # not correctly detect the language
+                try:
+                    alias = path + "h"
+                    logging.info("retry formatting of %s as %s", path, alias)
+                    return self(input, alias, lang, False)
+                except CalledProcessError:
+                    # ignore failures in the retry
+                    pass
+            raise  # raise original exception
+
+
+# --- Scripts
+_GIT_ROOTS_CACHE = []
+
+
+def git_root(path):
+    from subprocess import PIPE, Popen
+
+    path = os.path.abspath(path)
+    for root in _GIT_ROOTS_CACHE:
+        if path.startswith(root):
+            return root
+
+    proc = Popen(
+        ["git", "rev-parse", "--prefix", path, "--show-toplevel"],
+        stdout=PIPE,
+        stderr=PIPE,
+    )
+    out, _ = proc.communicate()
+    if proc.returncode == 0:
+        # we are in a git repository
+        git_top = out.decode().strip() + "/"
+        if git_top not in _GIT_ROOTS_CACHE:
+            _GIT_ROOTS_CACHE.append(git_top)
+            _GIT_ROOTS_CACHE.sort(reverse=True)
+        return git_top
+    return None
+
+
+def format_code():
+    import logging
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(description="Reformat C++ and Python files.")
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="files to modify (empty list means all git tracked files, or a "
+        "subset of them if the option --reference is used)",
+    )
+    parser.add_argument(
+        "--clang-format-version",
+        help="version of clang-format to use (default: %(default)s)",
+    )
+    parser.add_argument("--ruff-version", help="version of ruff to use (default: %(default)s)")
+    parser.add_argument(
+        "--verbose",
+        action="store_const",
+        const=logging.INFO,
+        dest="log_level",
+        help="print info messages",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_const",
+        const=logging.DEBUG,
+        dest="log_level",
+        help="print debug messages",
+    )
+    parser.add_argument("-n", "--dry-run", action="store_true", help="do not modify the files")
+    parser.add_argument(
+        "--reference",
+        help="check/format only the files select the files that have changed since the REFERENCE commit/branch",
+    )
+    parser.add_argument(
+        "--format-patch",
+        help="create a patch file with the changes, "
+        "in this mode the first file argument is interpreted "
+        "as argument to the --reference option",
+    )
+    parser.add_argument(
+        "-P",
+        "--pipe",
+        metavar="LANGUAGE",
+        choices=FORMATTABLE_LANGUAGES,
+        help=f"format from stdin to stdout (allowed values: {FORMATTABLE_LANGUAGES})",
+    )
+    parser.set_defaults(
+        files=[],
+        clang_format_version=CLANG_FORMAT_VERSION,
+        ruff_version=RUFF_VERSION,
+        log_level=logging.WARNING,
+    )
+
+    args = parser.parse_args()
+    logging.basicConfig(level=args.log_level)
+
+    if args.pipe:
+        if args.format_patch:
+            parser.error("incompatible options --format-patch and -P/--pipe")
+        elif args.reference:
+            parser.error("incompatible options --reference and -P/--pipe")
+        elif args.files:
+            parser.error("cannot process explicit files in --pipe mode")
+
+    if args.reference and args.files:
+        parser.error("you cannot specify files with --reference")
+
+    if args.format_patch:
+        if len(args.files) > 1:
+            parser.error("wrong number of arguments: at most one argument must be provided when using --format-patch")
+        elif args.files:
+            args.reference = args.files.pop()
+
+    from difflib import unified_diff
+    from logging import debug, error, info, warning
+    from subprocess import CalledProcessError
+
+    # look for the required commands
+    clang_format_cmd = ruff_cmd = None
+    try:
+        clang_format_cmd = get_clang_format_cmd(args.clang_format_version)
+        info("using clang-format: %s", clang_format_cmd)
+    except CommandNotFound as err:
+        (parser.error if args.pipe == "c" else warning)(f"{err}: C/C++ formatting not available")
+
+    try:
+        ruff_cmd = get_ruff_cmd(args.ruff_version)
+        info("using ruff: %s", ruff_cmd)
+    except CommandNotFound as err:
+        (parser.error if args.pipe == "py" else warning)(f"{err}: Python formatting not available")
+
+    def can_format(path):
+        lang = lang_family(path)
+        if (clang_format_cmd and lang == "c") or (ruff_cmd and lang == "py"):
+            return lang
+        else:
+            return None
+
+    if not args.pipe and not args.files:
+        args.files = (f for f in get_files(args.reference) if can_format(f))
+
+    if args.pipe:
+        import sys
+
+        if args.pipe == "c":
+            ensure_clang_format_style(os.getcwd())
+            cmd = [clang_format_cmd, "-style=file", "-fallback-style=none"]
+        else:
+            cmd = [ruff_cmd]
+        debug("cmd %s", cmd)
+        print(call_formatter(cmd, sys.stdin.read()), end="")
+    patch = []
+    encoding_errors = []
+    formatter = Formatter(clang_format_cmd, ruff_cmd)
+    for path in (f for f in args.files if to_check(f)):
+        print(f"formatting {path}")
+        lang = can_format(path)
+        if lang:
+            try:
+                with open(path, "rb") as f:
+                    input = f.read()
+                output = b"" if is_empty(path) else formatter(input, path, lang)
+                if args.format_patch:
+                    patch.extend(
+                        l if l.endswith("\n") else (l + "\n\\ No newline at end of file\n")
+                        for l in unified_diff(
+                            input.decode("utf-8").splitlines(True),
+                            output.decode("utf-8").splitlines(True),
+                            os.path.join("a", path),
+                            os.path.join("b", path),
+                        )
+                    )
+                elif output != input:
+                    if args.dry_run:
+                        print(path, "should be changed")
+                    else:
+                        info("%s changed", path)
+                        with open(path, "wb") as f:
+                            f.write(output)
+            except CalledProcessError as err:
+                warning("could not format %r: %s\n%s", path, err, err.output.rstrip())
+            except UnicodeDecodeError as err:
+                error("invalid encoding in %r: %s", path, err)
+                encoding_errors.append(path)
+        else:
+            warning("cannot format %s (file type not supported)", path)
+
+    # report encoding errors
+    if encoding_errors:
+        print(
+            "=======================================",
+            " Detected files with encoding (UTF-8) errors:",
+            sep="\n",
+        )
+        print("", *encoding_errors, sep="\n - ")
+        print("", "=======================================", sep="\n")
+
+    # check if we need to create a patch file
+    if patch:
+        # we found some
+        from email.message import Message
+        from email.utils import formatdate
+
+        msg = Message()
+        msg.add_header("From", "Gitlab CI <noreply@cern.ch>")
+        msg.add_header("Date", formatdate())
+        msg.add_header("Subject", "[PATCH] Fixed formatting")
+        payload = "\n".join(
+            [
+                "patch generated by {}".format(
+                    "{CI_PROJECT_URL}/-/jobs/{CI_JOB_ID}".format(**os.environ)
+                    if "CI" in os.environ
+                    else "standalone job"
+                ),
+                "",
+                "",
+                "".join(patch),
+            ]
+        )
+        try:
+            payload.encode("ascii")
+        except UnicodeEncodeError:
+            charset = "utf-8"
+        else:
+            charset = None
+        msg.set_payload(payload, charset=charset)
+
+        if args.format_patch == "-":
+            print(msg)
+        else:
+            if os.path.dirname(args.format_patch) and not os.path.isdir(os.path.dirname(args.format_patch)):
+                os.makedirs(os.path.dirname(args.format_patch))
+            with open(args.format_patch, "wb") as patchfile:
+                patchfile.write(bytes(msg))
+            print(
+                "=======================================",
+                " You can fix formatting with:",
+                "",
+                sep="\n",
+            )
+            if "CI" in os.environ:
+                print(
+                    "   curl {CI_PROJECT_URL}/-/jobs/{CI_JOB_ID}/artifacts/raw/{0} | git am".format(
+                        args.format_patch, **os.environ
+                    )
+                )
+            else:
+                print(f"   git am {args.format_patch}")
+            print("", "=======================================", sep="\n")
+
+    if patch or encoding_errors:
+        exit(1)
+
+
+if __name__ == "__main__":
+    format_code()

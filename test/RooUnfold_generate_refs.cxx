@@ -3,9 +3,10 @@
 using std::cout;
 using std::endl;
 
-int main(){
-    RooUnfoldGenerate();
-    RooUnfoldGenerateVariable();
-    WriteRooUnfoldBayes(0);
-    WriteRooUnfoldBayes(1);
+int main()
+{
+   RooUnfoldGenerate();
+   RooUnfoldGenerateVariable();
+   WriteRooUnfoldBayes(0);
+   WriteRooUnfoldBayes(1);
 }

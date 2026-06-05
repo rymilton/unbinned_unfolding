@@ -1,3 +1,18 @@
+/*===========================================================================*/
+/*
+ * BEGIN ROOUNFOLD COPYRIGHT
+ * RooUnfold — Unfolding library for particle-physics inverse problems
+ *
+ * Copyright © 2010–2025 CERN and the authors’ respective research institutions
+ * Please refer to the CONTRIBUTORS file for details.
+ *
+ * License: BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * END ROOUNFOLD COPYRIGHT
+ */
+/*===========================================================================*/
+
 //=====================================================================-*-C++-*-
 // File and Version Information:
 //      $Id$
@@ -24,31 +39,38 @@
 
 class ArgVars : public TObject {
 private:
-  TList lst;
-  static bool CmpOpt (const char* p, const char*  opt, const char* s);
-  ArgVar* Find (const char* name) const;
-  ArgVars& Add (ArgVar* arg);
+   TList lst;
+   static bool CmpOpt(const char *p, const char *opt, const char *s);
+   ArgVar *Find(const char *name) const;
+   ArgVars &Add(ArgVar *arg);
+
 public:
-  ArgVars() { lst.SetOwner(); }
-  virtual ~ArgVars();
-  ArgVars& Add (const char* name,    Int_t* var) { return Add (new ArgVar (name, var)); }
-  ArgVars& Add (const char* name, Double_t* var) { return Add (new ArgVar (name, var)); }
-  ArgVars& Add (const char* name,    Int_t* var, Int_t    def, const char* help=0, const char* defhelp=0)
-    { return Add (new ArgVar (name, var, def, help, defhelp)); }
-  ArgVars& Add (const char* name, Double_t* var, Double_t def, const char* help=0, const char* defhelp=0)
-    { return Add (new ArgVar (name, var, def, help, defhelp)); }
-  ArgVars& Add (const char* name,  TString* var, const TString& def, const char* help=0, const char* defhelp=0)
-    { return Add (new ArgVar (name, var, def, help, defhelp)); }
-  ArgVars& Add (const ArgVars& args);
-  ArgVars& SetDefault (const char* name, Int_t    def);
-  ArgVars& SetDefault (const char* name, Double_t def);
-  ArgVars& SetDefault (const char* name, const TString& def);
-  Int_t SetArgs (int argc, const char* const* argv, bool split= false) const;
-  void  SetDefaults() const;
-  virtual void  Print (std::ostream& o, const char* sep= " ") const;
-  virtual void  Print (const char* sep= " ") const { Print (std::cout, sep); }
-  void  Usage (const char* prog) const;
-  void  ArgHelp (std::ostream& o) const;
+   ArgVars() { lst.SetOwner(); }
+   virtual ~ArgVars();
+   ArgVars &Add(const char *name, Int_t *var) { return Add(new ArgVar(name, var)); }
+   ArgVars &Add(const char *name, Double_t *var) { return Add(new ArgVar(name, var)); }
+   ArgVars &Add(const char *name, Int_t *var, Int_t def, const char *help = 0, const char *defhelp = 0)
+   {
+      return Add(new ArgVar(name, var, def, help, defhelp));
+   }
+   ArgVars &Add(const char *name, Double_t *var, Double_t def, const char *help = 0, const char *defhelp = 0)
+   {
+      return Add(new ArgVar(name, var, def, help, defhelp));
+   }
+   ArgVars &Add(const char *name, TString *var, const TString &def, const char *help = 0, const char *defhelp = 0)
+   {
+      return Add(new ArgVar(name, var, def, help, defhelp));
+   }
+   ArgVars &Add(const ArgVars &args);
+   ArgVars &SetDefault(const char *name, Int_t def);
+   ArgVars &SetDefault(const char *name, Double_t def);
+   ArgVars &SetDefault(const char *name, const TString &def);
+   Int_t SetArgs(int argc, const char *const *argv, bool split = false) const;
+   void SetDefaults() const;
+   virtual void Print(std::ostream &o, const char *sep = " ") const;
+   virtual void Print(const char *sep = " ") const { Print(std::cout, sep); }
+   void Usage(const char *prog) const;
+   void ArgHelp(std::ostream &o) const;
 };
 
 #ifndef NOINLINE

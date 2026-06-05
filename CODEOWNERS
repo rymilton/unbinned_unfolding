@@ -1,0 +1,64 @@
+src/RooFitUnfold.h  @tim.adye @richard.claridge @cburgard @roel.aaij
+src/RooUnfoldBayes.h  @tim.adye @Fergus.Wilson @richard.claridge @cburgard @lbrenner @roel.aaij
+src/RooUnfoldBinByBin.h  @tim.adye @richard.claridge @cburgard @roel.aaij
+src/RooUnfoldErrors.h  @richard.claridge @tim.adye @cburgard @roel.aaij
+src/RooUnfoldFitHelpers.h  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldGP.h  @cburgard @tim.adye @roel.aaij
+src/RooUnfold.h  @tim.adye @richard.claridge @cburgard @vincent.croft @kavtaradze @lbrenner @callum189 @roel.aaij
+src/RooUnfoldHelpers.h  @cburgard @vincent.croft @roel.aaij
+src/RooUnfoldIds.h  @chris.meyer @tim.adye @cburgard @roel.aaij
+src/RooUnfoldInvert.h  @richard.claridge @tim.adye @cburgard @roel.aaij
+src/RooUnfold_LinkDef.h  @tim.adye @richard.claridge @cburgard @vincent.croft @roel.aaij
+src/RooUnfoldParms.h  @richard.claridge @tim.adye @cburgard @roel.aaij
+src/RooUnfoldPoisson.h  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldResponse.h  @tim.adye @cburgard @roel.aaij
+src/RooUnfoldSvd.h  @tim.adye @richard.claridge @cburgard @vincent.croft @roel.aaij
+src/RooUnfoldTH1Helpers.h  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldTUnfold.h  @richard.claridge @tim.adye @cburgard @andre.philippe.sailer @roel.aaij
+src/RooFitUnfold.cxx  @cburgard @lbrenner @tim.adye @callum189 @maria.lyukova @roel.aaij
+src/RooUnfoldBayes.cxx  @tim.adye @Fergus.Wilson @richard.claridge @cburgard @David.Hutchcroft @vincent.croft @lbrenner @roel.aaij
+src/RooUnfoldBinByBin.cxx  @tim.adye @richard.claridge @cburgard @David.Hutchcroft @roel.aaij
+src/RooUnfold.cxx  @tim.adye @richard.claridge @cburgard @archit18221 @David.Hutchcroft @vincent.croft @kavtaradze @maria.lyukova @roel.aaij
+src/RooUnfoldErrors.cxx  @richard.claridge @tim.adye @cburgard @David.Hutchcroft @roel.aaij
+src/RooUnfoldFitHelpers.cxx  @cburgard @tim.adye @maria.lyukova @roel.aaij
+src/RooUnfoldGP.cxx  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldHelpers.cxx  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldIds.cxx  @chris.meyer @tim.adye @cburgard @David.Hutchcroft @vincent.croft @roel.aaij
+src/RooUnfoldInvert.cxx  @richard.claridge @tim.adye @cburgard @David.Hutchcroft @roel.aaij
+src/RooUnfoldParms.cxx  @richard.claridge @tim.adye @cburgard @David.Hutchcroft @roel.aaij
+src/RooUnfoldPoisson.cxx  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldResponse.cxx  @tim.adye @richard.claridge @cburgard @David.Hutchcroft @lbrenner @maria.lyukova @roel.aaij
+src/RooUnfoldSvd.cxx  @tim.adye @richard.claridge @cburgard @David.Hutchcroft @vincent.croft @roel.aaij
+src/RooUnfoldTH1Helpers.cxx  @cburgard @tim.adye @roel.aaij
+src/RooUnfoldTUnfold.cxx  @richard.claridge @tim.adye @cburgard @David.Hutchcroft @vincent.croft @andre.philippe.sailer @roel.aaij
+test/generateRef.py  @vincent.croft @archit18221 @cburgard @roel.aaij
+test/test_2D.py  @vincent.croft @roel.aaij
+test/test_3D.py  @vincent.croft @roel.aaij
+test/test_bin_correlation.py  @vincent.croft @roel.aaij
+test/test_fakes.py  @vincent.croft @roel.aaij
+test/test_methods.py  @vincent.croft @roel.aaij
+test/test_overflow.py  @vincent.croft @roel.aaij
+test/test_uncertainty.py  @archit18221 @vincent.croft @roel.aaij
+test/test_utils.py  @vincent.croft @cburgard @roel.aaij
+test/src/ArgVar.h  @tim.adye @vincent.croft @roel.aaij
+test/src/ArgVars.cxx  @tim.adye @vincent.croft @roel.aaij
+test/src/ArgVars.h  @tim.adye @vincent.croft @roel.aaij
+test/src/bayes_test.cxx  @vincent.croft @tim.adye @roel.aaij
+test/src/dbg.h  @vincent.croft @roel.aaij
+test/src/generate_test.cxx  @vincent.croft @roel.aaij
+test/src/minunit.h  @vincent.croft @tim.adye @roel.aaij
+test/src/response_test.cxx  @vincent.croft @roel.aaij
+test/src/RooUnfoldTest2D.cxx  @tim.adye @Fergus.Wilson @vincent.croft @roel.aaij
+test/src/RooUnfoldTest3D.cxx  @tim.adye @vincent.croft @roel.aaij
+test/src/RooUnfoldTest.cxx  @tim.adye @Fergus.Wilson @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness2D.cxx  @richard.claridge @tim.adye @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness2D.h  @tim.adye @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness3D.cxx  @tim.adye @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness3D.h  @tim.adye @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness.cxx  @tim.adye @Fergus.Wilson @richard.claridge @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestHarness.h  @richard.claridge @tim.adye @cburgard @vincent.croft @roel.aaij
+test/src/RooUnfoldTestPdf.cxx  @tim.adye @Fergus.Wilson @vincent.croft @roel.aaij
+test/src/RooUnfoldTestPdfRooFit.cxx  @tim.adye @Fergus.Wilson @vincent.croft @roel.aaij
+test/src/RooUnfold_unit_tests.cxx  @vincent.croft @tim.adye @roel.aaij
+test/src/unittests.h  @vincent.croft @tim.adye
+python/__init__.py  @cburgard @roel.aaij

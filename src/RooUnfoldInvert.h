@@ -1,3 +1,18 @@
+/*===========================================================================*/
+/*
+ * BEGIN ROOUNFOLD COPYRIGHT
+ * RooUnfold — Unfolding library for particle-physics inverse problems
+ *
+ * Copyright © 2010–2025 CERN and the authors’ respective research institutions
+ * Please refer to the CONTRIBUTORS file for details.
+ *
+ * License: BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * END ROOUNFOLD COPYRIGHT
+ */
+/*===========================================================================*/
+
 //=====================================================================-*-C++-*-
 //! \class RooUnfoldInvertT
 //! \brief Unfolding class using inversion of the response matrix. This does not produce
@@ -14,46 +29,48 @@
 
 class TDecompSVD;
 
-template<class Hist, class Hist2D>
-class RooUnfoldInvertT : public RooUnfoldT<Hist,Hist2D> {
+template <class Hist, class Hist2D>
+class RooUnfoldInvertT : public RooUnfoldT<Hist, Hist2D> {
 
 public:
-  RooUnfoldInvertT(); // default constructor
-  RooUnfoldInvertT (const char*    name, const char*    title); // named constructor
-  RooUnfoldInvertT (const TString& name, const TString& title); // named constructor
-  RooUnfoldInvertT (const RooUnfoldInvertT<Hist,Hist2D>& rhs); // copy constructor
-  virtual ~RooUnfoldInvertT(); // destructor
-  RooUnfoldInvertT& operator= (const RooUnfoldInvertT<Hist,Hist2D>& rhs); // assignment operator
-  RooUnfoldInvertT (const RooUnfoldResponseT<Hist,Hist2D>* res, const Hist* meas, const char* name=0, const char* title=0);
+   RooUnfoldInvertT();                                                     // default constructor
+   RooUnfoldInvertT(const char *name, const char *title);                  // named constructor
+   RooUnfoldInvertT(const TString &name, const TString &title);            // named constructor
+   RooUnfoldInvertT(const RooUnfoldInvertT<Hist, Hist2D> &rhs);            // copy constructor
+   virtual ~RooUnfoldInvertT();                                            // destructor
+   RooUnfoldInvertT &operator=(const RooUnfoldInvertT<Hist, Hist2D> &rhs); // assignment operator
+   RooUnfoldInvertT(const RooUnfoldResponseT<Hist, Hist2D> *res, const Hist *meas, const char *name = 0,
+                    const char *title = 0);
 
-  virtual RooUnfolding::Algorithm GetAlgorithm() const override;  
-  virtual void Reset() override;
-  TDecompSVD* Impl();
-  
+   virtual RooUnfolding::Algorithm GetAlgorithm() const override;
+   virtual void Reset() override;
+   TDecompSVD *Impl();
+   const TMatrixD &InverseResponse() const;
+
 protected:
-  virtual void Unfold() const override;
-  virtual void GetCov() const override;
+   virtual void Unfold() const override;
+   virtual void GetCov() const override;
 
 private:
-  void Init();
-  Bool_t InvertResponse() const;
+   void Init();
+   Bool_t InvertResponse() const;
 
 protected:
-  // instance variables
-  mutable TDecompSVD* _svd;
-  mutable TMatrixD*   _resinv;
+   // instance variables
+   mutable TDecompSVD *_svd;
+   mutable TMatrixD *_resinv;
 
 public:
-  ClassDefOverride (RooUnfoldInvertT, 1)  // Unregularised unfolding
+   ClassDefOverride(RooUnfoldInvertT, 1) // Unregularised unfolding
 };
 
-//! \class RooUnfoldInvert 
+//! \class RooUnfoldInvert
 //! \brief specialization of RooUnfoldInvertT for TH1/TH2 objects
-typedef RooUnfoldInvertT<TH1,TH2> RooUnfoldInvert;
+typedef RooUnfoldInvertT<TH1, TH2> RooUnfoldInvert;
 #ifndef NOROOFIT
 //! \class RooFitUnfoldInvert
 //! \brief specialization of RooUnfoldInvertT for RooAbsReal objects
-typedef RooUnfoldInvertT<RooUnfolding::RooFitHist,RooUnfolding::RooFitHist> RooFitUnfoldInvert;
+typedef RooUnfoldInvertT<RooUnfolding::RooFitHist, RooUnfolding::RooFitHist> RooFitUnfoldInvert;
 #endif
 
 #endif /*ROOUNFOLDINVERT_H_*/

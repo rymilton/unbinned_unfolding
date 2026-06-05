@@ -1,0 +1,36 @@
+[workspace]
+channels = ["conda-forge"]
+name = "RooUnfold"
+platforms = ["linux-64", "osx-arm64"]
+version = "3.0.5"
+preview = ["pixi-build"]
+
+[tasks]
+
+[dependencies]
+roounfold = { path = "." }
+
+[pypi-dependencies]
+RooUnfold = { path = "." }
+
+# pixi-build info
+[package]
+name = "roounfold"
+version = "3.0.5"
+
+[package.build.backend]
+name = "pixi-build-cmake"
+version = "*"
+
+[package.build.config]
+# Add CMake configuration options
+extra-args = ["-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_TOOLCHAIN_FILE=./cmake/conda-toolchain.cmake"]
+
+# pixi-build-cmake backend sets cmake, ninja, and compilers
+# https://pixi.sh/latest/build/dependency_types/#build-dependencies
+[package.build-dependencies]
+root_base = ">=6.36.4,<6.39"
+
+[package.host-dependencies]
+root_base = ">=6.36.4,<6.39"
+python = ">=3.6"

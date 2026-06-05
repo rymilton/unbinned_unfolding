@@ -1,3 +1,18 @@
+/*===========================================================================*/
+/*
+ * BEGIN ROOUNFOLD COPYRIGHT
+ * RooUnfold — Unfolding library for particle-physics inverse problems
+ *
+ * Copyright © 2021–2025 CERN and the authors’ respective research institutions
+ * Please refer to the CONTRIBUTORS file for details.
+ *
+ * License: BSD-3-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
+ *
+ * END ROOUNFOLD COPYRIGHT
+ */
+/*===========================================================================*/
+
 #ifndef __UNITTESTS_H__
 #define __UNITTESTS_H__
 

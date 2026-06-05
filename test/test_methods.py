@@ -1,14 +1,22 @@
+# BEGIN ROOUNFOLD COPYRIGHT
+# RooUnfold — Unfolding library for particle-physics inverse problems
+#
+# Copyright © 2021–2025 CERN and the authors’ respective research institutions
+# Please refer to the CONTRIBUTORS file for details.
+#
+# License: BSD-3-Clause
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# END ROOUNFOLD COPYRIGHT
+
 from test_utils import perform_test
 import os
 
-if __name__ == '__main__':
-    parms = {
-        'method': ['1', '2', '3', '4', '5', '6'],
-        'verbose': ['3']
-    }
+if __name__ == "__main__":
+    parms = {"method": ["1", "2", "3", "4", "5", "6"], "verbose": ["3"]}
     ref_file_name = "../ref/test_methods.ref"
-    test_name = 'test_methods'
-    field_to_compare = ['unfold']
+    test_name = "test_methods"
+    field_to_compare = ["unfold"]
     perform_test(parms, ref_file_name, test_name, field_to_compare)
 
     ## For plotting

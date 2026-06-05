@@ -1,11 +1,13 @@
 ############################################
 ## global settings & macros
-############################################     
+############################################
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  
+  TARGET_BRANCH: master
+
 stages:
+  - check
   - build
   - test
   - doc
@@ -13,13 +15,14 @@ stages:
 
 .latex: &latex
   stage: doc
-  image: blang/latex:ubuntu
+  image: registry.cern.ch/docker.io/blang/latex:ubuntu
 
-.standalone: &standalone    
-  image: rootproject/root:6.22.00-ubuntu20.04
+.standalone: &standalone
+  image: registry.cern.ch/docker.io/rootproject/root:6.32.02-ubuntu24.04
   before_script:
     - apt-get update
-    - apt-get -y install python
+    - apt-get -y install python-is-python3 libvdt0.4
+    - export CMAKE_PREFIX_PATH=$JSONMCPP__HOME:$VDT__HOME:$CMAKE_PREFIX_PATH
 
 .doxygen: &doxygen
   <<: *standalone
@@ -28,7 +31,7 @@ stages:
     - apt-get -y install doxygen
   stage: doc
 
-.ctest: &ctest  
+.ctest: &ctest
   stage: test
   script:
     - cd build
@@ -37,9 +40,9 @@ stages:
   artifacts:
     when: on_failure
     paths:
-      - "*.ref"    
+      - "*.ref"
 
-.cmake: &cmake    
+.cmake: &cmake
   stage: build
   script:
     - mkdir build
@@ -50,7 +53,7 @@ stages:
     paths:
       - build
 
-.GNUmake: &GNUmake    
+.GNUmake: &GNUmake
   stage: build
   script:
     make -j1 NOROOFIT=1
@@ -61,31 +64,58 @@ stages:
       - libRooUnfold.rootmap
       - RooUnfold/*.py
 
+.pixi: &pixi
+  stage: build
+  script:
+    - curl -fsSL https://pixi.sh/install.sh | sh
+    - . $HOME/.bashrc
+    - pixi install
+
+
+############################################
+## formatting
+############################################
+check_formatting:
+  stage: check
+  tags:
+    - cvmfs
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
+  script:
+    - . /cvmfs/sft.cern.ch/lcg/views/setupViews.sh LCG_107 x86_64-el9-clang19-opt
+    - python3 format-source --format-patch apply-formatting.patch origin/${TARGET_BRANCH}
+  artifacts:
+    paths:
+      - apply-formatting.patch
+    when: on_failure
+    expire_in: 1 week
+
 ############################################
 ## building
-############################################     
-    
+############################################
+
 compile_cmake:
   <<: *standalone
   <<: *cmake
 
 compile_GNUmake:
   <<: *standalone
-  <<: *GNUmake  
+  <<: *GNUmake
+
+compile_pixi:
+  <<: *pixi
 
 
-
-############################################           
-## testing      
+############################################
+## testing
 ############################################
 
 test_cmake:
   <<: *standalone
-  <<: *ctest  
+  <<: *ctest
   dependencies:
     - compile_cmake
 
-############################################         
+############################################
 ## documentation
 ############################################
 
@@ -94,7 +124,7 @@ doxygen:
   artifacts:
     paths:
       - build/doxygen
-  dependencies: []      
+  dependencies: []
   script:
     - mkdir build
     - cd build
@@ -110,18 +140,18 @@ doc_bayes_errors:
   artifacts:
     paths:
       - doc/bayes_errors/bayes_errors.pdf
-    
+
 doc_phystat2011:
   <<: *latex
   script:
     - cd doc/phystat2011
     - pdflatex phystat2011_adye.tex
-    - pdflatex phystat2011_adye.tex    
+    - pdflatex phystat2011_adye.tex
   artifacts:
     paths:
       - doc/phystat2011/phystat2011_adye.pdf
 
-doc_unfolding2010:      
+doc_unfolding2010:
   <<: *latex
   script:
     - cd doc/unfolding2010
@@ -130,9 +160,9 @@ doc_unfolding2010:
   artifacts:
     paths:
       - doc/unfolding2010/adye_tim.pdf
-      - doc/unfolding2010/adye_tim.pdf      
+      - doc/unfolding2010/adye_tim.pdf
 
-############################################         
+############################################
 ## documentation
 ############################################
 

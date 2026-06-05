@@ -12,11 +12,17 @@ This repository contains the RooUnfoldOmnifold class that is an implementation o
 Building the library
 ---
 
+From source using CVMFS
+----
+
 RooUnfold uses [ROOT](https://root.cern.ch/). The ROOT web site has [instructions](https://root.cern/install/)
 for installing ROOT on different systems in various ways.
-In particular, ROOT is already installed on [CERN lxplus](https://lxplusdoc.web.cern.ch/). Alternatively, if you have [CVMFS](https://cernvm.cern.ch/fs/), it is available using, eg. for CentOS7:
+In particular, ROOT is already installed on [CERN
+lxplus](https://lxplusdoc.web.cern.ch/). Alternatively, if you have
+[CVMFS](https://cernvm.cern.ch/fs/), it is available using, eg. for
+EL9 (Redhat, Alma, Rocky, etc.):
 ```
-source /cvmfs/sft.cern.ch/lcg/views/LCG_100/x86_64-centos7-gcc10-opt/setup.sh
+source /cvmfs/sft.cern.ch/lcg/views/LCG_106a/x86_64-el9-gcc14-opt/setup.sh
 ```
 
 Check out this repository
@@ -34,6 +40,21 @@ Build with `cmake`, using
     source build/setup.sh
     
 Please make sure that you source the setup.sh script before using this class. The RooUnfoldOmnifold class looks for a RooUnfold installation in the PATH variables and will use choose the installation that is most recently sourced. 
+
+From source with Pixi
+----
+
+With [Pixi](https://pixi.sh/latest/installation/) installed run
+
+```
+pixi install
+```
+
+or
+
+```
+pixi shell
+```
 
 Usage
 ---
