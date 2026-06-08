@@ -16,7 +16,7 @@
 
 import sys
 
-method = "bayes"
+method = "omnifold"
 if len(sys.argv) > 1:
     method = sys.argv[1]
 
@@ -70,6 +70,8 @@ for i in range(10000):
 
 if method == "bayes":
     unfold = ROOT.RooUnfoldBayes(response, hMeas, 4)  #  OR
+elif method == "omnifold":
+    unfold = ROOT.RooUnfoldOmnifold(response, hMeas, 4)  #  OR
 elif method == "svd":
     unfold = ROOT.RooUnfoldSvd(response, hMeas, 20)  #  OR
 elif method == "bbb":
