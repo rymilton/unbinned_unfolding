@@ -177,6 +177,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   TH1D *MCtruth_hist = (TH1D*) response->Htruth();
   TH1D *MCreco_hist = (TH1D*) response->Hmeasured();
 
+  // Rebinning a new response histogram
+  // With variable binning, this procedure is required to make the resulting truth histogram binning correct.
   int nBinsX = MCreco_hist->GetNbinsX();
   std::vector<double> xEdges(nBinsX + 1);
   for (int i = 1; i <= nBinsX; ++i) {
