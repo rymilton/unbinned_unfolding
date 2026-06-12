@@ -193,7 +193,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   yEdges[nBinsY] = MCtruth_hist->GetXaxis()->GetBinUpEdge(nBinsY);
 
   // --- Create new TH2D with variable-width bins ---
-  TH2D* response_hist_new = new TH2D(
+  TH2D* response_hist_rebinned = new TH2D(
       Form("%s_rebinned", response_hist->GetName()),
       response_hist->GetTitle(),
       nBinsX, xEdges.data(),
@@ -206,8 +206,8 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
           double content = response_hist->GetBinContent(ix, iy);
           double error   = response_hist->GetBinError(ix, iy);
 
-          response_hist_new->SetBinContent(ix, iy, content);
-          response_hist_new->SetBinError(ix, iy, error);
+          response_hist_rebinned->SetBinContent(ix, iy, content);
+          response_hist_rebinned->SetBinError(ix, iy, error);
       }
   }
 
@@ -216,7 +216,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
 
 
   // Sending histograms to Python
-  TPython::Bind( response_hist_new, "response_hist" ); 
+  TPython::Bind( response_hist_rebinned, "response_hist" ); 
   TPython::Bind( measured_hist, "measured_hist" );
   // Converting num_iterations to a TObject* to convert to Python
   TPython::Exec(Form("num_iterations = %d", _niter));
@@ -246,6 +246,7 @@ RooUnfoldOmnifoldT<Hist,Hist2D>::BinnedOmnifold() const
   {
       unfolded_content[i] = unfolded_hist->GetBinContent(i+1);
   }
+  delete response_hist_rebinned;
   this->_cache._rec.ResizeTo(unfolded_content);
   this->_cache._rec = unfolded_content;
   this->_cache._unfolded= true;
